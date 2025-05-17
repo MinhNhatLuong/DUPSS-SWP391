@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý khóa học - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for role filtering -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Quản trị viên</h2>
+                <p>Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</p>
+            </div>
+            <div class="role-filter">
+                <h3>Lọc theo vai trò</h3>
+                <ul class="role-list">
+                    <li><button>Tất cả người dùng</button></li>
+                    <li><button>Thành viên</button></li>
+                    <li><button>Chuyên viên tư vấn</button></li>
+                    <li><button>Nhân viên</button></li>
+                    <li><button>Quản lý</button></li>
+                </ul>
+            </div>
+            <div class="admin-menu">
+                <h3>Quản lý hệ thống</h3>
+                <ul class="menu-list">
+                    <li><button onclick="window.location.href='index.html'">Quản lý người dùng</button></li>
+                    <li><button class="active">Quản lý khóa học</button></li>
+                    <li><button onclick="window.location.href='surveys.html'">Quản lý khảo sát</button></li>
+                    <li><button onclick="window.location.href='appointments.html'">Quản lý lịch hẹn</button></li>
+                    <li><button onclick="window.location.href='programs.html'">Quản lý chương trình</button></li>
+                    <li><button onclick="window.location.href='reports.html'">Báo cáo & Thống kê</button></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Quản lý khóa học</h1>
+                <div class="header-actions">
+                    <button class="add-course-btn" onclick="openAddCourseModal()">+ Thêm khóa học mới</button>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Tìm kiếm khóa học...">
+                        <button>Tìm kiếm</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course table -->
+            <div class="user-table course-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ảnh</th>
+                            <th>Tên khóa học</th>
+                            <th>Giảng viên</th>
+                            <th>Thời lượng</th>
+                            <th>Số học viên</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>C001</td>
+                            <td><img src="https://via.placeholder.com/40x40" alt="Course" class="course-thumbnail"></td>
+                            <td>Nhận thức về tác hại của ma túy</td>
+                            <td>Nguyễn Văn A</td>
+                            <td>8 tuần</td>
+                            <td>45</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openCourseModal('C001')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditCourseModal('C001')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteCourse('C001')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>C002</td>
+                            <td><img src="https://via.placeholder.com/40x40" alt="Course" class="course-thumbnail"></td>
+                            <td>Kỹ năng từ chối ma túy</td>
+                            <td>Trần Thị B</td>
+                            <td>6 tuần</td>
+                            <td>38</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openCourseModal('C002')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditCourseModal('C002')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteCourse('C002')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>C003</td>
+                            <td><img src="https://via.placeholder.com/40x40" alt="Course" class="course-thumbnail"></td>
+                            <td>Phòng ngừa tái nghiện</td>
+                            <td>Lê Văn C</td>
+                            <td>12 tuần</td>
+                            <td>25</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openCourseModal('C003')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditCourseModal('C003')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteCourse('C003')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>C004</td>
+                            <td><img src="https://via.placeholder.com/40x40" alt="Course" class="course-thumbnail"></td>
+                            <td>Hỗ trợ tâm lý cho người nghiện</td>
+                            <td>Phạm Thị D</td>
+                            <td>10 tuần</td>
+                            <td>32</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openCourseModal('C004')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditCourseModal('C004')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteCourse('C004')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>C005</td>
+                            <td><img src="https://via.placeholder.com/40x40" alt="Course" class="course-thumbnail"></td>
+                            <td>Giáo dục phòng ngừa cho thanh thiếu niên</td>
+                            <td>Hoàng Văn E</td>
+                            <td>8 tuần</td>
+                            <td>50</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openCourseModal('C005')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditCourseModal('C005')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteCourse('C005')">Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button>&laquo;</button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>&raquo;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course details modal -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCourseModal()">&times;</span>
+            <div class="modal-header">
+                <img id="modalCourseThumbnail" src="" alt="Course Thumbnail" class="modal-avatar">
+                <div class="modal-course-info">
+                    <h2 id="modalCourseName"></h2>
+                    <p id="modalCourseId"></p>
+                    <p id="modalCourseInstructor"></p>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="course-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Thời lượng:</span>
+                        <span id="modalCourseDuration" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Số học viên:</span>
+                        <span id="modalCourseStudents" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Ngày bắt đầu:</span>
+                        <span id="modalCourseStartDate" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mô tả:</span>
+                        <span id="modalCourseDescription" class="detail-value"></span>
+                    </div>
+                </div>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openCourseTab(event, 'courseContent')">Nội dung khóa học</button>
+                    <button class="tablinks" onclick="openCourseTab(event, 'enrolledStudents')">Học viên đã đăng ký</button>
+                    <button class="tablinks" onclick="openCourseTab(event, 'courseProgress')">Tiến độ khóa học</button>
+                    <button class="tablinks" onclick="openCourseTab(event, 'courseReviews')">Đánh giá</button>
+                </div>
+                
+                <div id="courseContent" class="tabcontent" style="display: block;">
+                    <h3>Nội dung khóa học</h3>
+                    <ul class="course-modules">
+                        <li>
+                            <h4>Module 1: Giới thiệu</h4>
+                            <p>Tổng quan về khóa học và các mục tiêu học tập</p>
+                        </li>
+                        <li>
+                            <h4>Module 2: Kiến thức cơ bản</h4>
+                            <p>Các khái niệm và thông tin nền tảng về chủ đề</p>
+                        </li>
+                        <li>
+                            <h4>Module 3: Kỹ năng thực hành</h4>
+                            <p>Hướng dẫn và bài tập thực hành</p>
+                        </li>
+                        <li>
+                            <h4>Module 4: Nghiên cứu tình huống</h4>
+                            <p>Phân tích các tình huống thực tế và cách giải quyết</p>
+                        </li>
+                        <li>
+                            <h4>Module 5: Đánh giá và tổng kết</h4>
+                            <p>Bài kiểm tra và tổng kết khóa học</p>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div id="enrolledStudents" class="tabcontent">
+                    <h3>Học viên đã đăng ký</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Họ và tên</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Tiến độ</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>001</td>
+                                <td>Nguyễn Văn X</td>
+                                <td>10/05/2023</td>
+                                <td>75%</td>
+                                <td>Đang học</td>
+                            </tr>
+                            <tr>
+                                <td>002</td>
+                                <td>Trần Thị Y</td>
+                                <td>12/05/2023</td>
+                                <td>60%</td>
+                                <td>Đang học</td>
+                            </tr>
+                            <tr>
+                                <td>003</td>
+                                <td>Lê Văn Z</td>
+                                <td>15/05/2023</td>
+                                <td>40%</td>
+                                <td>Đang học</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="courseProgress" class="tabcontent">
+                    <h3>Tiến độ khóa học</h3>
+                    <div class="progress-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Hoàn thành:</span>
+                            <span class="stat-value">15 học viên (30%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Đang học:</span>
+                            <span class="stat-value">30 học viên (60%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Bỏ dở:</span>
+                            <span class="stat-value">5 học viên (10%)</span>
+                        </div>
+                    </div>
+                    <div class="progress-chart">
+                        <!-- Placeholder for chart -->
+                        <div style="height: 200px; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center;">
+                            <p>Biểu đồ tiến độ khóa học</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="courseReviews" class="tabcontent">
+                    <h3>Đánh giá từ học viên</h3>
+                    <div class="review-summary">
+                        <div class="rating">
+                            <span class="rating-value">4.5/5</span>
+                            <div class="stars">
+                                ★★★★☆
+                            </div>
+                            <span class="review-count">(25 đánh giá)</span>
+                        </div>
+                    </div>
+                    <ul class="review-list">
+                        <li class="review-item">
+                            <div class="review-header">
+                                <span class="reviewer-name">Nguyễn Văn X</span>
+                                <span class="review-date">20/06/2023</span>
+                                <div class="review-stars">★★★★★</div>
+                            </div>
+                            <p class="review-content">Khóa học rất bổ ích và thiết thực. Giảng viên truyền đạt dễ hiểu và có nhiều ví dụ thực tế.</p>
+                        </li>
+                        <li class="review-item">
+                            <div class="review-header">
+                                <span class="reviewer-name">Trần Thị Y</span>
+                                <span class="review-date">18/06/2023</span>
+                                <div class="review-stars">★★★★☆</div>
+                            </div>
+                            <p class="review-content">Nội dung khóa học phong phú, tuy nhiên cần bổ sung thêm tài liệu tham khảo.</p>
+                        </li>
+                        <li class="review-item">
+                            <div class="review-header">
+                                <span class="reviewer-name">Lê Văn Z</span>
+                                <span class="review-date">15/06/2023</span>
+                                <div class="review-stars">★★★★☆</div>
+                            </div>
+                            <p class="review-content">Khóa học giúp tôi hiểu rõ hơn về vấn đề và có thêm nhiều kỹ năng mới.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Course Modal -->
+    <div id="addCourseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddCourseModal()">&times;</span>
+            <h2>Thêm khóa học mới</h2>
+            <form id="addCourseForm">
+                <div class="user-form">
+                    <div class="form-group">
+                        <label for="courseName">Tên khóa học</label>
+                        <input type="text" id="courseName" name="courseName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseInstructor">Giảng viên</label>
+                        <input type="text" id="courseInstructor" name="courseInstructor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDuration">Thời lượng</label>
+                        <input type="text" id="courseDuration" name="courseDuration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseStartDate">Ngày bắt đầu</label>
+                        <input type="date" id="courseStartDate" name="courseStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseImage">Ảnh khóa học</label>
+                        <input type="file" id="courseImage" name="courseImage">
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDescription">Mô tả</label>
+                        <textarea id="courseDescription" name="courseDescription" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeAddCourseModal()">Hủy</button>
+                        <button type="submit">Lưu</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Course Modal -->
+    <div id="editCourseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditCourseModal()">&times;</span>
+            <h2>Chỉnh sửa khóa học</h2>
+            <form id="editCourseForm">
+                <input type="hidden" id="editCourseId" name="editCourseId">
+                <div class="user-form">
+                    <div class="form-group">
+                        <label for="editCourseName">Tên khóa học</label>
+                        <input type="text" id="editCourseName" name="editCourseName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCourseInstructor">Giảng viên</label>
+                        <input type="text" id="editCourseInstructor" name="editCourseInstructor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCourseDuration">Thời lượng</label>
+                        <input type="text" id="editCourseDuration" name="editCourseDuration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCourseStartDate">Ngày bắt đầu</label>
+                        <input type="date" id="editCourseStartDate" name="editCourseStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCourseImage">Ảnh khóa học</label>
+                        <input type="file" id="editCourseImage" name="editCourseImage">
+                        <div class="avatar-preview">
+                            <img id="editCourseImagePreview" src="" alt="Course Thumbnail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCourseDescription">Mô tả</label>
+                        <textarea id="editCourseDescription" name="editCourseDescription" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeEditCourseModal()">Hủy</button>
+                        <button type="submit">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteCourseModal" class="modal">
+        <div class="modal-content delete-confirm-modal">
+            <span class="close" onclick="closeDeleteCourseModal()">&times;</span>
+            <h2>Xác nhận xóa</h2>
+            <p>Bạn có chắc chắn muốn xóa khóa học này không? Hành động này không thể hoàn tác.</p>
+            <div class="form-actions">
+                <button type="button" onclick="closeDeleteCourseModal()">Hủy</button>
+                <button type="button" class="delete-confirm-btn" onclick="deleteCourse()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="courses.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>

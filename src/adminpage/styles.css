@@ -1,0 +1,686 @@
+/* Main color variables */
+:root {
+    --primary-color: #1e88e5; /* Màu xanh chính */
+    --primary-dark: #1565c0; /* Màu xanh đậm */
+    --primary-light: #bbdefb; /* Màu xanh nhạt */
+    --white: #ffffff;
+    --light-gray: #f5f5f5;
+    --text-dark: #333333;
+    --border-color: #e0e0e0;
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--light-gray);
+    color: var(--text-dark);
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 20px 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.sidebar-header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.role-filter {
+    padding: 20px;
+}
+
+.role-filter h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.role-list {
+    list-style: none;
+}
+
+.role-list li {
+    margin-bottom: 10px;
+}
+
+.role-list button {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border-radius: 4px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.role-list button:hover, .role-list button.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.role-list button.active {
+    border-left: 4px solid var(--white);
+    font-weight: bold;
+}
+
+/* Main content styles */
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    color: var(--primary-dark);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+}
+
+.search-bar input {
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px 0 0 4px;
+    width: 300px;
+}
+
+.search-bar button {
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+/* User table styles */
+.user-table {
+    width: 100%;
+    background-color: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.user-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.user-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-table tr:last-child td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-table tr:hover {
+    background-color: rgba(187, 222, 251, 0.2);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.view-details-btn {
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.view-details-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Add button styles */
+.add-user-btn, .add-course-btn, .add-survey-btn, .add-appointment-btn, .add-program-btn {
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 15px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.add-user-btn:hover, .add-course-btn:hover, .add-survey-btn:hover, .add-appointment-btn:hover, .add-program-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    padding: 8px 12px;
+    margin: 0 5px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination button.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #777;
+}
+
+.close:hover {
+    color: #333;
+}
+
+.modal-header {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.modal-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.modal-user-info {
+    flex: 1;
+}
+
+.modal-user-info h2 {
+    margin: 0 0 5px 0;
+    color: var(--primary-color);
+}
+
+.modal-user-info p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.user-details {
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.detail-label {
+    font-weight: bold;
+    width: 120px;
+    color: #555;
+}
+
+.detail-value {
+    flex: 1;
+}
+
+/* Tab styles */
+.tab {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.tablinks {
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.tablinks.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.tabcontent {
+    display: none;
+    padding: 15px 0;
+}
+
+/* Activity list */
+.activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activity-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: flex-start;
+}
+
+.activity-date {
+    min-width: 100px;
+    font-size: 14px;
+    color: #777;
+    margin-right: 15px;
+}
+
+.activity-desc {
+    flex: 1;
+}
+
+/* Data tables in tabs */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.data-table th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+}
+
+/* Form styles for add/edit user */
+.user-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.avatar-preview {
+    margin-bottom: 10px;
+}
+
+.avatar-preview img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.form-actions {
+    grid-column: span 2;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.form-actions button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-actions button[type="button"] {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #555;
+}
+
+.form-actions button[type="submit"],
+.form-actions button.delete-confirm-btn {
+    background-color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    color: white;
+}
+
+.delete-confirm-btn {
+    background-color: #f44336 !important;
+    border-color: #f44336 !important;
+}
+
+.delete-confirm-modal {
+    max-width: 500px;
+}
+
+/* Action buttons in user table */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    white-space: nowrap;
+    min-width: 250px;
+}
+
+.view-details-btn,
+.edit-btn,
+.delete-btn {
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+}
+
+.view-details-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.edit-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Header actions with add button */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.add-user-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.add-user-btn:hover {
+    background-color: #1976d2;
+}
+
+/* Admin menu styles */
+.admin-menu {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 10px;
+}
+
+.admin-menu h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-list li {
+    margin-bottom: 10px;
+}
+
+.menu-list button {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border-radius: 4px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.menu-list button:hover, .menu-list button.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-list button.active {
+    border-left: 4px solid var(--white);
+    font-weight: bold;
+}
+
+/* Action buttons in user table - fixed alignment */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.view-details-btn,
+.edit-btn,
+.delete-btn {
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    min-width: 80px;
+    text-align: center;
+}
+
+.view-details-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.edit-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        order: 2;
+    }
+    
+    .main-content {
+        order: 1;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .search-bar {
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+    .search-bar input {
+        width: 100%;
+    }
+    
+    .user-table {
+        overflow-x: auto;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: 600px;
+    }
+    
+    .user-details {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .user-details-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .user-details-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .view-details-btn,
+    .edit-btn,
+    .delete-btn {
+        width: 100%;
+    }
+}

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for role filtering -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Quản trị viên</h2>
+                <p>Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</p>
+            </div>
+            <div class="role-filter">
+                <h3>Lọc theo vai trò</h3>
+                <ul class="role-list">
+                    <li><button class="active">Tất cả người dùng</button></li>
+                    <li><button>Thành viên</button></li>
+                    <li><button>Chuyên viên tư vấn</button></li>
+                    <li><button>Nhân viên</button></li>
+                    <li><button>Quản lý</button></li>
+                </ul>
+            </div>
+            <div class="admin-menu">
+                <h3>Quản lý hệ thống</h3>
+                <ul class="menu-list">
+                    <li><button class="active">Quản lý người dùng</button></li>
+                    <li><button>Quản lý khóa học</button></li>
+                    <li><button>Quản lý khảo sát</button></li>
+                    <li><button>Quản lý lịch hẹn</button></li>
+                    <li><button>Quản lý chương trình</button></li>
+                    <li><button>Báo cáo & Thống kê</button></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Quản lý người dùng</h1>
+                <div class="header-actions">
+                    <button class="add-user-btn" onclick="openAddUserModal()">+ Thêm người dùng mới</button>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Tìm kiếm người dùng...">
+                        <button>Tìm kiếm</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User table -->
+            <div class="user-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ảnh</th>
+                            <th>Họ và tên</th>
+                            <th>Vai trò</th>
+                            <th>Ngày sinh</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001</td>
+                            <td><img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Avatar" class="user-avatar"></td>
+                            <td>Nguyễn Văn A</td>
+                            <td>Thành viên</td>
+                            <td>15/05/1990</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openModal('001')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditUserModal('001')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDelete('001')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td><img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Avatar" class="user-avatar"></td>
+                            <td>Trần Thị B</td>
+                            <td>Chuyên viên tư vấn</td>
+                            <td>22/08/1985</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openModal('002')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditUserModal('002')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDelete('002')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>003</td>
+                            <td><img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Avatar" class="user-avatar"></td>
+                            <td>Lê Văn C</td>
+                            <td>Nhân viên</td>
+                            <td>10/12/1992</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openModal('003')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditUserModal('003')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDelete('003')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>004</td>
+                            <td><img src="https://randomuser.me/api/portraits/women/4.jpg" alt="Avatar" class="user-avatar"></td>
+                            <td>Phạm Thị D</td>
+                            <td>Quản lý</td>
+                            <td>05/03/1988</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openModal('004')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditUserModal('004')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDelete('004')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>005</td>
+                            <td><img src="https://randomuser.me/api/portraits/men/5.jpg" alt="Avatar" class="user-avatar"></td>
+                            <td>Hoàng Văn E</td>
+                            <td>Thành viên</td>
+                            <td>18/07/1995</td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openModal('005')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditUserModal('005')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDelete('005')">Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button>&laquo;</button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>&raquo;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User details modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <img id="modalUserAvatar" src="" alt="User Avatar" class="modal-avatar">
+                <div class="modal-user-info">
+                    <h2 id="modalUserName"></h2>
+                    <p id="modalUserId"></p>
+                    <p id="modalUserRole"></p>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="user-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Ngày sinh:</span>
+                        <span id="modalUserDob" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span id="modalUserEmail" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Số điện thoại:</span>
+                        <span id="modalUserPhone" class="detail-value"></span>
+                    </div>
+                </div>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openTab(event, 'recentActivities')">Hoạt động gần đây</button>
+                    <button class="tablinks" onclick="openTab(event, 'registeredCourses')">Khóa học đã đăng ký</button>
+                    <button class="tablinks" onclick="openTab(event, 'completedSurveys')">Khảo sát đã hoàn thành</button>
+                    <button class="tablinks" onclick="openTab(event, 'appointments')">Lịch hẹn</button>
+                </div>
+                
+                <div id="recentActivities" class="tabcontent" style="display: block;">
+                    <h3>Hoạt động gần đây</h3>
+                    <ul class="activity-list">
+                        <li>
+                            <span class="activity-date">15/06/2023</span>
+                            <span class="activity-desc">Đăng ký khóa học "Phòng ngừa ma túy cho thanh thiếu niên"</span>
+                        </li>
+                        <li>
+                            <span class="activity-date">10/06/2023</span>
+                            <span class="activity-desc">Hoàn thành khảo sát "Nhận thức về tác hại của ma túy"</span>
+                        </li>
+                        <li>
+                            <span class="activity-date">05/06/2023</span>
+                            <span class="activity-desc">Đặt lịch hẹn tư vấn với chuyên gia</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div id="registeredCourses" class="tabcontent">
+                    <h3>Khóa học đã đăng ký</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên khóa học</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Phòng ngừa ma túy cho thanh thiếu niên</td>
+                                <td>15/06/2023</td>
+                                <td>Đang học</td>
+                            </tr>
+                            <tr>
+                                <td>Kỹ năng từ chối ma túy</td>
+                                <td>01/05/2023</td>
+                                <td>Hoàn thành</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="completedSurveys" class="tabcontent">
+                    <h3>Khảo sát đã hoàn thành</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên khảo sát</th>
+                                <th>Ngày hoàn thành</th>
+                                <th>Kết quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Nhận thức về tác hại của ma túy</td>
+                                <td>10/06/2023</td>
+                                <td>85/100</td>
+                            </tr>
+                            <tr>
+                                <td>Đánh giá rủi ro sử dụng ma túy</td>
+                                <td>20/04/2023</td>
+                                <td>90/100</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="appointments" class="tabcontent">
+                    <h3>Lịch hẹn</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày hẹn</th>
+                                <th>Thời gian</th>
+                                <th>Chuyên viên tư vấn</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>20/06/2023</td>
+                                <td>10:00 - 11:00</td>
+                                <td>Trần Thị B</td>
+                                <td>Đã xác nhận</td>
+                            </tr>
+                            <tr>
+                                <td>05/06/2023</td>
+                                <td>14:00 - 15:00</td>
+                                <td>Trần Thị B</td>
+                                <td>Đã hoàn thành</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddUserModal()">&times;</span>
+            <h2>Thêm người dùng mới</h2>
+            <form id="addUserForm" class="user-form">
+                <div class="form-group">
+                    <label for="newUserAvatar">Ảnh đại diện:</label>
+                    <input type="file" id="newUserAvatar" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="newUserName">Họ và tên:</label>
+                    <input type="text" id="newUserName" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserRole">Vai trò:</label>
+                    <select id="newUserRole" required>
+                        <option value="">Chọn vai trò</option>
+                        <option value="Thành viên">Thành viên</option>
+                        <option value="Chuyên viên tư vấn">Chuyên viên tư vấn</option>
+                        <option value="Nhân viên">Nhân viên</option>
+                        <option value="Quản lý">Quản lý</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newUserDob">Ngày sinh:</label>
+                    <input type="date" id="newUserDob" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserEmail">Email:</label>
+                    <input type="email" id="newUserEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserPhone">Số điện thoại:</label>
+                    <input type="tel" id="newUserPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserPassword">Mật khẩu:</label>
+                    <input type="password" id="newUserPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserConfirmPassword">Xác nhận mật khẩu:</label>
+                    <input type="password" id="newUserConfirmPassword" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeAddUserModal()">Hủy</button>
+                    <button type="submit">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditUserModal()">&times;</span>
+            <h2>Chỉnh sửa thông tin người dùng</h2>
+            <form id="editUserForm" class="user-form">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUserAvatar">Ảnh đại diện:</label>
+                    <div class="avatar-preview">
+                        <img id="currentAvatar" src="" alt="Avatar hiện tại">
+                    </div>
+                    <input type="file" id="editUserAvatar" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="editUserName">Họ và tên:</label>
+                    <input type="text" id="editUserName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserRole">Vai trò:</label>
+                    <select id="editUserRole" required>
+                        <option value="Thành viên">Thành viên</option>
+                        <option value="Chuyên viên tư vấn">Chuyên viên tư vấn</option>
+                        <option value="Nhân viên">Nhân viên</option>
+                        <option value="Quản lý">Quản lý</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editUserDob">Ngày sinh:</label>
+                    <input type="date" id="editUserDob" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserEmail">Email:</label>
+                    <input type="email" id="editUserEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserPhone">Số điện thoại:</label>
+                    <input type="tel" id="editUserPhone" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeEditUserModal()">Hủy</button>
+                    <button type="submit">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content delete-confirm-modal">
+            <span class="close" onclick="closeDeleteConfirmModal()">&times;</span>
+            <h2>Xác nhận xóa</h2>
+            <p>Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác.</p>
+            <input type="hidden" id="deleteUserId">
+            <div class="form-actions">
+                <button type="button" onclick="closeDeleteConfirmModal()">Hủy</button>
+                <button type="button" class="delete-confirm-btn" onclick="deleteUser()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="navigation.js"></script>
+</body>
+</html>

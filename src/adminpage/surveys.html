@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý khảo sát - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for role filtering -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Quản trị viên</h2>
+                <p>Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</p>
+            </div>
+            <div class="role-filter">
+                <h3>Lọc theo vai trò</h3>
+                <ul class="role-list">
+                    <li><button>Tất cả người dùng</button></li>
+                    <li><button>Thành viên</button></li>
+                    <li><button>Chuyên viên tư vấn</button></li>
+                    <li><button>Nhân viên</button></li>
+                    <li><button>Quản lý</button></li>
+                </ul>
+            </div>
+            <div class="admin-menu">
+                <h3>Quản lý hệ thống</h3>
+                <ul class="menu-list">
+                    <li><button onclick="window.location.href='index.html'">Quản lý người dùng</button></li>
+                    <li><button onclick="window.location.href='courses.html'">Quản lý khóa học</button></li>
+                    <li><button class="active">Quản lý khảo sát</button></li>
+                    <li><button onclick="window.location.href='appointments.html'">Quản lý lịch hẹn</button></li>
+                    <li><button onclick="window.location.href='programs.html'">Quản lý chương trình</button></li>
+                    <li><button onclick="window.location.href='reports.html'">Báo cáo & Thống kê</button></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Quản lý khảo sát</h1>
+                <div class="header-actions">
+                    <button class="add-survey-btn" onclick="openAddSurveyModal()">+ Thêm khảo sát mới</button>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Tìm kiếm khảo sát...">
+                        <button>Tìm kiếm</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Survey table -->
+            <div class="user-table survey-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên khảo sát</th>
+                            <th>Loại</th>
+                            <th>Ngày tạo</th>
+                            <th>Số câu hỏi</th>
+                            <th>Số người tham gia</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>S001</td>
+                            <td>Đánh giá nhận thức về ma túy</td>
+                            <td>Trắc nghiệm</td>
+                            <td>10/05/2023</td>
+                            <td>15</td>
+                            <td>120</td>
+                            <td><span class="status-active">Đang hoạt động</span></td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openSurveyModal('S001')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditSurveyModal('S001')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteSurvey('S001')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>S002</td>
+                            <td>Khảo sát về tác động của ma túy</td>
+                            <td>Tự luận</td>
+                            <td>15/05/2023</td>
+                            <td>10</td>
+                            <td>85</td>
+                            <td><span class="status-active">Đang hoạt động</span></td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openSurveyModal('S002')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditSurveyModal('S002')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteSurvey('S002')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>S003</td>
+                            <td>Đánh giá hiệu quả chương trình phòng ngừa</td>
+                            <td>Hỗn hợp</td>
+                            <td>20/05/2023</td>
+                            <td>20</td>
+                            <td>65</td>
+                            <td><span class="status-active">Đang hoạt động</span></td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openSurveyModal('S003')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditSurveyModal('S003')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteSurvey('S003')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>S004</td>
+                            <td>Khảo sát về nhu cầu tư vấn</td>
+                            <td>Trắc nghiệm</td>
+                            <td>25/05/2023</td>
+                            <td>12</td>
+                            <td>95</td>
+                            <td><span class="status-inactive">Đã kết thúc</span></td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openSurveyModal('S004')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditSurveyModal('S004')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteSurvey('S004')">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>S005</td>
+                            <td>Đánh giá mức độ hài lòng về khóa học</td>
+                            <td>Hỗn hợp</td>
+                            <td>01/06/2023</td>
+                            <td>15</td>
+                            <td>50</td>
+                            <td><span class="status-draft">Bản nháp</span></td>
+                            <td class="action-buttons">
+                                <button class="view-details-btn" onclick="openSurveyModal('S005')">Xem chi tiết</button>
+                                <button class="edit-btn" onclick="openEditSurveyModal('S005')">Sửa</button>
+                                <button class="delete-btn" onclick="confirmDeleteSurvey('S005')">Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button>&laquo;</button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>&raquo;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Survey details modal -->
+    <div id="surveyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSurveyModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-survey-info">
+                    <h2 id="modalSurveyName"></h2>
+                    <p id="modalSurveyId"></p>
+                    <p id="modalSurveyType"></p>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="survey-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Ngày tạo:</span>
+                        <span id="modalSurveyDate" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Số câu hỏi:</span>
+                        <span id="modalSurveyQuestions" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Số người tham gia:</span>
+                        <span id="modalSurveyParticipants" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Trạng thái:</span>
+                        <span id="modalSurveyStatus" class="detail-value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mô tả:</span>
+                        <span id="modalSurveyDescription" class="detail-value"></span>
+                    </div>
+                </div>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSurveyTab(event, 'surveyQuestions')">Câu hỏi</button>
+                    <button class="tablinks" onclick="openSurveyTab(event, 'surveyResponses')">Phản hồi</button>
+                    <button class="tablinks" onclick="openSurveyTab(event, 'surveyAnalytics')">Phân tích</button>
+                </div>
+                
+                <div id="surveyQuestions" class="tabcontent" style="display: block;">
+                    <h3>Danh sách câu hỏi</h3>
+                    <ol class="question-list">
+                        <li>
+                            <div class="question-item">
+                                <p class="question-text">Bạn đã từng nghe về các loại ma túy nào sau đây? (Chọn tất cả các đáp án phù hợp)</p>
+                                <div class="question-options">
+                                    <div class="option"><input type="checkbox" disabled> Cần sa</div>
+                                    <div class="option"><input type="checkbox" disabled> Heroin</div>
+                                    <div class="option"><input type="checkbox" disabled> Methamphetamine</div>
+                                    <div class="option"><input type="checkbox" disabled> Ecstasy</div>
+                                    <div class="option"><input type="checkbox" disabled> Cocaine</div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="question-item">
+                                <p class="question-text">Theo bạn, đâu là tác hại nghiêm trọng nhất của việc sử dụng ma túy?</p>
+                                <div class="question-options">
+                                    <div class="option"><input type="radio" disabled> Suy giảm sức khỏe thể chất</div>
+                                    <div class="option"><input type="radio" disabled> Rối loạn tâm thần</div>
+                                    <div class="option"><input type="radio" disabled> Nghiện và phụ thuộc</div>
+                                    <div class="option"><input type="radio" disabled> Ảnh hưởng đến quan hệ xã hội</div>
+                                    <div class="option"><input type="radio" disabled> Vấn đề pháp lý</div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="question-item">
+                                <p class="question-text">Bạn đánh giá mức độ hiểu biết của mình về tác hại của ma túy như thế nào?</p>
+                                <div class="question-options">
+                                    <div class="option"><input type="radio" disabled> Rất thấp</div>
+                                    <div class="option"><input type="radio" disabled> Thấp</div>
+                                    <div class="option"><input type="radio" disabled> Trung bình</div>
+                                    <div class="option"><input type="radio" disabled> Cao</div>
+                                    <div class="option"><input type="radio" disabled> Rất cao</div>
+                                </div>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+                
+                <div id="surveyResponses" class="tabcontent">
+                    <h3>Phản hồi từ người tham gia</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Người tham gia</th>
+                                <th>Ngày hoàn thành</th>
+                                <th>Thời gian làm bài</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>R001</td>
+                                <td>Nguyễn Văn X</td>
+                                <td>12/05/2023</td>
+                                <td>15 phút</td>
+                                <td>Hoàn thành</td>
+                            </tr>
+                            <tr>
+                                <td>R002</td>
+                                <td>Trần Thị Y</td>
+                                <td>13/05/2023</td>
+                                <td>20 phút</td>
+                                <td>Hoàn thành</td>
+                            </tr>
+                            <tr>
+                                <td>R003</td>
+                                <td>Lê Văn Z</td>
+                                <td>15/05/2023</td>
+                                <td>18 phút</td>
+                                <td>Hoàn thành</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="surveyAnalytics" class="tabcontent">
+                    <h3>Phân tích kết quả</h3>
+                    <div class="analytics-summary">
+                        <div class="stat-item">
+                            <span class="stat-label">Tỷ lệ hoàn thành:</span>
+                            <span class="stat-value">85%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Thời gian trung bình:</span>
+                            <span class="stat-value">17 phút</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Điểm trung bình:</span>
+                            <span class="stat-value">7.5/10</span>
+                        </div>
+                    </div>
+                    <div class="analytics-chart">
+                        <!-- Placeholder for chart -->
+                        <div style="height: 200px; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center;">
+                            <p>Biểu đồ phân tích kết quả khảo sát</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Survey Modal -->
+    <div id="addSurveyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddSurveyModal()">&times;</span>
+            <h2>Thêm khảo sát mới</h2>
+            <form id="addSurveyForm">
+                <div class="user-form">
+                    <div class="form-group">
+                        <label for="surveyName">Tên khảo sát</label>
+                        <input type="text" id="surveyName" name="surveyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="surveyType">Loại khảo sát</label>
+                        <select id="surveyType" name="surveyType" required>
+                            <option value="">Chọn loại khảo sát</option>
+                            <option value="multiple-choice">Trắc nghiệm</option>
+                            <option value="essay">Tự luận</option>
+                            <option value="mixed">Hỗn hợp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="surveyStatus">Trạng thái</label>
+                        <select id="surveyStatus" name="surveyStatus" required>
+                            <option value="">Chọn trạng thái</option>
+                            <option value="active">Đang hoạt động</option>
+                            <option value="inactive">Đã kết thúc</option>
+                            <option value="draft">Bản nháp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="surveyDescription">Mô tả</label>
+                        <textarea id="surveyDescription" name="surveyDescription" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeAddSurveyModal()">Hủy</button>
+                        <button type="submit">Lưu</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Survey Modal -->
+    <div id="editSurveyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditSurveyModal()">&times;</span>
+            <h2>Chỉnh sửa khảo sát</h2>
+            <form id="editSurveyForm">
+                <input type="hidden" id="editSurveyId" name="editSurveyId">
+                <div class="user-form">
+                    <div class="form-group">
+                        <label for="editSurveyName">Tên khảo sát</label>
+                        <input type="text" id="editSurveyName" name="editSurveyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSurveyType">Loại khảo sát</label>
+                        <select id="editSurveyType" name="editSurveyType" required>
+                            <option value="">Chọn loại khảo sát</option>
+                            <option value="multiple-choice">Trắc nghiệm</option>
+                            <option value="essay">Tự luận</option>
+                            <option value="mixed">Hỗn hợp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSurveyStatus">Trạng thái</label>
+                        <select id="editSurveyStatus" name="editSurveyStatus" required>
+                            <option value="">Chọn trạng thái</option>
+                            <option value="active">Đang hoạt động</option>
+                            <option value="inactive">Đã kết thúc</option>
+                            <option value="draft">Bản nháp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSurveyDescription">Mô tả</label>
+                        <textarea id="editSurveyDescription" name="editSurveyDescription" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeEditSurveyModal()">Hủy</button>
+                        <button type="submit">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteSurveyModal" class="modal">
+        <div class="modal-content delete-confirm-modal">
+            <span class="close" onclick="closeDeleteSurveyModal()">&times;</span>
+            <h2>Xác nhận xóa</h2>
+            <p>Bạn có chắc chắn muốn xóa khảo sát này không? Hành động này không thể hoàn tác.</p>
+            <div class="form-actions">
+                <button type="button" onclick="closeDeleteSurveyModal()">Hủy</button>
+                <button type="button" class="delete-confirm-btn" onclick="deleteSurvey()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="surveys.js"></script>
+</body>
+</html>
