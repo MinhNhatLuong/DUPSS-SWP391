@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khảo sát CRAFFT - DUPSS</title>
+    <link rel="stylesheet" href="../../src/stylesheets/HomePageStylesheet.css">
+    <link rel="stylesheet" href="../../src/stylesheets/SurveyStylesheet.css">
+    <link rel="stylesheet" href="../../src/stylesheets/CrafftSurveyStylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../../public/Logo_Website.png" alt="DUPSS Logo">
+                </a>
+            </div>
+            
+            <div class="search-bar">
+                <form action="#" method="get">
+                    <input type="text" placeholder="Tìm kiếm..." name="search">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
+            <div class="user-actions">
+                <div class="auth-buttons">
+                    <a href="login.html" class="login-btn">Đăng nhập</a>
+                    <a href="register.html" class="register-btn">Đăng ký</a>
+                </div>
+                <!-- User dropdown will appear here after login -->
+                <div class="user-dropdown" style="display: none;">
+                    <button class="dropbtn">Tài khoản <i class="fas fa-caret-down"></i></button>
+                    <div class="dropdown-content">
+                        <a href="#">Hồ sơ</a>
+                        <a href="#">Khóa học của tôi</a>
+                        <a href="#">Cài đặt</a>
+                        <a href="#">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="#">Khóa học</a></li>
+                <li><a href="#">Blogs & Thông tin</a></li>
+                <li><a href="survey.html" class="active">Khảo sát</a></li>
+                <li><a href="#">Đặt lịch hẹn</a></li>
+                <li><a href="about-us.html">Về chúng tôi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Survey Content -->
+    <main class="survey-container crafft-survey-container">
+        <div class="survey-header">
+            <h1 class="survey-title">Khảo sát CRAFFT</h1>
+            <p class="survey-subtitle">Công cụ sàng lọc sử dụng chất gây nghiện cho thanh thiếu niên</p>
+        </div>
+
+        <div class="survey-intro">
+            <p>CRAFFT là công cụ sàng lọc được thiết kế đặc biệt cho thanh thiếu niên và người trẻ (dưới 21 tuổi) để đánh giá việc sử dụng rượu, cần sa và các chất gây nghiện khác.</p>
+            <p>Hãy trả lời trung thực các câu hỏi dưới đây để nhận được kết quả đánh giá chính xác nhất.</p>
+        </div>
+
+        <div class="survey-progress">
+            <div class="progress-bar">
+                <div class="progress" id="survey-progress"></div>
+            </div>
+            <p class="progress-text">Câu hỏi <span id="current-question">1</span> / <span id="total-questions">6</span></p>
+        </div>
+
+        <form id="crafft-form" class="crafft-form">
+            <!-- Phần A: Câu hỏi sàng lọc ban đầu -->
+            <div class="question-section" id="screening-section">
+                <h2>Phần A: Câu hỏi sàng lọc ban đầu</h2>
+                <p class="question-instruction">Trong 12 THÁNG QUA, bạn đã sử dụng những chất nào sau đây?</p>
+                
+                <div class="screening-questions">
+                    <div class="screening-item">
+                        <label>Rượu bia (hơn vài ngụm)</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="alcohol" value="yes"> Có</label>
+                            <label><input type="radio" name="alcohol" value="no" checked> Không</label>
+                        </div>
+                    </div>
+                    
+                    <div class="screening-item">
+                        <label>Cần sa (marijuana, pot, weed, hash...)</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="marijuana" value="yes"> Có</label>
+                            <label><input type="radio" name="marijuana" value="no" checked> Không</label>
+                        </div>
+                    </div>
+                    
+                    <div class="screening-item">
+                        <label>Các chất khác (thuốc lắc, cocaine, LSD, thuốc an thần...)</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="other_drugs" value="yes"> Có</label>
+                            <label><input type="radio" name="other_drugs" value="no" checked> Không</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" id="screening-next" class="survey-button">Tiếp tục</button>
+            </div>
+
+            <!-- Phần B: Câu hỏi CRAFFT chính -->
+            <div class="question-section" id="crafft-questions" style="display: none;">
+                <h2>Phần B: Câu hỏi CRAFFT</h2>
+                
+                <!-- Câu hỏi 1: Car -->
+                <div class="question-item" id="question-1">
+                    <p class="question-text"><strong>C - Car:</strong> Bạn đã bao giờ đi trên một chiếc XE HƠI do người đã sử dụng rượu bia hoặc ma túy lái chưa?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q1" value="yes"> Có</label>
+                        <label><input type="radio" name="q1" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <!-- Câu hỏi 2: Relax -->
+                <div class="question-item" id="question-2" style="display: none;">
+                    <p class="question-text"><strong>R - Relax:</strong> Bạn có bao giờ sử dụng rượu bia hoặc ma túy để THƯ GIÃN, cảm thấy tốt hơn về bản thân, hoặc hòa nhập không?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q2" value="yes"> Có</label>
+                        <label><input type="radio" name="q2" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <!-- Câu hỏi 3: Alone -->
+                <div class="question-item" id="question-3" style="display: none;">
+                    <p class="question-text"><strong>A - Alone:</strong> Bạn có bao giờ sử dụng rượu bia hoặc ma túy khi bạn MỘT MÌNH không?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q3" value="yes"> Có</label>
+                        <label><input type="radio" name="q3" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <!-- Câu hỏi 4: Forget -->
+                <div class="question-item" id="question-4" style="display: none;">
+                    <p class="question-text"><strong>F - Forget:</strong> Bạn có bao giờ QUÊN những việc đã làm khi sử dụng rượu bia hoặc ma túy không?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q4" value="yes"> Có</label>
+                        <label><input type="radio" name="q4" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <!-- Câu hỏi 5: Friends -->
+                <div class="question-item" id="question-5" style="display: none;">
+                    <p class="question-text"><strong>F - Friends/Family:</strong> Gia đình hoặc BẠN BÈ có bao giờ nói với bạn rằng bạn nên giảm sử dụng rượu bia hoặc ma túy không?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q5" value="yes"> Có</label>
+                        <label><input type="radio" name="q5" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <!-- Câu hỏi 6: Trouble -->
+                <div class="question-item" id="question-6" style="display: none;">
+                    <p class="question-text"><strong>T - Trouble:</strong> Bạn đã bao giờ gặp RẮC RỐI khi sử dụng rượu bia hoặc ma túy chưa?</p>
+                    <div class="answer-options">
+                        <label><input type="radio" name="q6" value="yes"> Có</label>
+                        <label><input type="radio" name="q6" value="no" checked> Không</label>
+                    </div>
+                </div>
+                
+                <div class="question-navigation">
+                    <button type="button" id="prev-question" class="nav-button">Câu hỏi trước</button>
+                    <button type="button" id="next-question" class="nav-button">Câu hỏi tiếp theo</button>
+                    <button type="button" id="submit-survey" class="survey-button" style="display: none;">Xem kết quả</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Kết quả khảo sát -->
+        <div id="survey-results" class="survey-results" style="display: none;">
+            <h2>Kết quả Khảo sát CRAFFT</h2>
+            
+            <div class="result-score">
+                <p>Điểm số của bạn:</p>
+                <div class="score-display">
+                    <span id="crafft-score">0</span>/6
+                </div>
+            </div>
+            
+            <div class="result-interpretation">
+                <h3>Đánh giá kết quả:</h3>
+                <div id="result-message" class="result-message"></div>
+            </div>
+            
+            <div class="result-recommendations">
+                <h3>Khuyến nghị:</h3>
+                <div id="recommendations" class="recommendations"></div>
+            </div>
+            
+            <div class="result-actions">
+                <a href="survey.html" class="survey-button">Quay lại trang Khảo sát</a>
+                <a href="#" class="survey-button secondary-button">Tải kết quả (PDF)</a>
+            </div>
+        </div>
+
+        <div class="survey-note">
+            <div class="note-icon"><i class="fas fa-info-circle"></i></div>
+            <div class="note-content">
+                <h3>Lưu ý quan trọng</h3>
+                <p>Khảo sát CRAFFT chỉ là công cụ sàng lọc ban đầu và không thay thế cho đánh giá chuyên nghiệp từ bác sĩ hoặc chuyên gia y tế. Nếu bạn đang gặp vấn đề nghiêm trọng liên quan đến sử dụng chất gây nghiện, vui lòng liên hệ với chuyên gia y tế hoặc gọi đường dây nóng hỗ trợ.</p>
+                <p>Đường dây nóng hỗ trợ: <strong>(84) 123-456-789</strong> (24/7)</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <h3>Về DUPSS</h3>
+                    <p>DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="#">Khóa học</a></li>
+                        <li><a href="#">Tin tức & Blog</a></li>
+                        <li><a href="survey.html">Khảo sát</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="about-us.html">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Tài nguyên</h3>
+                    <ul>
+                        <li><a href="#">Thư viện tài liệu</a></li>
+                        <li><a href="#">Video giáo dục</a></li>
+                        <li><a href="#">Infographics</a></li>
+                        <li><a href="#">Báo cáo nghiên cứu</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường Nguyễn Tấn Dũng, Quận Nguyễn Thành Đạt, TP. Lương Gia Lâm</p>
+                    <p><i class="fas fa-phone"></i> (84) 123-456-789</p>
+                    <p><i class="fas fa-envelope"></i> info@dupss.org</p>
+                    <div class="social-media">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+                <div class="footer-links">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản sử dụng</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-to-top" title="Cuộn lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="../../src/scripts/ScrollUp.js"></script>
+    <script src="../../src/scripts/CrafftSurvey.js"></script>
+</body>
+</html>

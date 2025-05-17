@@ -1,0 +1,286 @@
+/* ASSIST Survey Styles */
+
+/* Survey Container Styles */
+.assist-survey-container {
+    max-width: 900px;
+}
+
+/* Progress Bar */
+.survey-progress {
+    margin: 30px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background-color: #0056b3;
+    width: 14.28%; /* 1/7 for first question */
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Question Sections */
+.question-section {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.question-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #0056b3;
+    border-bottom: 2px solid #e9f5ff;
+    padding-bottom: 10px;
+}
+
+.question-instruction {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* Substance Questions */
+.substance-questions {
+    margin-bottom: 30px;
+}
+
+.substance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.substance-item:last-child {
+    border-bottom: none;
+}
+
+.substance-item label {
+    font-size: 1.05rem;
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.radio-group input {
+    margin-right: 8px;
+}
+
+/* ASSIST Questions */
+.question-item {
+    margin-bottom: 30px;
+}
+
+.question-text {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Frequency Table */
+.substance-frequency {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.frequency-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.frequency-table th,
+.frequency-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.frequency-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.frequency-table th:first-child,
+.frequency-table td:first-child {
+    text-align: left;
+    min-width: 180px;
+}
+
+.frequency-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.frequency-table tr:hover {
+    background-color: #e9f5ff;
+}
+
+.frequency-table input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Injection Options */
+.injection-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.injection-options label {
+    display: flex;
+    align-items: center;
+}
+
+/* Result Scores */
+.result-scores {
+    margin-bottom: 30px;
+}
+
+.substance-scores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.substance-score-item {
+    flex: 1;
+    min-width: 200px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.substance-score-item h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.score-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.score-value.low-risk {
+    color: #28a745;
+}
+
+.score-value.moderate-risk {
+    color: #ffc107;
+}
+
+.score-value.high-risk {
+    color: #dc3545;
+}
+
+.score-label {
+    font-size: 0.9rem;
+    color: #666;
+    display: block;
+}
+
+/* Risk Levels */
+.risk-level {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.risk-level.low {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.risk-level.moderate {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.risk-level.high {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Additional Responsive Styles */
+@media (max-width: 768px) {
+    .substance-score-item {
+        min-width: 150px;
+    }
+    
+    .frequency-table {
+        font-size: 0.9rem;
+    }
+    
+    .frequency-table th,
+    .frequency-table td {
+        padding: 8px 10px;
+    }
+    
+    .frequency-table th:first-child,
+    .frequency-table td:first-child {
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .substance-score-item {
+        min-width: 100%;
+    }
+    
+    .frequency-table {
+        font-size: 0.8rem;
+    }
+    
+    .frequency-table th,
+    .frequency-table td {
+        padding: 6px 8px;
+    }
+    
+    .frequency-table th:first-child,
+    .frequency-table td:first-child {
+        min-width: 120px;
+    }
+    
+    .question-text {
+        font-size: 1rem;
+    }
+    
+    .injection-options label {
+        font-size: 0.9rem;
+    }
+}
