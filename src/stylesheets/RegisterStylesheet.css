@@ -1,0 +1,322 @@
+/* Register Page Styles */
+
+/* Register Section */
+.register-section {
+    padding: 60px 0;
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 300px);
+    display: flex;
+    align-items: center;
+}
+
+.register-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.register-wrapper {
+    flex: 1;
+    padding: 40px;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-header h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.register-header p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Register Form */
+.register-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-group.half {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+.input-with-icon .toggle-password,
+.input-with-icon .toggle-confirm-password {
+    left: auto;
+    right: 15px;
+    cursor: pointer;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.input-with-icon input:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+
+.form-group.terms {
+    margin-top: 25px;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+}
+
+.checkbox-wrapper input {
+    margin-right: 10px;
+    margin-top: 3px;
+}
+
+.checkbox-wrapper label {
+    font-weight: normal;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.checkbox-wrapper a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.checkbox-wrapper a:hover {
+    text-decoration: underline;
+}
+
+.register-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.register-button:hover {
+    background-color: #003d82;
+}
+
+/* Register Divider */
+.register-divider {
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+}
+
+.register-divider::before,
+.register-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 70px);
+    height: 1px;
+    background-color: #ddd;
+}
+
+.register-divider::before {
+    left: 0;
+}
+
+.register-divider::after {
+    right: 0;
+}
+
+.register-divider span {
+    display: inline-block;
+    padding: 0 15px;
+    background-color: white;
+    position: relative;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Social Register */
+.social-register {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.social-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.social-btn i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.google-btn {
+    color: #DB4437;
+}
+
+.google-btn:hover {
+    background-color: #fef0ef;
+    border-color: #DB4437;
+}
+
+.facebook-btn {
+    color: #4267B2;
+}
+
+.facebook-btn:hover {
+    background-color: #f0f2f7;
+    border-color: #4267B2;
+}
+
+/* Login Link */
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.login-link a {
+    color: #0056b3;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Register Image */
+.register-image {
+    flex: 1;
+    position: relative;
+    display: none;
+}
+
+.register-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.register-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+    color: white;
+}
+
+.register-image-overlay h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.register-image-overlay p {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Responsive Styles */
+@media (min-width: 768px) {
+    .register-image {
+        display: block;
+    }
+}
+
+@media (max-width: 767px) {
+    .register-container {
+        flex-direction: column;
+        max-width: 500px;
+    }
+    
+    .register-wrapper {
+        padding: 30px 20px;
+    }
+    
+    .register-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-section {
+        padding: 30px 15px;
+    }
+    
+    .social-register {
+        flex-direction: column;
+    }
+}
