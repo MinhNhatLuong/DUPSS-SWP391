@@ -313,50 +313,238 @@
     transform: translateX(3px);
 }
 
-/* Comments Section */
+/* Phần CSS cho bình luận */
 .article-comments {
-    margin-top: 60px;
-    padding-top: 40px;
-    border-top: 1px solid #eee;
+    margin-top: 50px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 30px;
 }
 
-.article-comments h3 {
-    font-size: 1.8rem;
-    margin-bottom: 30px;
-    color: #333;
+.comments-title {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    color: #2c3e50;
 }
 
+/* Form bình luận */
 .comment-form {
-    margin-bottom: 40px;
-}
-
-.comment-form textarea {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid #ddd;
+    background-color: #f8f9fa;
     border-radius: 8px;
-    height: 150px;
-    margin-bottom: 20px;
-    font-family: inherit;
-    resize: vertical;
+    padding: 20px;
+    margin-bottom: 30px;
 }
 
-.comment-form button {
-    background-color: #0056b3;
+.comment-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+#comment-content {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+#comment-content:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.form-actions {
+    text-align: right;
+}
+
+.comment-submit {
+    background-color: #3498db;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     border-radius: 4px;
-    cursor: pointer;
     font-weight: 500;
+    cursor: pointer;
     transition: background-color 0.3s;
 }
 
-.comment-form button:hover {
-    background-color: #003d82;
+.comment-submit:hover {
+    background-color: #2980b9;
 }
 
-/* Responsive Styles */
+/* Danh sách bình luận */
+.comments-list {
+    margin-bottom: 30px;
+}
+
+.comment-item {
+    display: flex;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.comment-item.reply {
+    margin-left: 50px;
+    margin-top: 20px;
+    padding-left: 20px;
+    border-left: 2px solid #e0e0e0;
+}
+
+.comment-avatar {
+    flex-shrink: 0;
+    margin-right: 15px;
+}
+
+.comment-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-content {
+    flex-grow: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-author {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+}
+
+.author-badge {
+    background-color: #3498db;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.comment-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.comment-reply-btn {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+}
+
+.comment-reply-btn:hover {
+    text-decoration: underline;
+}
+
+.comment-reactions {
+    display: flex;
+    gap: 10px;
+}
+
+.reaction-btn {
+    background: none;
+    border: none;
+    color: #7f8c8d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.reaction-btn:hover {
+    color: #3498db;
+}
+
+.reaction-btn i {
+    font-size: 1rem;
+}
+
+/* Phân trang bình luận */
+.comments-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.pagination-btn {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #ddd;
+    background-color: white;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination-btn.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.pagination-btn:hover:not(.active) {
+    background-color: #f1f2f6;
+}
+
+.pagination-btn.next {
+    width: auto;
+    padding: 0 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .comment-item {
+        flex-direction: column;
+    }
+    
+    .comment-avatar {
+        margin-bottom: 10px;
+    }
+    
+    .comment-item.reply {
+        margin-left: 20px;
+    }
+    
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .comment-date {
+        margin-top: 5px;
+    }
+}
+
 @media (max-width: 992px) {
     .article-title {
         font-size: 2rem;

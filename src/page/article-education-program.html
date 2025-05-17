@@ -162,6 +162,115 @@
             </div>
         </div>
 
+        <!-- Phần bình luận -->
+        <div class="article-comments">
+            <h3 class="comments-title">Bình luận (3)</h3>
+            
+            <div class="comment-form">
+                <h4>Để lại bình luận của bạn</h4>
+                <form id="comment-form">
+                    <div class="form-group">
+                        <textarea id="comment-content" placeholder="Viết bình luận của bạn..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="comment-submit">Gửi bình luận</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="comments-list">
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        <img src="https://i.pravatar.cc/60?img=1" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <h4 class="comment-author">Trần Văn A</h4>
+                            <span class="comment-date">12/11/2023, 15:30</span>
+                        </div>
+                        <p>Bài viết rất hữu ích. Tôi nghĩ chương trình này nên được triển khai rộng rãi hơn nữa, đặc biệt ở các vùng nông thôn, miền núi.</p>
+                        <div class="comment-actions">
+                            <button class="comment-reply-btn">Trả lời</button>
+                            <div class="comment-reactions">
+                                <button class="reaction-btn"><i class="far fa-thumbs-up"></i> <span>12</span></button>
+                                <button class="reaction-btn"><i class="far fa-thumbs-down"></i> <span>2</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        <img src="https://i.pravatar.cc/60?img=2" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <h4 class="comment-author">Nguyễn Thị B</h4>
+                            <span class="comment-date">13/11/2023, 09:15</span>
+                        </div>
+                        <p>Tôi là giáo viên THPT và đã tham gia triển khai chương trình này tại trường. Học sinh rất hứng thú với các hoạt động thực hành và trò chơi tương tác. Tuy nhiên, chúng tôi vẫn gặp khó khăn trong việc thu hút sự tham gia của phụ huynh.</p>
+                        <div class="comment-actions">
+                            <button class="comment-reply-btn">Trả lời</button>
+                            <div class="comment-reactions">
+                                <button class="reaction-btn"><i class="far fa-thumbs-up"></i> <span>8</span></button>
+                                <button class="reaction-btn"><i class="far fa-thumbs-down"></i> <span>0</span></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Phần trả lời bình luận -->
+                        <div class="comment-replies">
+                            <div class="comment-item reply">
+                                <div class="comment-avatar">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Nguyen_Tan_Dung.jpg" alt="Avatar">
+                                </div>
+                                <div class="comment-content">
+                                    <div class="comment-header">
+                                        <h4 class="comment-author">Nguyễn Tấn Dũng <span class="author-badge">Tác giả</span></h4>
+                                        <span class="comment-date">13/11/2023, 10:45</span>
+                                    </div>
+                                    <p>Cảm ơn bạn đã chia sẻ kinh nghiệm thực tế. Về vấn đề thu hút phụ huynh, chúng tôi đang phát triển một số tài liệu hướng dẫn và video ngắn để giúp giáo viên tổ chức các buổi họp phụ huynh hiệu quả hơn. Bạn có thể liên hệ với chúng tôi qua email để nhận được hỗ trợ.</p>
+                                    <div class="comment-actions">
+                                        <button class="comment-reply-btn">Trả lời</button>
+                                        <div class="comment-reactions">
+                                            <button class="reaction-btn"><i class="far fa-thumbs-up"></i> <span>5</span></button>
+                                            <button class="reaction-btn"><i class="far fa-thumbs-down"></i> <span>0</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        <img src="https://i.pravatar.cc/60?img=3" alt="Avatar">
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <h4 class="comment-author">Lê Văn C</h4>
+                            <span class="comment-date">14/11/2023, 14:20</span>
+                        </div>
+                        <p>Tôi muốn biết liệu có thể áp dụng chương trình này cho các em nhỏ ở cấp tiểu học không? Hiện nay con tôi đang học lớp 4 và tôi muốn con mình được trang bị kiến thức phòng tránh ma túy từ sớm.</p>
+                        <div class="comment-actions">
+                            <button class="comment-reply-btn">Trả lời</button>
+                            <div class="comment-reactions">
+                                <button class="reaction-btn"><i class="far fa-thumbs-up"></i> <span>3</span></button>
+                                <button class="reaction-btn"><i class="far fa-thumbs-down"></i> <span>1</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comments-pagination">
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn next"><i class="fas fa-angle-right"></i></button>
+            </div>
+        </div>
+
         <div class="related-articles">
             <h3>Bài viết liên quan</h3>
             <div class="related-grid">
