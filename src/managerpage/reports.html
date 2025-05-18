@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h5 class="text-white">Phòng ngừa ma túy</h5>
+                        <p class="text-white-50">Trang quản lý</p>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="programs.html">
+                                <i class="bi bi-megaphone me-2"></i> Quản lý chương trình
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="courses.html">
+                                <i class="bi bi-book me-2"></i> Quản lý khóa học
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="surveys.html">
+                                <i class="bi bi-clipboard-data me-2"></i> Quản lý khảo sát
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="counselors.html">
+                                <i class="bi bi-people me-2"></i> Quản lý chuyên viên
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="users.html">
+                                <i class="bi bi-person me-2"></i> Quản lý người dùng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="appointments.html">
+                                <i class="bi bi-calendar-check me-2"></i> Lịch hẹn tư vấn
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="reports.html">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i> Báo cáo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Báo cáo thống kê</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-earmark-pdf me-1"></i> Xuất PDF
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="bi bi-calendar3 me-1"></i> Tháng 5/2023
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter and Date Range -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">Khoảng thời gian</span>
+                            <input type="date" class="form-control" value="2023-01-01">
+                            <span class="input-group-text">đến</span>
+                            <input type="date" class="form-control" value="2023-05-31">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="bi bi-search"></i> Áp dụng
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select">
+                            <option selected>Loại báo cáo</option>
+                            <option>Tổng quan</option>
+                            <option>Khảo sát</option>
+                            <option>Khóa học</option>
+                            <option>Tư vấn</option>
+                            <option>Người dùng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Overview Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Tổng người dùng</h6>
+                                        <h2 class="mb-0">1,245</h2>
+                                        <small>+15% so với tháng trước</small>
+                                    </div>
+                                    <i class="bi bi-person fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Khảo sát hoàn thành</h6>
+                                        <h2 class="mb-0">3,782</h2>
+                                        <small>+23% so với tháng trước</small>
+                                    </div>
+                                    <i class="bi bi-clipboard-data fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Khóa học đã hoàn thành</h6>
+                                        <h2 class="mb-0">856</h2>
+                                        <small>+8% so với tháng trước</small>
+                                    </div>
+                                    <i class="bi bi-book fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Buổi tư vấn đã thực hiện</h6>
+                                        <h2 class="mb-0">432</h2>
+                                        <small>+12% so với tháng trước</small>
+                                    </div>
+                                    <i class="bi bi-calendar-check fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Thống kê người dùng theo tháng</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="userMonthlyChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Phân bố độ tuổi người dùng</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="userAgeChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Survey Results -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Kết quả khảo sát ASSIST</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="assistSurveyChart" height="250"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Mức độ nguy cơ</th>
+                                                <th>Số lượng</th>
+                                                <th>Tỷ lệ</th>
+                                                <th>So với tháng trước</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Thấp</td>
+                                                <td>845</td>
+                                                <td>68%</td>
+                                                <td class="text-success">+2%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Trung bình</td>
+                                                <td>312</td>
+                                                <td>25%</td>
+                                                <td class="text-danger">-1%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cao</td>
+                                                <td>88</td>
+                                                <td>7%</td>
+                                                <td class="text-danger">-1%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CRAFFT Survey Results -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Kết quả khảo sát CRAFFT</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="crafftSurveyChart" height="250"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Mức độ nguy cơ</th>
+                                                <th>Số lượng</th>
+                                                <th>Tỷ lệ</th>
+                                                <th>So với tháng trước</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Không nguy cơ (0)</td>
+                                                <td>523</td>
+                                                <td>53%</td>
+                                                <td class="text-success">+3%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nguy cơ thấp (1)</td>
+                                                <td>287</td>
+                                                <td>29%</td>
+                                                <td class="text-success">+1%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nguy cơ cao (≥2)</td>
+                                                <td>177</td>
+                                                <td>18%</td>
+                                                <td class="text-danger">-4%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Program Effectiveness -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Hiệu quả chương trình</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <canvas id="programEffectivenessChart" height="250"></canvas>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white">Kỹ năng từ chối ma túy</div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-success">Tỷ lệ thành công: 92%</span>
+                                            <span class="badge bg-info">325 người tham gia</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">Đánh giá:</div>
+                                            <div class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-half"></i>
+                                                <span class="ms-1 text-dark">4.8/5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">Nhận biết tác hại ma túy</div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-success">Tỷ lệ thành công: 85%</span>
+                                            <span class="badge bg-info">278 người tham gia</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">Đánh giá:</div>
+                                            <div class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star"></i>
+                                                <span class="ms-1 text-dark">4.1/5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info text-white">Kỹ năng sống lành mạnh</div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-success">Tỷ lệ thành công: 78%</span>
+                                            <span class="badge bg-info">245 người tham gia</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">Đánh giá:</div>
+                                            <div class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-half"></i>
+                                                <i class="bi bi-star"></i>
+                                                <span class="ms-1 text-dark">3.7/5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-danger">
+                                    <div class="card-header bg-danger text-white">Nhận biết các loại ma túy</div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-warning">Tỷ lệ thành công: 68%</span>
+                                            <span class="badge bg-info">215 người tham gia</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">Đánh giá:</div>
+                                            <div class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star"></i>
+                                                <span class="ms-1 text-dark">3.2/5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-header bg-warning text-dark">Phòng ngừa tái nghiện</div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-success">Tỷ lệ thành công: 75%</span>
+                                            <span class="badge bg-info">198 người tham gia</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">Đánh giá:</div>
+                                            <div class="text-warning">
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                                <i class="bi bi-star-half"></i>
+                                                <i class="bi bi-star"></i>
+                                                <span class="ms-1 text-dark">3.6/5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geographic Distribution -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Phân bố địa lý người dùng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="border p-3 rounded" style="height: 400px;">
+                                    <!-- Placeholder for map -->
+                                    <div class="d-flex justify-content-center align-items-center h-100 bg-light">
+                                        <div class="text-center">
+                                            <i class="bi bi-map fs-1 text-secondary"></i>
+                                            <p class="mt-2">Bản đồ phân bố người dùng</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tỉnh/Thành phố</th>
+                                                <th>Số người dùng</th>
+                                                <th>Tỷ lệ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Hà Nội</td>
+                                                <td>325</td>
+                                                <td>26%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>TP. Hồ Chí Minh</td>
+                                                <td>287</td>
+                                                <td>23%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Đà Nẵng</td>
+                                                <td>156</td>
+                                                <td>13%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Hải Phòng</td>
+                                                <td>98</td>
+                                                <td>8%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cần Thơ</td>
+                                                <td>87</td>
+                                                <td>7%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Khác</td>
+                                                <td>292</td>
+                                                <td>23%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <canvas id="regionDistributionChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // User Monthly Chart
+        var userMonthlyCtx = document.getElementById('userMonthlyChart').getContext('2d');
+        var userMonthlyChart = new Chart(userMonthlyCtx, {
+            type: 'line',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                datasets: [{
+                    label: 'Người dùng mới',
+                    data: [65, 78, 90, 105, 125, 138, 150, 162, 178, 190, 210, 225],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Người dùng hoạt động',
+                    data: [45, 55, 65, 75, 95, 110, 125, 140, 155, 170, 185, 200],
+                    borderColor: '#20c997',
+                    backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // User Age Chart
+        var userAgeCtx = document.getElementById('userAgeChart').getContext('2d');
+        var userAgeChart = new Chart(userAgeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Dưới 18', '18-24', '25-34', '35-44', '45+'],
+                datasets: [{
+                    data: [15, 35, 25, 18, 7],
+                    backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#fd7e14', '#6c757d'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // ASSIST Survey Chart
+        var assistSurveyCtx = document.getElementById('assistSurveyChart').getContext('2d');
+        var assistSurveyChart = new Chart(assistSurveyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Nguy cơ thấp', 'Nguy cơ trung bình', 'Nguy cơ cao'],
+                datasets: [{
+                    data: [68, 25, 7],
+                    backgroundColor: ['#20c997', '#ffc107', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // CRAFFT Survey Chart
+        var crafftSurveyCtx = document.getElementById('crafftSurveyChart').getContext('2d');
+        var crafftSurveyChart = new Chart(crafftSurveyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Không nguy cơ (0)', 'Nguy cơ thấp (1)', 'Nguy cơ cao (≥2)'],
+                datasets: [{
+                    data: [53, 29, 18],
+                    backgroundColor: ['#20c997', '#ffc107', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Program Effectiveness Chart
+        var programEffectivenessCtx = document.getElementById('programEffectivenessChart').getContext('2d');
+        var programEffectivenessChart = new Chart(programEffectivenessCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Kỹ năng từ chối', 'Nhận biết tác hại', 'Kỹ năng sống', 'Nhận biết các loại', 'Phòng ngừa tái nghiện'],
+                datasets: [{
+                    label: 'Tỷ lệ thành công',
+                    data: [92, 85, 78, 68, 75],
+                    backgroundColor: '#0d6efd',
+                    borderWidth: 1
+                }, {
+                    label: 'Đánh giá trung bình',
+                    data: [96, 82, 80, 64, 78],
+                    backgroundColor: '#20c997',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Region Distribution Chart
+        var regionDistributionCtx = document.getElementById('regionDistributionChart').getContext('2d');
+        var regionDistributionChart = new Chart(regionDistributionCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Khác'],
+                datasets: [{
+                    data: [26, 23, 13, 8, 7, 23],
+                    backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#fd7e14', '#6c757d', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý chương trình - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h5 class="text-white">Phòng ngừa ma túy</h5>
+                        <p class="text-white-50">Trang quản lý</p>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="programs.html">
+                                <i class="bi bi-megaphone me-2"></i> Quản lý chương trình
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="courses.html">
+                                <i class="bi bi-book me-2"></i> Quản lý khóa học
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="surveys.html">
+                                <i class="bi bi-clipboard-data me-2"></i> Quản lý khảo sát
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="counselors.html">
+                                <i class="bi bi-people me-2"></i> Quản lý chuyên viên
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="users.html">
+                                <i class="bi bi-person me-2"></i> Quản lý người dùng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="appointments.html">
+                                <i class="bi bi-calendar-check me-2"></i> Lịch hẹn tư vấn
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="reports.html">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i> Báo cáo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Quản lý chương trình truyền thông và giáo dục cộng đồng</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProgramModal">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm chương trình mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter and Search -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm chương trình...">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <select class="form-select">
+                                <option selected>Trạng thái</option>
+                                <option>Sắp diễn ra</option>
+                                <option>Đang diễn ra</option>
+                                <option>Đã kết thúc</option>
+                                <option>Đã hủy</option>
+                            </select>
+                            <select class="form-select">
+                                <option selected>Sắp xếp theo</option>
+                                <option>Ngày tạo (mới nhất)</option>
+                                <option>Ngày tạo (cũ nhất)</option>
+                                <option>Tên (A-Z)</option>
+                                <option>Tên (Z-A)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Programs List -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Danh sách chương trình</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-hover align-middle">
+                                <thead class="sticky-top bg-white">
+                                    <tr>
+                                        <th scope="col" width="5%">#</th>
+                                        <th scope="col" width="20%">Tên chương trình</th>
+                                        <th scope="col" width="15%">Địa điểm</th>
+                                        <th scope="col" width="15%">Thời gian</th>
+                                        <th scope="col" width="10%">Đối tượng</th>
+                                        <th scope="col" width="10%">Số người đăng ký</th>
+                                        <th scope="col" width="10%">Trạng thái</th>
+                                        <th scope="col" width="15%">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội thảo nhận thức về ma túy cho học sinh THPT">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230d6efd' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='white'%3EHS%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội thảo">
+                                                <span class="program-title-text">Hội thảo nhận thức về ma túy cho học sinh THPT</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trường THPT Nguyễn Huệ, Quận 1, TP.HCM">Trường THPT Nguyễn Huệ, Quận 1, TP.HCM</td>
+                                        <td>20/06/2023<br>08:00 - 11:30</td>
+                                        <td>Học sinh</td>
+                                        <td>120/150</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23ffc107' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3ECN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tuyên truyền">
+                                                <span class="program-title-text">Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Khu công nghiệp Tân Thuận, Quận 7, TP.HCM">Khu công nghiệp Tân Thuận, Quận 7, TP.HCM</td>
+                                        <td>05/07/2023<br>13:30 - 16:30</td>
+                                        <td>Công nhân</td>
+                                        <td>65/200</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230dcaf0' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3EHN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội nghị">
+                                                <span class="program-title-text">Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM">Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM</td>
+                                        <td>10/07/2023<br>08:30 - 16:30</td>
+                                        <td>Chuyên viên</td>
+                                        <td>32/50</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Tập huấn kỹ năng từ chối ma túy cho sinh viên">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23198754' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='white'%3ESV%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tập huấn">
+                                                <span class="program-title-text">Tập huấn kỹ năng từ chối ma túy cho sinh viên</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Đại học Khoa học Xã hội và Nhân văn, TP.HCM">Đại học Khoa học Xã hội và Nhân văn, TP.HCM</td>
+                                        <td>25/06/2023<br>14:00 - 17:00</td>
+                                        <td>Sinh viên</td>
+                                        <td>85/100</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23ffc107' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3ECN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tuyên truyền">
+                                                <span class="program-title-text">Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Khu công nghiệp Tân Thuận, Quận 7, TP.HCM">Khu công nghiệp Tân Thuận, Quận 7, TP.HCM</td>
+                                        <td>05/07/2023<br>13:30 - 16:30</td>
+                                        <td>Công nhân</td>
+                                        <td>65/200</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230dcaf0' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3EHN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội nghị">
+                                                <span class="program-title-text">Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM">Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM</td>
+                                        <td>10/07/2023<br>08:30 - 16:30</td>
+                                        <td>Chuyên viên</td>
+                                        <td>32/50</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hướng dẫn phụ huynh nhận biết dấu hiệu con em sử dụng ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23dc3545' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='white'%3EPH%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hướng dẫn">
+                                                <span class="program-title-text">Hướng dẫn phụ huynh nhận biết dấu hiệu con em sử dụng ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Văn hóa Quận Tân Bình, TP.HCM">Trung tâm Văn hóa Quận Tân Bình, TP.HCM</td>
+                                        <td>30/06/2023<br>09:00 - 11:00</td>
+                                        <td>Phụ huynh</td>
+                                        <td>45/80</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23ffc107' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3ECN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tuyên truyền">
+                                                <span class="program-title-text">Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Khu công nghiệp Tân Thuận, Quận 7, TP.HCM">Khu công nghiệp Tân Thuận, Quận 7, TP.HCM</td>
+                                        <td>05/07/2023<br>13:30 - 16:30</td>
+                                        <td>Công nhân</td>
+                                        <td>65/200</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230dcaf0' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3EHN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội nghị">
+                                                <span class="program-title-text">Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM">Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM</td>
+                                        <td>10/07/2023<br>08:30 - 16:30</td>
+                                        <td>Chuyên viên</td>
+                                        <td>32/50</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Tập huấn giáo viên về kỹ năng tư vấn học sinh</td>
+                                        <td>Sở Giáo dục và Đào tạo TP.HCM</td>
+                                        <td>10/06/2023<br>08:30 - 16:30</td>
+                                        <td>Giáo viên</td>
+                                        <td>60/60</td>
+                                        <td><span class="badge bg-success">Đang diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23ffc107' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3ECN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tuyên truyền">
+                                                <span class="program-title-text">Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Khu công nghiệp Tân Thuận, Quận 7, TP.HCM">Khu công nghiệp Tân Thuận, Quận 7, TP.HCM</td>
+                                        <td>05/07/2023<br>13:30 - 16:30</td>
+                                        <td>Công nhân</td>
+                                        <td>65/200</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230dcaf0' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3EHN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội nghị">
+                                                <span class="program-title-text">Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM">Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM</td>
+                                        <td>10/07/2023<br>08:30 - 16:30</td>
+                                        <td>Chuyên viên</td>
+                                        <td>32/50</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Hội thảo tác hại của ma túy đá và cách phòng tránh</td>
+                                        <td>Trường Đại học Y Dược TP.HCM</td>
+                                        <td>05/06/2023<br>13:30 - 16:30</td>
+                                        <td>Sinh viên</td>
+                                        <td>95/100</td>
+                                        <td><span class="badge bg-secondary">Đã kết thúc</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23ffc107' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3ECN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Tuyên truyền">
+                                                <span class="program-title-text">Chương trình tuyên truyền phòng chống ma túy tại các khu công nghiệp</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Khu công nghiệp Tân Thuận, Quận 7, TP.HCM">Khu công nghiệp Tân Thuận, Quận 7, TP.HCM</td>
+                                        <td>05/07/2023<br>13:30 - 16:30</td>
+                                        <td>Công nhân</td>
+                                        <td>65/200</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="cell-truncate" data-bs-toggle="tooltip" title="Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy">
+                                            <div class="program-title-container">
+                                                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%230dcaf0' /%3E%3Ctext x='50%25' y='50%25' font-size='18' text-anchor='middle' alignment-baseline='middle' font-family='Arial, sans-serif' fill='%23212529'%3EHN%3C/text%3E%3C/svg%3E" class="program-thumbnail" alt="Hội nghị">
+                                                <span class="program-title-text">Hội nghị tập huấn kỹ năng tư vấn và hỗ trợ người nghiện ma túy</span>
+                                            </div>
+                                        </td>
+                                        <td class="cell-address" data-bs-toggle="tooltip" title="Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM">Trung tâm Hội nghị White Palace, Quận Phú Nhuận, TP.HCM</td>
+                                        <td>10/07/2023<br>08:30 - 16:30</td>
+                                        <td>Chuyên viên</td>
+                                        <td>32/50</td>
+                                        <td><span class="badge bg-warning">Sắp diễn ra</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Khảo sát">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Program Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Thống kê chương trình theo đối tượng</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="programTypeChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Thống kê đánh giá chương trình</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="programFeedbackChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Program Modal -->
+    <div class="modal fade" id="addProgramModal" tabindex="-1" aria-labelledby="addProgramModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProgramModalLabel">Thêm chương trình mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="programName" class="form-label">Tên chương trình <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="programName" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="programDescription" class="form-label">Mô tả chương trình</label>
+                                <textarea class="form-control" id="programDescription" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="programLocation" class="form-label">Địa điểm <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="programLocation" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="programTarget" class="form-label">Đối tượng <span class="text-danger">*</span></label>
+                                <select class="form-select" id="programTarget" required>
+                                    <option value="" selected disabled>Chọn đối tượng</option>
+                                    <option value="Học sinh">Học sinh</option>
+                                    <option value="Sinh viên">Sinh viên</option>
+                                    <option value="Phụ huynh">Phụ huynh</option>
+                                    <option value="Giáo viên">Giáo viên</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="programDate" class="form-label">Ngày tổ chức <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="programDate" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="programStartTime" class="form-label">Giờ bắt đầu <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="programStartTime" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="programEndTime" class="form-label">Giờ kết thúc <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="programEndTime" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="programCapacity" class="form-label">Số lượng tối đa <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="programCapacity" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="programStatus" class="form-label">Trạng thái <span class="text-danger">*</span></label>
+                                <select class="form-select" id="programStatus" required>
+                                    <option value="" selected disabled>Chọn trạng thái</option>
+                                    <option value="Sắp diễn ra">Sắp diễn ra</option>
+                                    <option value="Đang diễn ra">Đang diễn ra</option>
+                                    <option value="Đã kết thúc">Đã kết thúc</option>
+                                    <option value="Đã hủy">Đã hủy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="programSurvey" class="form-label">Khảo sát đánh giá</label>
+                                <select class="form-select" id="programSurvey">
+                                    <option value="" selected disabled>Chọn khảo sát</option>
+                                    <option value="1">Khảo sát đánh giá chương trình truyền thông</option>
+                                    <option value="2">Khảo sát mức độ hài lòng</option>
+                                    <option value="3">Khảo sát kiến thức về ma túy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="programImage" class="form-label">Hình ảnh chương trình</label>
+                                <input type="file" class="form-control" id="programImage">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary">Lưu chương trình</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Program Type Chart
+            const programTypeCtx = document.getElementById('programTypeChart').getContext('2d');
+            const programTypeChart = new Chart(programTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Học sinh', 'Sinh viên', 'Phụ huynh', 'Giáo viên', 'Khác'],
+                    datasets: [{
+                        data: [30, 25, 20, 15, 10],
+                        backgroundColor: [
+                            'rgba(13, 110, 253, 0.8)',
+                            'rgba(25, 135, 84, 0.8)',
+                            'rgba(13, 202, 240, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(108, 117, 125, 0.8)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    height: 250,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 4,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+
+            // Program Feedback Chart
+            const programFeedbackCtx = document.getElementById('programFeedbackChart').getContext('2d');
+            const programFeedbackChart = new Chart(programFeedbackCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Rất hài lòng', 'Hài lòng', 'Bình thường', 'Không hài lòng', 'Rất không hài lòng'],
+                    datasets: [{
+                        label: 'Phản hồi',
+                        data: [45, 30, 15, 7, 3],
+                        backgroundColor: [
+                            'rgba(25, 135, 84, 0.8)',
+                            'rgba(13, 202, 240, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(255, 128, 0, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(25, 135, 84, 1)',
+                            'rgba(13, 202, 240, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(255, 128, 0, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    height: 250,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>

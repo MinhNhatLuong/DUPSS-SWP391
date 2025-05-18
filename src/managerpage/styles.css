@@ -1,0 +1,525 @@
+/* Main Styles for Manager Dashboard */
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0a58ca;
+    --primary-light: #cfe2ff;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --white-color: #ffffff;
+    --light-bg: #f5f9fc;
+    --gray-color: #6c757d;
+    --primary-rgb: 13, 110, 253;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f9fc;
+    color: var(--dark-color);
+}
+
+/* Sidebar styles */
+.sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    min-height: 100vh;
+    background-color: #343a40;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.sidebar .sidebar-header {
+    padding: 20px;
+    background-color: #2c3136;
+}
+
+.sidebar ul.components {
+    padding: 20px 0;
+}
+
+.sidebar ul li a {
+    padding: 10px 20px;
+    display: block;
+    color: rgba(255, 255, 255, 0.8);
+    border-left: 3px solid transparent;
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li a.active {
+    color: #fff;
+    background-color: #0d6efd;
+    border-left: 3px solid #ffffff;
+}
+
+.sidebar ul li a i {
+    margin-right: 10px;
+}
+
+/* Content styles */
+#content {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+    background-color: #f8f9fa;
+    padding-bottom: 2rem;
+}
+
+/* Main Content Styles */
+main {
+    padding: 1.5rem;
+}
+
+/* Dashboard styles */
+.stats-card, .card-stats {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+    height: 100%;
+    border: none;
+    margin-bottom: 1.5rem;
+    background-color: #ffffff;
+}
+
+.stats-card:hover, .card-stats:hover {
+    transform: translateY(-5px);
+}
+
+.stats-card .card-body, .card-stats .card-body {
+    padding: 1.5rem;
+}
+
+/* Dashboard layout */
+.dashboard-container {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+/* Table styles for better scrolling */
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Chart container styles */
+.chart-container {
+    position: relative;
+    margin: auto;
+    height: 250px;
+    max-height: 250px;
+}
+
+/* Table cell content handling */
+.table td.cell-truncate {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table td.cell-wrap {
+    max-width: 200px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.table td.cell-address {
+    max-width: 180px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Program image thumbnail */
+.program-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+
+/* Program title with image layout */
+.program-title-container {
+    display: flex;
+    align-items: center;
+}
+
+.program-title-text {
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+}
+
+/* Tooltip for truncated content */
+[data-bs-toggle="tooltip"] {
+    cursor: pointer;
+}
+
+/* Ensure backward compatibility with other pages */
+.col-md-9.ms-sm-auto.col-lg-10.px-md-4 {
+    display: block;
+}
+
+/* Apply flex layout only to dashboard container */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix for management pages */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Reset for management pages */
+.col-md-9.ms-sm-auto.col-lg-10.px-md-4 > .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.dashboard-section {
+    margin-bottom: 2rem;
+    background-color: var(--white-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Ensure other management pages still work properly */
+.row.mb-4.dashboard-element {
+    display: block;
+}
+
+.dashboard-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--dark-color);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.75rem;
+    position: relative;
+}
+
+.dashboard-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+.dashboard-section .row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.dashboard-section .col-md-3,
+.dashboard-section .col-md-4,
+.dashboard-section .col-md-6,
+.dashboard-section .col-md-8 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Action buttons styling */
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-success:hover {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border-color: #198754;
+}
+
+.btn-outline-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-info:hover {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+/* Tooltip styling */
+.tooltip {
+    font-size: 0.8rem;
+}
+
+/* Modal styling for action forms */
+.modal-header {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.action-form label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+    background-color: transparent;
+}
+
+.card-body {
+    padding: 1.25rem;
+    height: calc(100% - 60px); /* Adjust based on your card header height */
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-section .card {
+    margin-bottom: 0;
+}
+
+.dashboard-section .table-responsive {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dashboard-section .list-group {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Fix for management pages tables */
+.table-responsive:not(.dashboard-section .table-responsive) {
+    max-height: none;
+    overflow-y: visible;
+}
+
+/* Ensure action buttons in management pages work properly */
+.action-column .btn-group {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+/* Fix for modal dialogs in management pages */
+.modal-dialog {
+    margin: 1.75rem auto;
+}
+
+/* Dashboard Cards */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.bg-info {
+    background-color: var(--info-color) !important;
+}
+
+.bg-warning {
+    background-color: var(--warning-color) !important;
+}
+
+/* Table styles */
+.table-container {
+    background-color: var(--white-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 8px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--dark-color);
+    border-top: none;
+    background-color: #f1f4f9;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 12px 15px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f4f9;
+}
+
+.table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table .badge {
+    font-weight: 500;
+    padding: 0.4rem 0.6rem;
+    border-radius: 30px;
+}
+
+/* Badges */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white-color);
+}
+
+/* List Groups */
+.list-group-item {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+}
+
+.list-group-item:hover {
+    background-color: var(--light-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 0.5rem;
+    }
+    
+    main {
+        margin-top: 60px;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Chart styles */
+.chart-container {
+    position: relative;
+    margin: auto;
+    height: 300px;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+/* Dashboard responsive fixes */
+.dashboard-element .card {
+    height: 100%;
+    margin-bottom: 1rem;
+}
+
+.dashboard-element canvas {
+    max-height: 300px;
+}
+
+.dashboard-element .table-responsive {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dashboard-element .list-group {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Dashboard card improvements */
+.card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    background-color: #ffffff;
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.25rem;
+}

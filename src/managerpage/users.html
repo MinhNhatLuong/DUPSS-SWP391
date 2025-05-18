@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - Phần mềm hỗ trợ phòng ngừa sử dụng ma túy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h5 class="text-white">Phòng ngừa ma túy</h5>
+                        <p class="text-white-50">Trang quản lý</p>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="programs.html">
+                                <i class="bi bi-megaphone me-2"></i> Quản lý chương trình
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="courses.html">
+                                <i class="bi bi-book me-2"></i> Quản lý khóa học
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="surveys.html">
+                                <i class="bi bi-clipboard-data me-2"></i> Quản lý khảo sát
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="counselors.html">
+                                <i class="bi bi-people me-2"></i> Quản lý chuyên viên
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="users.html">
+                                <i class="bi bi-person me-2"></i> Quản lý người dùng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="appointments.html">
+                                <i class="bi bi-calendar-check me-2"></i> Lịch hẹn tư vấn
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="reports.html">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i> Báo cáo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Quản lý người dùng</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm người dùng mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter and Search -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm người dùng...">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-2">
+                            <select class="form-select">
+                                <option selected>Nhóm tuổi</option>
+                                <option>Dưới 18</option>
+                                <option>18-24</option>
+                                <option>25-34</option>
+                                <option>35-44</option>
+                                <option>45+</option>
+                            </select>
+                            <select class="form-select">
+                                <option selected>Sắp xếp theo</option>
+                                <option>Tên (A-Z)</option>
+                                <option>Tên (Z-A)</option>
+                                <option>Ngày tham gia (mới nhất)</option>
+                                <option>Ngày tham gia (cũ nhất)</option>
+                                <option>Mức độ hoạt động (cao-thấp)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users List -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Danh sách người dùng</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" width="5%">#</th>
+                                        <th scope="col" width="15%">Họ và tên</th>
+                                        <th scope="col" width="10%">Tuổi</th>
+                                        <th scope="col" width="15%">Email</th>
+                                        <th scope="col" width="10%">Số điện thoại</th>
+                                        <th scope="col" width="10%">Ngày tham gia</th>
+                                        <th scope="col" width="10%">Khóa học đã tham gia</th>
+                                        <th scope="col" width="10%">Trạng thái</th>
+                                        <th scope="col" width="15%">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar">
+                                                <div>
+                                                    <div class="fw-bold">Nguyễn Thị Anh</div>
+                                                    <small class="text-muted">ID: U001</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>22</td>
+                                        <td>nguyenthianh@example.com</td>
+                                        <td>0912345678</td>
+                                        <td>15/01/2023</td>
+                                        <td>3</td>
+                                        <td><span class="badge bg-success">Đang hoạt động</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Kết quả khảo sát">
+                                                    <i class="bi bi-clipboard-data"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar">
+                                                <div>
+                                                    <div class="fw-bold">Trần Văn Bình</div>
+                                                    <small class="text-muted">ID: U002</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>19</td>
+                                        <td>tranvanbinh@example.com</td>
+                                        <td>0923456789</td>
+                                        <td>20/01/2023</td>
+                                        <td>2</td>
+                                        <td><span class="badge bg-success">Đang hoạt động</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Kết quả khảo sát">
+                                                    <i class="bi bi-clipboard-data"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Avatar">
+                                                <div>
+                                                    <div class="fw-bold">Lê Thị Cúc</div>
+                                                    <small class="text-muted">ID: U003</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>25</td>
+                                        <td>lethicuc@example.com</td>
+                                        <td>0934567890</td>
+                                        <td>25/01/2023</td>
+                                        <td>1</td>
+                                        <td><span class="badge bg-warning text-dark">Không hoạt động</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Kết quả khảo sát">
+                                                    <i class="bi bi-clipboard-data"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Phân bố người dùng theo độ tuổi</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="userAgeChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Người dùng mới theo tháng</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="newUsersChart" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add User Modal -->
+                <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addUserModalLabel">Thêm người dùng mới</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="userName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="userName" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="userEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                                            <input type="email" class="form-control" id="userEmail" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="userPhone" class="form-label">Số điện thoại</label>
+                                            <input type="tel" class="form-control" id="userPhone">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="userDOB" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="userDOB" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="userGender" class="form-label">Giới tính</label>
+                                            <select class="form-select" id="userGender">
+                                                <option value="" selected disabled>Chọn giới tính</option>
+                                                <option>Nam</option>
+                                                <option>Nữ</option>
+                                                <option>Khác</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="userPassword" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                                            <input type="password" class="form-control" id="userPassword" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="userAddress" class="form-label">Địa chỉ</label>
+                                        <input type="text" class="form-control" id="userAddress">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="userEducation" class="form-label">Trình độ học vấn</label>
+                                        <select class="form-select" id="userEducation">
+                                            <option value="" selected disabled>Chọn trình độ học vấn</option>
+                                            <option>Trung học cơ sở</option>
+                                            <option>Trung học phổ thông</option>
+                                            <option>Cao đẳng</option>
+                                            <option>Đại học</option>
+                                            <option>Sau đại học</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="userAvatar" class="form-label">Ảnh đại diện</label>
+                                        <input type="file" class="form-control" id="userAvatar">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="userStatus" class="form-label">Trạng thái</label>
+                                        <select class="form-select" id="userStatus">
+                                            <option>Đang hoạt động</option>
+                                            <option>Không hoạt động</option>
+                                            <option>Bị khóa</option>
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary">Lưu người dùng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // User Age Distribution Chart
+        var ageCtx = document.getElementById('userAgeChart').getContext('2d');
+        var ageChart = new Chart(ageCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Dưới 18', '18-24', '25-34', '35-44', '45+'],
+                datasets: [{
+                    data: [15, 45, 25, 10, 5],
+                    backgroundColor: [
+                        '#4e73df',
+                        '#1cc88a',
+                        '#36b9cc',
+                        '#f6c23e',
+                        '#e74a3b'
+                    ],
+                    hoverBackgroundColor: [
+                        '#2e59d9',
+                        '#17a673',
+                        '#2c9faf',
+                        '#dda20a',
+                        '#be2617'
+                    ],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                var percentage = Math.round((value / total) * 100);
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '60%',
+                elements: {
+                    arc: {
+                        borderWidth: 0
+                    }
+                }
+            }
+        });
+
+        // New Users Chart
+        var newUsersCtx = document.getElementById('newUsersChart').getContext('2d');
+        var newUsersChart = new Chart(newUsersCtx, {
+            type: 'line',
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+                datasets: [{
+                    label: 'Người dùng mới',
+                    data: [65, 78, 52, 115, 98, 87],
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: '#4e73df',
+                    pointRadius: 3,
+                    pointBackgroundColor: '#4e73df',
+                    pointBorderColor: '#4e73df',
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#4e73df',
+                    pointHoverBorderColor: '#4e73df',
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                tension: 0.3
+            }
+        });
+    </script>
+</body>
+</html>
