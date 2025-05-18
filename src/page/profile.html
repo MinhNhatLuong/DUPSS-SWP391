@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ thành viên - DUPSS</title>
+    <link rel="stylesheet" href="../../src/stylesheets/HomePageStylesheet.css">
+    <link rel="stylesheet" href="../../src/stylesheets/ProfileStylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../../public/Logo_Website.png" alt="DUPSS Logo">
+                </a>
+            </div>
+            
+            <div class="search-bar">
+                <form action="#" method="get">
+                    <input type="text" placeholder="Tìm kiếm..." name="search">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
+            <div class="user-actions">
+                <!-- User dropdown for logged in users -->
+                <div class="user-dropdown">
+                    <button class="dropbtn">Tài khoản <i class="fas fa-caret-down"></i></button>
+                    <div class="dropdown-content">
+                        <a href="profile.html" class="active">Hồ sơ</a>
+                        <a href="#">Khóa học của tôi</a>
+                        <a href="#">Cài đặt</a>
+                        <a href="#">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="courses.html">Khóa học</a></li>
+                <li><a href="blogs.html">Blogs & Thông tin</a></li>
+                <li><a href="survey.html">Khảo sát</a></li>
+                <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                <li><a href="about-us.html">Về chúng tôi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Profile Section -->
+    <main class="profile-container">
+        <div class="profile-header">
+            <h1>Hồ sơ thành viên</h1>
+            <p>Quản lý thông tin cá nhân và khóa học của bạn</p>
+        </div>
+
+        <div class="profile-content">
+            <!-- Profile Information -->
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <img src="https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg" alt="Avatar">
+                    <button class="change-avatar-btn"><i class="fas fa-camera"></i> Thay đổi</button>
+                </div>
+                
+                <div class="profile-details">
+                    <div class="profile-field">
+                        <label>Họ và tên:</label>
+                        <p>Nguyễn Văn A</p>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <label>Email:</label>
+                        <p>nguyenvana@example.com</p>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <label>Ngày sinh:</label>
+                        <p>01/01/1990</p>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <label>Số điện thoại:</label>
+                        <p>0912345678</p>
+                    </div>
+                    
+                    <button class="edit-profile-btn"><i class="fas fa-edit"></i> Chỉnh sửa thông tin</button>
+                </div>
+            </div>
+
+            <!-- Enrolled Courses -->
+            <div class="enrolled-courses">
+                <h2>Khóa học đã đăng ký</h2>
+                
+                <div class="courses-table-container">
+                    <table class="courses-table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Khóa học</th>
+                                <th>Tên khóa học</th>
+                                <th>Thời gian đăng ký</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <img src="https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg" alt="Khóa học 1">
+                                </td>
+                                <td><a href="#">Phòng ngừa sử dụng chất gây nghiện cho thanh thiếu niên</a></td>
+                                <td>15/11/2023</td>
+                                <td><span class="status-badge completed">Hoàn thành</span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <img src="https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg" alt="Khóa học 2">
+                                </td>
+                                <td><a href="#">Kỹ năng từ chối và đối phó với áp lực đồng trang lứa</a></td>
+                                <td>20/11/2023</td>
+                                <td><span class="status-badge in-progress">Đang học</span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <img src="https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg" alt="Khóa học 3">
+                                </td>
+                                <td><a href="#">Nhận thức về tác hại của ma túy đối với sức khỏe và xã hội</a></td>
+                                <td>25/11/2023</td>
+                                <td><span class="status-badge not-started">Chưa bắt đầu</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Certificates Section -->
+            <div class="certificates-section">
+                <h2>Chứng chỉ đã nhận</h2>
+                <div class="certificates-list">
+                    <div class="certificate-card">
+                        <div class="certificate-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="certificate-info">
+                            <h3>Phòng ngừa sử dụng chất gây nghiện cho thanh thiếu niên</h3>
+                            <p>Ngày cấp: 30/11/2023</p>
+                            <a href="#" class="download-certificate"><i class="fas fa-download"></i> Tải xuống</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <h3>Về DUPSS</h3>
+                    <p>DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="courses.html">Khóa học</a></li>
+                        <li><a href="blogs.html">Tin tức & Blog</a></li>
+                        <li><a href="survey.html">Khảo sát</a></li>
+                        <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                        <li><a href="about-us.html">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Tài nguyên</h3>
+                    <ul>
+                        <li><a href="#">Thư viện tài liệu</a></li>
+                        <li><a href="#">Video giáo dục</a></li>
+                        <li><a href="#">Infographics</a></li>
+                        <li><a href="#">Báo cáo nghiên cứu</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</p>
+                    <p><i class="fas fa-phone"></i> (028) 1234 5678</p>
+                    <p><i class="fas fa-envelope"></i> info@dupss.org.vn</p>
+                    <div class="social-media">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+                <div class="footer-links">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản sử dụng</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-to-top" title="Cuộn lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Chỉnh sửa thông tin</h2>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="fullname">Họ và tên:</label>
+                    <input type="text" id="fullname" name="fullname" value="Nguyễn Văn A" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="nguyenvana@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthdate">Ngày sinh:</label>
+                    <input type="date" id="birthdate" name="birthdate" value="1990-01-01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Số điện thoại:</label>
+                    <input type="tel" id="phone" name="phone" value="0912345678" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn">Hủy</button>
+                    <button type="submit" class="save-btn">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../src/scripts/ScrollUp.js"></script>
+    <script src="../../src/scripts/Profile.js"></script>
+</body>
+</html>
