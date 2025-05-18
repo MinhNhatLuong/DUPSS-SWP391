@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogs & Thông tin - DUPSS</title>
+    <link rel="stylesheet" href="../../src/stylesheets/HomePageStylesheet.css">
+    <link rel="stylesheet" href="../../src/stylesheets/BlogsStylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../../public/Logo_Website.png" alt="DUPSS Logo">
+                </a>
+            </div>
+            
+            <div class="search-bar">
+                <form action="#" method="get">
+                    <input type="text" placeholder="Tìm kiếm..." name="search">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
+            <div class="user-actions">
+                <div class="auth-buttons">
+                    <a href="login.html" class="login-btn">Đăng nhập</a>
+                    <a href="register.html" class="register-btn">Đăng ký</a>
+                </div>
+                <!-- User dropdown will appear here after login -->
+                <div class="user-dropdown" style="display: none;">
+                    <button class="dropbtn">Tài khoản <i class="fas fa-caret-down"></i></button>
+                    <div class="dropdown-content">
+                        <a href="#">Hồ sơ</a>
+                        <a href="#">Khóa học của tôi</a>
+                        <a href="#">Cài đặt</a>
+                        <a href="#">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="#">Khóa học</a></li>
+                <li><a href="blogs.html" class="active">Blogs & Thông tin</a></li>
+                <li><a href="survey.html">Khảo sát</a></li>
+                <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                <li><a href="about-us.html">Về chúng tôi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blogs Content -->
+    <main class="blogs-container">
+        <div class="blogs-header">
+            <h1>Blogs & Thông tin</h1>
+            <p>Cập nhật những thông tin mới nhất về phòng chống ma túy và các hoạt động của DUPSS</p>
+        </div>
+
+        <div class="blogs-filter">
+            <div class="filter-title">Lọc theo chủ đề:</div>
+            <div class="filter-options">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="education">Giáo dục</button>
+                <button class="filter-btn" data-filter="research">Nghiên cứu</button>
+                <button class="filter-btn" data-filter="community">Cộng đồng</button>
+                <button class="filter-btn" data-filter="prevention">Phòng ngừa</button>
+                <button class="filter-btn" data-filter="treatment">Điều trị</button>
+            </div>
+        </div>
+
+        <div class="blogs-grid">
+            <!-- Bài viết 1 -->
+            <div class="blog-card" data-category="education">
+                <div class="blog-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Chương trình giáo dục phòng chống ma túy">
+                    <div class="blog-category">Giáo dục</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">Chương trình giáo dục phòng chống ma túy tại trường học</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 15/11/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> Nguyễn Tấn Dũng</span>
+                    </div>
+                    <p class="blog-excerpt">Triển khai chương trình giáo dục phòng chống ma túy tại các trường học trên toàn quốc đang là một trong những ưu tiên hàng đầu của Bộ Giáo dục và Đào tạo...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Bài viết 2 -->
+            <div class="blog-card" data-category="research">
+                <div class="blog-thumbnail">
+                    <img src="https://www.nida.nih.gov/sites/default/files/styles/featured_image/public/images/2022-12/iStock-1356585982.jpg" alt="Nghiên cứu mới về tác động của ma túy">
+                    <div class="blog-category">Nghiên cứu</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">Nghiên cứu mới về tác động của ma túy đối với não bộ thanh thiếu niên</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 10/11/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> TS. Trần Minh Hiếu</span>
+                    </div>
+                    <p class="blog-excerpt">Các nhà khoa học từ Viện Nghiên cứu Y học Việt Nam vừa công bố kết quả nghiên cứu mới về tác động lâu dài của ma túy đối với sự phát triển não bộ ở thanh thiếu niên...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Bài viết 3 -->
+            <div class="blog-card" data-category="community">
+                <div class="blog-thumbnail">
+                    <img src="https://www.samhsa.gov/sites/default/files/community-conversations-banner.jpg" alt="Hoạt động cộng đồng">
+                    <div class="blog-category">Cộng đồng</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">Chuỗi hoạt động cộng đồng "Nói không với ma túy" tại các tỉnh miền Trung</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 05/11/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> Lê Thị Hồng</span>
+                    </div>
+                    <p class="blog-excerpt">DUPSS phối hợp cùng các đơn vị địa phương tổ chức chuỗi hoạt động cộng đồng "Nói không với ma túy" tại 5 tỉnh miền Trung trong tháng 11/2023...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Bài viết 4 -->
+            <div class="blog-card" data-category="prevention">
+                <div class="blog-thumbnail">
+                    <img src="https://www.cdc.gov/drugoverdose/images/prevention/prevention-1200x630.jpg" alt="Kỹ năng phòng ngừa">
+                    <div class="blog-category">Phòng ngừa</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">5 kỹ năng cần thiết giúp phụ huynh phòng ngừa con em tiếp xúc với ma túy</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 01/11/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> ThS. Phạm Văn Nam</span>
+                    </div>
+                    <p class="blog-excerpt">Phụ huynh đóng vai trò quan trọng trong việc phòng ngừa con em tiếp xúc với ma túy. Bài viết này giới thiệu 5 kỹ năng thiết yếu giúp phụ huynh bảo vệ con em mình...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Bài viết 5 -->
+            <div class="blog-card" data-category="treatment">
+                <div class="blog-thumbnail">
+                    <img src="https://www.nami.org/NAMI/media/NAMI-Media/BlogImageArchive/2022/iStock-1300343411.jpg" alt="Phương pháp điều trị">
+                    <div class="blog-category">Điều trị</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">Phương pháp điều trị mới cho người nghiện ma túy đá tại Việt Nam</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 28/10/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> PGS.TS. Nguyễn Văn An</span>
+                    </div>
+                    <p class="blog-excerpt">Bệnh viện Tâm thần Trung ương vừa công bố phương pháp điều trị mới cho người nghiện ma túy đá, kết hợp liệu pháp tâm lý và thuốc, mang lại hiệu quả cao...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Bài viết 6 -->
+            <div class="blog-card" data-category="education">
+                <div class="blog-thumbnail">
+                    <img src="https://www.drugabuse.gov/sites/default/files/styles/content_image_large/public/images/2020/10/iStock-1212772418.jpg" alt="Tài liệu giáo dục">
+                    <div class="blog-category">Giáo dục</div>
+                </div>
+                <div class="blog-content">
+                    <h3 class="blog-title">Bộ tài liệu giáo dục phòng chống ma túy dành cho học sinh THCS</h3>
+                    <div class="blog-meta">
+                        <span class="blog-date"><i class="far fa-calendar-alt"></i> 25/10/2023</span>
+                        <span class="blog-author"><i class="far fa-user"></i> Vũ Thị Minh Tâm</span>
+                    </div>
+                    <p class="blog-excerpt">DUPSS phối hợp với Bộ Giáo dục và Đào tạo ra mắt bộ tài liệu giáo dục phòng chống ma túy dành riêng cho học sinh THCS, được thiết kế sinh động và phù hợp lứa tuổi...</p>
+                    <a href="article-education-program.html" class="read-more-btn">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <a href="#" class="page-link active">1</a>
+            <a href="#" class="page-link">2</a>
+            <a href="#" class="page-link">3</a>
+            <a href="#" class="page-link">4</a>
+            <a href="#" class="page-link next"><i class="fas fa-angle-right"></i></a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <h3>Về DUPSS</h3>
+                    <p>DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="#">Khóa học</a></li>
+                        <li><a href="blogs.html">Tin tức & Blog</a></li>
+                        <li><a href="survey.html">Khảo sát</a></li>
+                        <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                        <li><a href="about-us.html">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Tài nguyên</h3>
+                    <ul>
+                        <li><a href="#">Thư viện tài liệu</a></li>
+                        <li><a href="#">Video giáo dục</a></li>
+                        <li><a href="#">Infographics</a></li>
+                        <li><a href="#">Báo cáo nghiên cứu</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</p>
+                    <p><i class="fas fa-phone"></i> (028) 1234 5678</p>
+                    <p><i class="fas fa-envelope"></i> info@dupss.org.vn</p>
+                    <div class="social-media">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+                <div class="footer-links">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản sử dụng</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-to-top" title="Cuộn lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="../../src/scripts/ScrollUp.js"></script>
+    <script src="../../src/scripts/BlogsFilter.js"></script>
+</body>
+</html>
