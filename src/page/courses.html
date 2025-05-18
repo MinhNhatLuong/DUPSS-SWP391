@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khóa học - DUPSS</title>
+    <link rel="stylesheet" href="../../src/stylesheets/HomePageStylesheet.css">
+    <link rel="stylesheet" href="../../src/stylesheets/CoursesStylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../../public/Logo_Website.png" alt="DUPSS Logo">
+                </a>
+            </div>
+            
+            <div class="search-bar">
+                <form action="#" method="get">
+                    <input type="text" placeholder="Tìm kiếm..." name="search">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
+            <div class="user-actions">
+                <div class="auth-buttons">
+                    <a href="login.html" class="login-btn">Đăng nhập</a>
+                    <a href="register.html" class="register-btn">Đăng ký</a>
+                </div>
+                <!-- User dropdown will appear here after login -->
+                <div class="user-dropdown" style="display: none;">
+                    <button class="dropbtn">Tài khoản <i class="fas fa-caret-down"></i></button>
+                    <div class="dropdown-content">
+                        <a href="#">Hồ sơ</a>
+                        <a href="#">Khóa học của tôi</a>
+                        <a href="#">Cài đặt</a>
+                        <a href="#">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="courses.html" class="active">Khóa học</a></li>
+                <li><a href="blogs.html">Blogs & Thông tin</a></li>
+                <li><a href="survey.html">Khảo sát</a></li>
+                <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                <li><a href="about-us.html">Về chúng tôi</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Courses Content -->
+    <main class="courses-container">
+        <div class="courses-header">
+            <h1>Khóa học</h1>
+            <p>Các khóa học trực tuyến về phòng chống ma túy và nâng cao nhận thức cộng đồng</p>
+        </div>
+
+        <div class="courses-filter">
+            <div class="filter-title">Lọc theo chủ đề:</div>
+            <div class="filter-options">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="prevention">Phòng ngừa</button>
+                <button class="filter-btn" data-filter="awareness">Nhận thức</button>
+                <button class="filter-btn" data-filter="skills">Kỹ năng</button>
+                <button class="filter-btn" data-filter="support">Hỗ trợ</button>
+                <button class="filter-btn" data-filter="education">Giáo dục</button>
+            </div>
+        </div>
+
+        <div class="courses-grid">
+            <!-- Khóa học 1 -->
+            <div class="course-card" data-category="prevention">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Phòng ngừa sử dụng chất gây nghiện">
+                    <div class="course-category">Phòng ngừa</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 4 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Phòng ngừa sử dụng chất gây nghiện cho thanh thiếu niên</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> TS. Nguyễn Văn An</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Cơ bản</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học cung cấp kiến thức và kỹ năng cơ bản giúp thanh thiếu niên nhận biết và phòng tránh các chất gây nghiện phổ biến...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span>(120)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khóa học 2 -->
+            <div class="course-card" data-category="awareness">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Nhận thức về tác hại của ma túy">
+                    <div class="course-category">Nhận thức</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 3 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Nhận thức về tác hại của ma túy đối với sức khỏe và xã hội</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> ThS. Trần Minh Hiếu</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Trung cấp</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học giúp người học hiểu rõ về tác hại của ma túy đối với sức khỏe cá nhân, gia đình và những hệ lụy xã hội...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span>(85)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khóa học 3 -->
+            <div class="course-card" data-category="skills">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Kỹ năng từ chối">
+                    <div class="course-category">Kỹ năng</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 2 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Kỹ năng từ chối và đối phó với áp lực đồng trang lứa</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> ThS. Lê Thị Hồng</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Cơ bản</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học trang bị cho học viên các kỹ năng từ chối hiệu quả và cách đối phó với áp lực từ bạn bè khi bị rủ rê sử dụng chất cấm...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span>(210)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khóa học 4 -->
+            <div class="course-card" data-category="support">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Hỗ trợ người nghiện">
+                    <div class="course-category">Hỗ trợ</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 6 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Kỹ năng hỗ trợ người thân đang gặp vấn đề với chất gây nghiện</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> PGS.TS. Phạm Văn Nam</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Nâng cao</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học dành cho người thân của người nghiện, cung cấp kiến thức và kỹ năng để hỗ trợ quá trình cai nghiện và phục hồi...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <i class="far fa-star"></i>
+                            <span>(65)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khóa học 5 -->
+            <div class="course-card" data-category="education">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Giáo dục phòng chống ma túy">
+                    <div class="course-category">Giáo dục</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 5 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Phương pháp giáo dục phòng chống ma túy cho giáo viên và phụ huynh</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> TS. Vũ Thị Minh Tâm</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Trung cấp</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học cung cấp phương pháp và công cụ giáo dục hiệu quả về phòng chống ma túy dành cho giáo viên và phụ huynh...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span>(95)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khóa học 6 -->
+            <div class="course-card" data-category="prevention">
+                <div class="course-thumbnail">
+                    <img src="http://thptnguyendu.hatinh.edu.vn/upload/58158/fck/42000708/2024_08_29_15_23_594.jpg" alt="Phòng ngừa tái nghiện">
+                    <div class="course-category">Phòng ngừa</div>
+                    <div class="course-duration"><i class="far fa-clock"></i> 8 tuần</div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">Phòng ngừa tái nghiện: Chiến lược và kỹ thuật hiệu quả</h3>
+                    <div class="course-meta">
+                        <span class="course-instructor"><i class="far fa-user"></i> PGS.TS. Nguyễn Văn Bình</span>
+                        <span class="course-level"><i class="fas fa-signal"></i> Nâng cao</span>
+                    </div>
+                    <p class="course-excerpt">Khóa học chuyên sâu về các chiến lược và kỹ thuật phòng ngừa tái nghiện, dành cho người đã cai nghiện và nhân viên y tế...</p>
+                    <div class="course-footer">
+                        <a href="#" class="enroll-btn">Tham gia <i class="fas fa-arrow-right"></i></a>
+                        <div class="course-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span>(130)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <a href="#" class="page-link active">1</a>
+            <a href="#" class="page-link">2</a>
+            <a href="#" class="page-link">3</a>
+            <a href="#" class="page-link">4</a>
+            <a href="#" class="page-link next"><i class="fas fa-angle-right"></i></a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <h3>Về DUPSS</h3>
+                    <p>DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="courses.html">Khóa học</a></li>
+                        <li><a href="blogs.html">Tin tức & Blog</a></li>
+                        <li><a href="survey.html">Khảo sát</a></li>
+                        <li><a href="appointment.html">Đặt lịch hẹn</a></li>
+                        <li><a href="about-us.html">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Tài nguyên</h3>
+                    <ul>
+                        <li><a href="#">Thư viện tài liệu</a></li>
+                        <li><a href="#">Video giáo dục</a></li>
+                        <li><a href="#">Infographics</a></li>
+                        <li><a href="#">Báo cáo nghiên cứu</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</p>
+                    <p><i class="fas fa-phone"></i> (028) 1234 5678</p>
+                    <p><i class="fas fa-envelope"></i> info@dupss.org.vn</p>
+                    <div class="social-media">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+                <div class="footer-links">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản sử dụng</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <button id="scroll-to-top" title="Cuộn lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="../../src/scripts/ScrollUp.js"></script>
+    <script src="../../src/scripts/CoursesFilter.js"></script>
+</body>
+</html>
