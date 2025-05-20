@@ -176,6 +176,7 @@ header {
 /* Hero Banner Styles */
 .hero-banner {
     background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://www.mua.edu/uploads/sites/10/2023/02/istock-482499394.webp?w=1536');
+    /* background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://scontent.fsgn2-10.fna.fbcdn.net/v/t39.30808-6/474442296_1340811473939573_1541216496532365417_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHvVklONlcXg1Zh0oANEQg8bj8flWpDvf5uPx-VakO9_qjJpSdrNseGXrYSGlZXq4SYJ1BkKJHik5WDzbfvkUuE&_nc_ohc=ek0oiBRxvbgQ7kNvwEVItId&_nc_oc=AdkvJydoaKSDaFpApi89Akl81rJH-y5YsK_cuD-J1cjKhgTqQsMnatFoCnxGU4EFWko&_nc_zt=23&_nc_ht=scontent.fsgn2-10.fna&_nc_gid=iAsjDHwUdfDycsa5Mv8s-A&oh=00_AfI00yK8QKPo38tLwdITxugzhQ4REhWq8INiBMdH13iK3g&oe=6831F648'); */
     background-size: cover;
     background-position: center;
     color: white;
