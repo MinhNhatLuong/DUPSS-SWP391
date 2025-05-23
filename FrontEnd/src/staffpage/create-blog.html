@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Blog - Hệ thống Quản lý Phòng ngừa Ma túy</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/additional-styles.css">
+    <link rel="stylesheet" href="./css/updated-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="./image.png" alt="Logo">
+                <h1>Drug Prevention Portal</h1>
+            </div>
+            <div class="user-menu">
+                <div class="user-profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Staff Account</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <ul>
+                        <li><a href="./profile.html"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                        <li><a href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="./index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                        <li class="active"><a href="./create-blog.html"><i class="fas fa-blog"></i> Tạo Blog</a></li>
+                        <li><a href="./create-course.html"><i class="fas fa-graduation-cap"></i> Tạo Khóa học</a></li>
+                        <li><a href="./content-history.html"><i class="fas fa-history"></i> Lịch sử nội dung</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content">
+                <div class="content-header">
+                    <h2>Tạo Bài Blog Mới</h2>
+                    <p>Tạo nội dung blog mới về phòng chống ma túy để chia sẻ kiến thức và nâng cao nhận thức cộng đồng</p>
+                </div>
+                
+                <div class="content-body">
+                    <form id="blog-form" class="form">
+                        <div class="form-group">
+                            <label for="blog-title">Tiêu đề bài viết</label>
+                            <input type="text" id="blog-title" name="blog-title" class="form-control" placeholder="Nhập tiêu đề bài viết" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="blog-topic">Chủ đề</label>
+                            <select id="blog-topic" name="blog-topic" class="form-control" required>
+                                <option value="" disabled selected>Chọn chủ đề</option>
+                                <option value="prevention">Phòng ngừa ma túy</option>
+                                <option value="education">Giáo dục về ma túy</option>
+                                <option value="treatment">Điều trị nghiện ma túy</option>
+                                <option value="research">Nghiên cứu về ma túy</option>
+                                <option value="policy">Chính sách về ma túy</option>
+                                <option value="community">Cộng đồng và ma túy</option>
+                                <option value="youth">Thanh thiếu niên và ma túy</option>
+                                <option value="health">Sức khỏe và ma túy</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="blog-content">Nội dung bài viết</label>
+                            <div class="editor-container">
+                                <div class="editor-toolbar">
+                                    <button type="button" class="editor-btn" data-command="bold" title="In đậm">
+                                        <i class="fas fa-bold"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="italic" title="In nghiêng">
+                                        <i class="fas fa-italic"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="underline" title="Gạch chân">
+                                        <i class="fas fa-underline"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="insertOrderedList" title="Danh sách có thứ tự">
+                                        <i class="fas fa-list-ol"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Danh sách không thứ tự">
+                                        <i class="fas fa-list-ul"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="createLink" title="Chèn liên kết">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="insertImage" title="Chèn hình ảnh">
+                                        <i class="fas fa-image"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="insertHTML" data-value="quote" title="Chèn trích dẫn">
+                                        <i class="fas fa-quote-right"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="formatBlock" data-value="h2" title="Tiêu đề lớn">
+                                        <i class="fas fa-heading"></i>
+                                    </button>
+                                    <button type="button" class="editor-btn" data-command="formatBlock" data-value="h3" title="Tiêu đề nhỏ">
+                                        <i class="fas fa-heading fa-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="editor-content" id="blog-content"></div>
+                                <textarea name="blog-content-html" id="blog-content-html" style="display: none;"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="blog-tags">Thẻ (tags)</label>
+                            <input type="text" id="blog-tags" name="blog-tags" class="form-control" placeholder="Nhập các thẻ, phân cách bằng dấu phẩy">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary">Lưu nháp</button>
+                            <button type="submit" class="btn btn-primary">Gửi duyệt</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2023 Drug Prevention Portal. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="./js/main.js"></script>
+</body>
+</html>

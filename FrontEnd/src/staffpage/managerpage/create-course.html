@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Khóa học - Hệ thống Quản lý Phòng ngừa Ma túy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="gay" alt="Logo">
+                <h3>Quản lý Phòng ngừa</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="create-blog.html"><i class="fas fa-blog"></i> Tạo Blog</a></li>
+                <li class="active"><a href="create-course.html"><i class="fas fa-graduation-cap"></i> Tạo Khóa học</a></li>
+                <li><a href="content-history.html"><i class="fas fa-history"></i> Lịch sử Nội dung</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <div class="search-bar">
+                    <input type="text" placeholder="Tìm kiếm...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="profile-dropdown">
+                        <img src="https://via.placeholder.com/40x40" alt="Profile">
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+                        <div class="dropdown-menu">
+                            <a href="profile.html"><i class="fas fa-user"></i> Thông tin tài khoản</a>
+                            <a href="#"><i class="fas fa-cog"></i> Cài đặt</a>
+                            <a href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Course Creation Form -->
+            <div class="content-container">
+                <div class="content-header">
+                    <h2>Tạo Khóa học Mới</h2>
+                </div>
+
+                <div class="course-form">
+                    <form id="courseForm">
+                        <div class="form-group">
+                            <label for="courseTitle">Tiêu đề Khóa học</label>
+                            <input type="text" id="courseTitle" name="courseTitle" placeholder="Nhập tiêu đề khóa học..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseCategory">Chủ đề</label>
+                            <select id="courseCategory" name="courseCategory" required>
+                                <option value="" disabled selected>Chọn chủ đề</option>
+                                <option value="prevention">Phòng ngừa</option>
+                                <option value="education">Giáo dục</option>
+                                <option value="health">Sức khỏe</option>
+                                <option value="research">Nghiên cứu</option>
+                                <option value="recovery">Phục hồi</option>
+                                <option value="policy">Chính sách</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseTags">Thẻ (Tags)</label>
+                            <input type="text" id="courseTags" name="courseTags" placeholder="Nhập các thẻ, phân cách bằng dấu phẩy...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseFeaturedImage">Ảnh đại diện</label>
+                            <div class="file-upload">
+                                <input type="file" id="courseFeaturedImage" name="courseFeaturedImage" accept="image/*">
+                                <label for="courseFeaturedImage" class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i> Chọn ảnh
+                                </label>
+                                <div id="courseImagePreview" class="image-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="courseSummary">Tóm tắt</label>
+                            <textarea id="courseSummary" name="courseSummary" rows="3" placeholder="Nhập tóm tắt ngắn gọn về khóa học..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nội dung Khóa học</label>
+                            <div class="editor-toolbar">
+                                <button type="button" class="toolbar-btn" title="In đậm"><i class="fas fa-bold"></i></button>
+                                <button type="button" class="toolbar-btn" title="In nghiêng"><i class="fas fa-italic"></i></button>
+                                <button type="button" class="toolbar-btn" title="Gạch chân"><i class="fas fa-underline"></i></button>
+                                <button type="button" class="toolbar-btn" title="Tiêu đề"><i class="fas fa-heading"></i></button>
+                                <button type="button" class="toolbar-btn" title="Danh sách"><i class="fas fa-list-ul"></i></button>
+                                <button type="button" class="toolbar-btn" title="Danh sách số"><i class="fas fa-list-ol"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn liên kết"><i class="fas fa-link"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn ảnh"><i class="fas fa-image"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn trích dẫn"><i class="fas fa-quote-right"></i></button>
+                            </div>
+                            <textarea id="courseContent" name="courseContent" rows="15" placeholder="Viết nội dung khóa học ở đây..."></textarea>
+                        </div>
+
+                        <!-- Quiz Section -->
+                        <div class="quiz-section">
+                            <div class="section-header">
+                                <h3>Quizz Khóa học</h3>
+                                <button type="button" id="addQuizBtn" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> Thêm câu hỏi
+                                </button>
+                            </div>
+
+                            <div id="quizContainer">
+                                <!-- Quiz items will be added here dynamically -->
+                                <div class="quiz-item">
+                                    <div class="quiz-header">
+                                        <h4>Câu hỏi #1</h4>
+                                        <button type="button" class="btn btn-sm btn-danger remove-quiz">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Câu hỏi</label>
+                                        <input type="text" name="quizQuestion[]" placeholder="Nhập câu hỏi..." required>
+                                    </div>
+                                    <div class="options-container">
+                                        <div class="form-group option-group">
+                                            <div class="option-input">
+                                                <input type="radio" name="correctAnswer_1" value="0" checked>
+                                                <input type="text" name="quizOption_1[]" placeholder="Nhập đáp án..." required>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-danger remove-option">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-group option-group">
+                                            <div class="option-input">
+                                                <input type="radio" name="correctAnswer_1" value="1">
+                                                <input type="text" name="quizOption_1[]" placeholder="Nhập đáp án..." required>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-danger remove-option">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary add-option">
+                                        <i class="fas fa-plus"></i> Thêm đáp án
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary">Lưu nháp</button>
+                            <button type="submit" class="btn btn-primary">Gửi duyệt</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/course.js"></script>
+</body>
+</html>

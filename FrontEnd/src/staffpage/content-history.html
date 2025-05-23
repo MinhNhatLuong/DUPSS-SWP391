@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử Nội dung - Hệ thống Quản lý Phòng ngừa Ma túy</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/additional-styles.css">
+    <link rel="stylesheet" href="./css/updated-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="./image.png" alt="Logo">
+                <h1>Drug Prevention Portal</h1>
+            </div>
+            <div class="user-menu">
+                <div class="user-profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Staff Account</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <ul>
+                        <li><a href="./profile.html"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                        <li><a href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="./index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                        <li><a href="./create-blog.html"><i class="fas fa-blog"></i> Tạo Blog</a></li>
+                        <li><a href="./create-course.html"><i class="fas fa-graduation-cap"></i> Tạo Khóa học</a></li>
+                        <li class="active"><a href="./content-history.html"><i class="fas fa-history"></i> Lịch sử nội dung</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content">
+                <div class="content-header">
+                    <h2>Lịch sử Nội dung</h2>
+                    <p>Xem trạng thái các nội dung đã gửi và quản lý chỉnh sửa</p>
+                </div>
+                
+                <div class="content-body">
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label for="filter-type">Loại nội dung:</label>
+                            <select id="filter-type" class="form-control">
+                                <option value="all">Tất cả</option>
+                                <option value="blog">Blog</option>
+                                <option value="course">Khóa học</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-status">Trạng thái:</label>
+                            <select id="filter-status" class="form-control">
+                                <option value="all">Tất cả</option>
+                                <option value="pending">Chờ duyệt</option>
+                                <option value="approved">Đã duyệt</option>
+                                <option value="rejected">Từ chối</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-search">Tìm kiếm:</label>
+                            <input type="text" id="filter-search" class="form-control" placeholder="Tìm theo tiêu đề...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="content-table">
+                            <thead>
+                                <tr>
+                                    <th width="5%">STT</th>
+                                    <th width="10%">Loại</th>
+                                    <th width="30%">Tiêu đề</th>
+                                    <th width="15%">Chủ đề</th>
+                                    <th width="15%">Ngày tạo</th>
+                                    <th width="15%">Trạng thái</th>
+                                    <th width="10%">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Mẫu dữ liệu -->
+                                <tr>
+                                    <td>1</td>
+                                    <td><span class="badge badge-blog">Blog</span></td>
+                                    <td>Tác hại của ma túy đá đối với sức khỏe</td>
+                                    <td>Sức khỏe và ma túy</td>
+                                    <td>15/05/2023</td>
+                                    <td><span class="status-badge status-pending">Chờ duyệt</span></td>
+                                    <td>
+                                        <button class="action-btn edit-btn" data-id="1" data-type="blog">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><span class="badge badge-course">Khóa học</span></td>
+                                    <td>Nhận biết các loại ma túy phổ biến</td>
+                                    <td>Giáo dục về ma túy</td>
+                                    <td>10/05/2023</td>
+                                    <td><span class="status-badge status-approved">Đã duyệt</span></td>
+                                    <td>
+                                        <button class="action-btn view-btn" data-id="2" data-type="course">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td><span class="badge badge-blog">Blog</span></td>
+                                    <td>Cách phòng ngừa ma túy trong trường học</td>
+                                    <td>Phòng ngừa ma túy</td>
+                                    <td>05/05/2023</td>
+                                    <td><span class="status-badge status-rejected">Từ chối</span></td>
+                                    <td>
+                                        <button class="action-btn edit-btn" data-id="3" data-type="blog">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td><span class="badge badge-course">Khóa học</span></td>
+                                    <td>Kỹ năng từ chối ma túy cho thanh thiếu niên</td>
+                                    <td>Thanh thiếu niên và ma túy</td>
+                                    <td>01/05/2023</td>
+                                    <td><span class="status-badge status-approved">Đã duyệt</span></td>
+                                    <td>
+                                        <button class="action-btn view-btn" data-id="4" data-type="course">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td><span class="badge badge-blog">Blog</span></td>
+                                    <td>Chính sách mới về phòng chống ma túy</td>
+                                    <td>Chính sách về ma túy</td>
+                                    <td>28/04/2023</td>
+                                    <td><span class="status-badge status-pending">Chờ duyệt</span></td>
+                                    <td>
+                                        <button class="action-btn edit-btn" data-id="5" data-type="blog">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Content Modal -->
+        <div class="modal" id="edit-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Chỉnh sửa nội dung</h3>
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p>Chỉnh sửa nội dung sẽ mở trang tạo blog hoặc khóa học tương ứng với dữ liệu đã có.</p>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary close-modal">Hủy</button>
+                        <button class="btn btn-primary" id="confirm-edit">Tiếp tục</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2023 Drug Prevention Portal. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="./js/main.js"></script>
+    <script>
+        // Initialize modal functionality
+        function initializeModals() {
+            const editBtns = document.querySelectorAll('.edit-btn');
+            const editModal = document.getElementById('edit-modal');
+            const closeBtns = document.querySelectorAll('.close-modal');
+            const confirmEditBtn = document.getElementById('confirm-edit');
+            
+            // Show modal when edit button is clicked
+            editBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const contentId = this.dataset.id;
+                    const contentType = this.dataset.type;
+                    
+                    // Store content info for edit action
+                    editModal.dataset.contentId = contentId;
+                    editModal.dataset.contentType = contentType;
+                    
+                    // Show modal
+                    editModal.style.display = 'block';
+                });
+            });
+            
+            // Close modal when close button is clicked
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    editModal.style.display = 'none';
+                });
+            });
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === editModal) {
+                    editModal.style.display = 'none';
+                }
+            });
+            
+            // Handle confirm edit button
+            if (confirmEditBtn) {
+                confirmEditBtn.addEventListener('click', function() {
+                    const contentId = editModal.dataset.contentId;
+                    const contentType = editModal.dataset.contentType;
+                    
+                    // Redirect to appropriate edit page
+                    if (contentType === 'blog') {
+                        window.location.href = `./create-blog.html?edit=${contentId}`;
+                    } else if (contentType === 'course') {
+                        window.location.href = `./create-course.html?edit=${contentId}`;
+                    }
+                });
+            }
+        }
+        
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeModals();
+        });
+    </script>
+</body>
+</html>

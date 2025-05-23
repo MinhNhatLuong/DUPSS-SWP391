@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin Tài khoản - Hệ thống Quản lý Phòng ngừa Ma túy</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/additional-styles.css">
+    <link rel="stylesheet" href="./css/updated-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="./image.png" alt="Logo">
+                <h1>Drug Prevention Portal</h1>
+            </div>
+            <div class="user-menu">
+                <div class="user-profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Staff Account</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <ul>
+                        <li class="active"><a href="./profile.html"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                        <li><a href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="./index.html"><i class="fas fa-home"></i> Trang chủ</a></li>
+                        <li><a href="./create-blog.html"><i class="fas fa-blog"></i> Tạo Blog</a></li>
+                        <li><a href="./create-course.html"><i class="fas fa-graduation-cap"></i> Tạo Khóa học</a></li>
+                        <li><a href="./content-history.html"><i class="fas fa-history"></i> Lịch sử nội dung</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content">
+                <div class="content-header">
+                    <h2>Thông tin Tài khoản</h2>
+                    <p>Xem và cập nhật thông tin cá nhân của bạn</p>
+                </div>
+                
+                <div class="content-body">
+                    <div class="profile-container">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-info">
+                                <h3>Nguyễn Văn A</h3>
+                                <p>Staff - Cộng tác viên nội dung</p>
+                                <p><i class="fas fa-envelope"></i> nguyenvana@example.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-tabs">
+                            <button class="tab-btn active" data-tab="personal-info">Thông tin cá nhân</button>
+                            <button class="tab-btn" data-tab="account-security">Bảo mật tài khoản</button>
+                            <button class="tab-btn" data-tab="activity-log">Lịch sử hoạt động</button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <!-- Personal Information Tab -->
+                            <div class="tab-pane active" id="personal-info">
+                                <form class="form">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="first-name">Họ</label>
+                                            <input type="text" id="first-name" name="first-name" class="form-control" value="Nguyễn">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="last-name">Tên</label>
+                                            <input type="text" id="last-name" name="last-name" class="form-control" value="Văn A">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" class="form-control" value="nguyenvana@example.com">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="phone">Số điện thoại</label>
+                                        <input type="tel" id="phone" name="phone" class="form-control" value="0912345678">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="bio">Giới thiệu</label>
+                                        <textarea id="bio" name="bio" class="form-control" rows="4">Tôi là cộng tác viên nội dung tại Cổng thông tin Phòng ngừa Ma túy. Tôi có kinh nghiệm trong lĩnh vực giáo dục và truyền thông về phòng chống ma túy.</textarea>
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Account Security Tab -->
+                            <div class="tab-pane" id="account-security">
+                                <form class="form">
+                                    <div class="form-group">
+                                        <label for="current-password">Mật khẩu hiện tại</label>
+                                        <input type="password" id="current-password" name="current-password" class="form-control">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="new-password">Mật khẩu mới</label>
+                                        <input type="password" id="new-password" name="new-password" class="form-control">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="confirm-password">Xác nhận mật khẩu mới</label>
+                                        <input type="password" id="confirm-password" name="confirm-password" class="form-control">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Xác thực hai yếu tố</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="two-factor" name="two-factor">
+                                            <label for="two-factor"></label>
+                                            <span class="toggle-label">Bật xác thực hai yếu tố</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">Cập nhật bảo mật</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Activity Log Tab -->
+                            <div class="tab-pane" id="activity-log">
+                                <div class="activity-list">
+                                    <div class="activity-item">
+                                        <div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div>
+                                        <div class="activity-details">
+                                            <div class="activity-title">Đăng nhập thành công</div>
+                                            <div class="activity-time">Hôm nay, 09:45</div>
+                                            <div class="activity-description">Đăng nhập từ Chrome trên Windows</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon"><i class="fas fa-edit"></i></div>
+                                        <div class="activity-details">
+                                            <div class="activity-title">Chỉnh sửa bài viết</div>
+                                            <div class="activity-time">Hôm qua, 15:30</div>
+                                            <div class="activity-description">Chỉnh sửa bài viết "Tác hại của ma túy đá đối với sức khỏe"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon"><i class="fas fa-plus"></i></div>
+                                        <div class="activity-details">
+                                            <div class="activity-title">Tạo khóa học mới</div>
+                                            <div class="activity-time">10/05/2023, 11:20</div>
+                                            <div class="activity-description">Tạo khóa học "Nhận biết các loại ma túy phổ biến"</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div>
+                                        <div class="activity-details">
+                                            <div class="activity-title">Đăng nhập thành công</div>
+                                            <div class="activity-time">10/05/2023, 09:00</div>
+                                            <div class="activity-description">Đăng nhập từ Chrome trên Windows</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2023 Drug Prevention Portal. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="./js/main.js"></script>
+    <script>
+        // Tab functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons and panes
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+                    
+                    // Add active class to current button
+                    this.classList.add('active');
+                    
+                    // Show the corresponding tab pane
+                    const tabId = this.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
