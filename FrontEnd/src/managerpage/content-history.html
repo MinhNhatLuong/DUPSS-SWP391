@@ -87,8 +87,8 @@
                                 <th>Ngày tạo</th>
                                 <th>Cập nhật lần cuối</th>
                                 <th>Trạng thái</th>
-                                <th>Lượt xem</th>
-                                <th>Thao tác</th>
+                                <th>Chỉnh sửa</th>
+                                <th>Cập nhật</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -100,12 +100,19 @@
                                 <td>Sức khỏe</td>
                                 <td>15/05/2023</td>
                                 <td>20/05/2023</td>
-                                <td><span class="status-badge published">Đã xuất bản</span></td>
-                                <td>1,245</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published" selected>Đã xuất bản</option>
+                                        <option value="pending">Chờ duyệt</option>
+                                        <option value="draft">Bản nháp</option>
+                                        <option value="rejected">Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
                             <tr>
@@ -115,12 +122,19 @@
                                 <td>Giáo dục</td>
                                 <td>10/05/2023</td>
                                 <td>12/05/2023</td>
-                                <td><span class="status-badge published">Đã xuất bản</span></td>
-                                <td>2,187</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published" selected>Đã xuất bản</option>
+                                        <option value="pending">Chờ duyệt</option>
+                                        <option value="draft">Bản nháp</option>
+                                        <option value="rejected">Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
                             <tr>
@@ -130,12 +144,19 @@
                                 <td>Chính sách</td>
                                 <td>05/05/2023</td>
                                 <td>05/05/2023</td>
-                                <td><span class="status-badge pending">Chờ duyệt</span></td>
-                                <td>0</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published">Đã xuất bản</option>
+                                        <option value="pending" selected>Chờ duyệt</option>
+                                        <option value="draft">Bản nháp</option>
+                                        <option value="rejected">Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
 
@@ -147,12 +168,19 @@
                                 <td>Phòng ngừa</td>
                                 <td>01/05/2023</td>
                                 <td>10/05/2023</td>
-                                <td><span class="status-badge published">Đã xuất bản</span></td>
-                                <td>567</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published" selected>Đã xuất bản</option>
+                                        <option value="pending">Chờ duyệt</option>
+                                        <option value="draft">Bản nháp</option>
+                                        <option value="rejected">Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
                             <tr>
@@ -162,12 +190,19 @@
                                 <td>Phục hồi</td>
                                 <td>25/04/2023</td>
                                 <td>28/04/2023</td>
-                                <td><span class="status-badge draft">Bản nháp</span></td>
-                                <td>0</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published">Đã xuất bản</option>
+                                        <option value="pending">Chờ duyệt</option>
+                                        <option value="draft" selected>Bản nháp</option>
+                                        <option value="rejected">Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
                             <tr>
@@ -177,12 +212,19 @@
                                 <td>Nghiên cứu</td>
                                 <td>20/04/2023</td>
                                 <td>22/04/2023</td>
-                                <td><span class="status-badge rejected">Bị từ chối</span></td>
-                                <td>0</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Xem"><i class="fas fa-eye"></i></button>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="published">Đã xuất bản</option>
+                                        <option value="pending">Chờ duyệt</option>
+                                        <option value="draft">Bản nháp</option>
+                                        <option value="rejected" selected>Bị từ chối</option>
+                                    </select>
+                                </td>
+                                <td>
                                     <button class="btn-icon" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                                <td>
+                                    <button class="btn-icon btn-update" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
                                 </td>
                             </tr>
                         </tbody>
