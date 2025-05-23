@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Blog - Hệ thống Quản lý Phòng ngừa Ma túy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://via.placeholder.com/150x50?text=Logo" alt="Logo">
+                <h3>Quản lý Phòng ngừa</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li class="active"><a href="create-blog.html"><i class="fas fa-blog"></i> Tạo Blog</a></li>
+                <li><a href="create-course.html"><i class="fas fa-graduation-cap"></i> Tạo Khóa học</a></li>
+                <li><a href="content-history.html"><i class="fas fa-history"></i> Lịch sử Nội dung</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <header class="top-navbar">
+                <div class="search-bar">
+                    <input type="text" placeholder="Tìm kiếm...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="profile-dropdown">
+                        <img src="https://via.placeholder.com/40x40" alt="Profile">
+                        <span>Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+                        <div class="dropdown-menu">
+                            <a href="profile.html"><i class="fas fa-user"></i> Thông tin tài khoản</a>
+                            <a href="#"><i class="fas fa-cog"></i> Cài đặt</a>
+                            <a href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Blog Creation Form -->
+            <div class="content-container">
+                <div class="content-header">
+                    <h2>Tạo Bài Blog Mới</h2>
+                </div>
+
+                <div class="blog-form">
+                    <form id="blogForm">
+                        <div class="form-group">
+                            <label for="blogTitle">Tiêu đề Blog</label>
+                            <input type="text" id="blogTitle" name="blogTitle" placeholder="Nhập tiêu đề blog..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogCategory">Chủ đề</label>
+                            <select id="blogCategory" name="blogCategory" required>
+                                <option value="" disabled selected>Chọn chủ đề</option>
+                                <option value="prevention">Phòng ngừa</option>
+                                <option value="education">Giáo dục</option>
+                                <option value="health">Sức khỏe</option>
+                                <option value="research">Nghiên cứu</option>
+                                <option value="recovery">Phục hồi</option>
+                                <option value="policy">Chính sách</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogTags">Thẻ (Tags)</label>
+                            <input type="text" id="blogTags" name="blogTags" placeholder="Nhập các thẻ, phân cách bằng dấu phẩy...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogFeaturedImage">Ảnh đại diện</label>
+                            <div class="file-upload">
+                                <input type="file" id="blogFeaturedImage" name="blogFeaturedImage" accept="image/*">
+                                <label for="blogFeaturedImage" class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i> Chọn ảnh
+                                </label>
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogSummary">Tóm tắt</label>
+                            <textarea id="blogSummary" name="blogSummary" rows="3" placeholder="Nhập tóm tắt ngắn gọn về bài blog..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nội dung Blog</label>
+                            <div class="editor-toolbar">
+                                <button type="button" class="toolbar-btn" title="In đậm"><i class="fas fa-bold"></i></button>
+                                <button type="button" class="toolbar-btn" title="In nghiêng"><i class="fas fa-italic"></i></button>
+                                <button type="button" class="toolbar-btn" title="Gạch chân"><i class="fas fa-underline"></i></button>
+                                <button type="button" class="toolbar-btn" title="Tiêu đề"><i class="fas fa-heading"></i></button>
+                                <button type="button" class="toolbar-btn" title="Danh sách"><i class="fas fa-list-ul"></i></button>
+                                <button type="button" class="toolbar-btn" title="Danh sách số"><i class="fas fa-list-ol"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn liên kết"><i class="fas fa-link"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn ảnh"><i class="fas fa-image"></i></button>
+                                <button type="button" class="toolbar-btn" title="Chèn trích dẫn"><i class="fas fa-quote-right"></i></button>
+                            </div>
+                            <textarea id="blogContent" name="blogContent" rows="15" placeholder="Viết nội dung blog ở đây..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary">Lưu nháp</button>
+                            <button type="submit" class="btn btn-primary">Gửi duyệt</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/blog.js"></script>
+</body>
+</html>
