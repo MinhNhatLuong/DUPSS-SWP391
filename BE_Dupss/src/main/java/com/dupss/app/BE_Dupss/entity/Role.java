@@ -2,14 +2,14 @@ package com.dupss.app.BE_Dupss.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Data
 @AllArgsConstructor
 @Table (name = "roles")
+@Getter
+@Setter
 @NoArgsConstructor
 public class Role {
     @Id
