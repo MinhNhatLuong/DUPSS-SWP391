@@ -1,0 +1,213 @@
+package com.dupss.app.BE_Dupss.service;
+
+import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
+import com.dupss.app.BE_Dupss.dto.request.CourseModuleRequest;
+import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
+import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
+import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.entity.Course;
+import com.dupss.app.BE_Dupss.entity.CourseModule;
+import com.dupss.app.BE_Dupss.entity.ERole;
+import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.respository.CourseEnrollmentRepository;
+import com.dupss.app.BE_Dupss.respository.CourseModuleRepository;
+import com.dupss.app.BE_Dupss.respository.CourseRepository;
+import com.dupss.app.BE_Dupss.respository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CourseService {
+
+    private final CourseRepository courseRepository;
+    private final CourseModuleRepository moduleRepository;
+    private final CourseEnrollmentRepository enrollmentRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public CourseResponse createCourse(CourseCreateRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Check if user has STAFF or MANAGER role
+        if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
+            throw new AccessDeniedException("Only STAFF and MANAGER can create courses");
+        }
+        
+        Course course = new Course();
+        course.setTitle(request.getTitle());
+        course.setDescription(request.getDescription());
+        course.setTargetAudience(request.getTargetAudience());
+        course.setCoverImage(request.getCoverImage());
+        course.setContent(request.getContent());
+        course.setDuration(request.getDuration());
+        course.setActive(true);
+        course.setCreator(currentUser);
+        
+        Course savedCourse = courseRepository.save(course);
+        log.info("Course created: {}", savedCourse.getTitle());
+        
+        // Create modules if provided
+        List<CourseModule> modules = new ArrayList<>();
+        if (request.getModules() != null && !request.getModules().isEmpty()) {
+            for (CourseModuleRequest moduleRequest : request.getModules()) {
+                CourseModule module = new CourseModule();
+                module.setTitle(moduleRequest.getTitle());
+                module.setDescription(moduleRequest.getDescription());
+                module.setContent(moduleRequest.getContent());
+                module.setVideoUrl(moduleRequest.getVideoUrl());
+                module.setDocumentUrl(moduleRequest.getDocumentUrl());
+                module.setDuration(moduleRequest.getDuration());
+                module.setOrderIndex(moduleRequest.getOrderIndex());
+                module.setCourse(savedCourse);
+                modules.add(module);
+            }
+            moduleRepository.saveAll(modules);
+        }
+        
+        return mapToCourseResponse(savedCourse, modules, false);
+    }
+    
+    public Page<CourseResponse> searchCourses(String keyword, Pageable pageable) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+        
+        Page<Course> courses = courseRepository.searchCourses(keyword, pageable);
+        
+        return courses.map(course -> {
+            List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+            boolean isEnrolled = false;
+            if (currentUser != null) {
+                isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+            }
+            return mapToCourseResponse(course, modules, isEnrolled);
+        });
+    }
+    
+    public Page<CourseResponse> searchCoursesByTargetAudience(String keyword, String targetAudience, Pageable pageable) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+        
+        Page<Course> courses = courseRepository.searchCoursesByTargetAudience(keyword, targetAudience, pageable);
+        
+        return courses.map(course -> {
+            List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+            boolean isEnrolled = false;
+            if (currentUser != null) {
+                isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+            }
+            return mapToCourseResponse(course, modules, isEnrolled);
+        });
+    }
+    
+    public CourseResponse getCourseById(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+        
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
+        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+        
+        boolean isEnrolled = false;
+        if (currentUser != null) {
+            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+        }
+        
+        return mapToCourseResponse(course, modules, isEnrolled);
+    }
+    
+    public List<CourseResponse> getCreatedCourses() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Check if user has STAFF or MANAGER role
+        if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
+            throw new AccessDeniedException("Only STAFF and MANAGER can view created courses");
+        }
+        
+        List<Course> courses = courseRepository.findByCreator(currentUser);
+        
+        return courses.stream()
+                .map(course -> {
+                    List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+                    return mapToCourseResponse(course, modules, false);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, boolean isEnrolled) {
+        List<CourseModuleResponse> moduleResponses = modules.stream()
+                .map(this::mapToModuleResponse)
+                .collect(Collectors.toList());
+                
+        long enrollmentCount = enrollmentRepository.countByCourse(course);
+                
+        return CourseResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .description(course.getDescription())
+                .targetAudience(course.getTargetAudience())
+                .coverImage(course.getCoverImage())
+                .content(course.getContent())
+                .duration(course.getDuration())
+                .isActive(course.isActive())
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
+                .creator(mapToUserDetailResponse(course.getCreator()))
+                .modules(moduleResponses)
+                .enrollmentCount((int) enrollmentCount)
+                .isEnrolled(isEnrolled)
+                .build();
+    }
+    
+    private CourseModuleResponse mapToModuleResponse(CourseModule module) {
+        return CourseModuleResponse.builder()
+                .id(module.getId())
+                .title(module.getTitle())
+                .description(module.getDescription())
+                .content(module.getContent())
+                .videoUrl(module.getVideoUrl())
+                .documentUrl(module.getDocumentUrl())
+                .duration(module.getDuration())
+                .orderIndex(module.getOrderIndex())
+                .createdAt(module.getCreatedAt())
+                .updatedAt(module.getUpdatedAt())
+                .build();
+    }
+    
+    private UserDetailResponse mapToUserDetailResponse(User user) {
+        return UserDetailResponse.builder()
+                .email(user.getEmail())
+                .firstName(user.getUsername())
+                .lastName(user.getFullname())
+                .avatar(user.getAddress())
+                .role(user.getRole().name())
+                .build();
+    }
+} 
