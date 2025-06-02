@@ -2,6 +2,7 @@ package com.dupss.app.BE_Dupss.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,6 +16,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
 @Table (name = "users",
         uniqueConstraints = {
@@ -23,18 +25,18 @@ import java.util.Set;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-        private String username;
-        private String password;
-        private String fullname;
-        private String gender;
-        private String email;
-        private String phone;
-        private String address;
+    private long id;
+    private String username;
+    private String password;
+    private String fullname;
+    private String gender;
+    private String email;
+    private String phone;
+    private String address;
 
     //    @Enumerated(EnumType.STRING)
     //    private ERole role;
-    //    private boolean enabled = true;
+    //    private boolean enabaled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
@@ -51,6 +53,10 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
+        return username;
+    }
+
+    public String getUserEmail() {
         return email;
     }
 

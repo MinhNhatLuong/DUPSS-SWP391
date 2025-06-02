@@ -1,9 +1,9 @@
 package com.dupss.app.BE_Dupss.service;
 
 
-import com.dupss.app.BE_Dupss.entity.InvalidtedToken;
+import com.dupss.app.BE_Dupss.entity.InvalidatedToken;
 import com.dupss.app.BE_Dupss.entity.User;
-import com.dupss.app.BE_Dupss.respository.InvalidtedTokenRepository;
+import com.dupss.app.BE_Dupss.respository.InvalidatedTokenRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -29,7 +29,7 @@ public class JwtService {
     @Value("${jwt.secret-key}")
     private String secretKey;
 
-    private final InvalidtedTokenRepository invalidtedTokenRepository;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     public String generateAccessToken(User user) {
         Collection<? extends GrantedAuthority> authorities = user.getAuthorities(); // role : {USER} ==> {USER, ADMIN}
@@ -41,7 +41,7 @@ public class JwtService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS384);
         // 2. Payload
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(user.getUsername())
                 .issueTime(new Date())
                 .claim("authorities", authorityName)
                 .expirationTime(new Date(Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
@@ -64,7 +64,7 @@ public class JwtService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         // 2. Payload
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(user.getUsername())
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(14, ChronoUnit.DAYS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
@@ -91,9 +91,9 @@ public class JwtService {
             return false;
         }
 
-        Optional<InvalidtedToken> invalidtedToken = invalidtedTokenRepository.findById(signedJWT.getJWTClaimsSet().getJWTID());
+        Optional<InvalidatedToken> invalidatedToken = invalidatedTokenRepository.findById(signedJWT.getJWTClaimsSet().getJWTID());
 
-        if(invalidtedToken.isPresent()) {
+        if(invalidatedToken.isPresent()) {
             return false;
         }
         return signedJWT.verify(new MACVerifier(secretKey.getBytes(StandardCharsets.UTF_8)));

@@ -8,9 +8,10 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class RegisterResponse {
     private String username;
     private String email;
-    private String password;
-
+    private String phone;
+    private String fullname;
 }

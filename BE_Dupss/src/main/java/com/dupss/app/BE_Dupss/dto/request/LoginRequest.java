@@ -1,6 +1,5 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
-
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.Getter;
@@ -12,6 +11,4 @@ public class LoginRequest {
     private String username;
     @NotBlank (message = "Mật khẩu không được để trống")
     private String password;
-
-
 }

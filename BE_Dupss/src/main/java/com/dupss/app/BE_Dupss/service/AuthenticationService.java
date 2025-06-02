@@ -4,9 +4,9 @@ import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
-import com.dupss.app.BE_Dupss.entity.InvalidtedToken;
+import com.dupss.app.BE_Dupss.entity.InvalidatedToken;
 import com.dupss.app.BE_Dupss.entity.User;
-import com.dupss.app.BE_Dupss.respository.InvalidtedTokenRepository;
+import com.dupss.app.BE_Dupss.respository.InvalidatedTokenRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.nimbusds.jwt.SignedJWT;
 import io.micrometer.common.util.StringUtils;
@@ -29,7 +29,7 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final InvalidtedTokenRepository invalidtedTokenRepository;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
     private final UserRepository userRepository;
 
     public LoginResponse login(LoginRequest request) {
@@ -53,13 +53,13 @@ public class AuthenticationService {
 //        SignedJWT signedJWT = SignedJWT.parse(accessToken);
 //
 //        // 2. Đánh dấu token đó hết hiệu lực, và không có quyền truy cập vào hệ thống nữa, dù cho thời gian token còn hiệu lực
-//        InvalidtedToken invalidtedToken = InvalidtedToken.builder()
+//        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
 //                .id(signedJWT.getJWTClaimsSet().getJWTID())
 //                .token(accessToken)
 //                .expirationTime(signedJWT.getJWTClaimsSet().getExpirationTime())
 //                .build();
 //        // 3. Lưu token vào data, từ lần sau kiểm tra token người dùng gửi có trong database hay không
-//        invalidtedTokenRepository.save(invalidtedToken);
+//        invalidatedTokenRepository.save(invalidatedToken);
 //        log.info("Logout successfully");
 //    }
 
@@ -72,13 +72,13 @@ public class AuthenticationService {
         if(signedJWT.getJWTClaimsSet().getExpirationTime().before(new Date()))
             throw new RuntimeException("Token expired time");
 
-        Optional<InvalidtedToken> invalidtedToken = invalidtedTokenRepository.findById(signedJWT.getJWTClaimsSet().getJWTID());
-        if(invalidtedToken.isPresent())
+        Optional<InvalidatedToken> invalidatedToken = invalidatedTokenRepository.findById(signedJWT.getJWTClaimsSet().getJWTID());
+        if(invalidatedToken.isPresent())
             throw new RuntimeException("Token expired time");
 
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String username = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(user);

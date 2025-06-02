@@ -15,7 +15,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Builder
-public class InvalidtedToken {
+public class InvalidatedToken {
     @Id
     private String id;
 
