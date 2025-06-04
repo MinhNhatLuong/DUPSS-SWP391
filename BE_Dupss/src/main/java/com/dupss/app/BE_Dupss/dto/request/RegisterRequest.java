@@ -13,6 +13,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@PasswordMatch
 public class RegisterRequest {
 
     @NotEmpty(message = "Username cannot be empty")
