@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.ERole;
+import com.dupss.app.BE_Dupss.validation.PasswordMatch;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -8,9 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Data
-
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @PasswordMatch
