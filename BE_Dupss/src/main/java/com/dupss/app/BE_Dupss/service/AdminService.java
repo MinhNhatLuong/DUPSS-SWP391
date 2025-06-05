@@ -1,7 +1,9 @@
 package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.CreateUserRequest;
+import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
+import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.User;
@@ -95,6 +97,58 @@ public class AdminService {
                 .role(savedUser.getRole())
                 .message("Tạo người dùng thành công")
                 .build();
+    }
+
+    @Transactional
+    public UpdateUserResponse updateUser(Long userId, UpdateUserRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
+
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) &&
+                userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        if (request.getFullname() != null) {
+            user.setFullname(request.getFullname());
+        }
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("Admin updated user: {}", updatedUser.getUsername());
+
+        return UpdateUserResponse.builder()
+                .id(updatedUser.getId())
+                .fullname(updatedUser.getFullname())
+                .email(updatedUser.getEmail())
+                .phone(updatedUser.getPhone())
+                .address(updatedUser.getAddress())
+                .role(updatedUser.getRole())
+                .message("Cập nhật người dùng thành công")
+                .build();
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
+
+        userRepository.delete(user);
+        log.info("Admin deleted user: {} with ID: {}", user.getUsername(), userId);
     }
 
     private UserDetailResponse mapToUserDetailResponse(User user) {
