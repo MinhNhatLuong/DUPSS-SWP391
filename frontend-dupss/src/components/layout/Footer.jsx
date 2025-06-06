@@ -1,221 +1,67 @@
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Link as MuiLink,
-  styled,
-  useTheme,
-  useMediaQuery
-} from '@mui/material';
-import {
-  Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
-  Instagram as InstagramIcon,
-  YouTube as YouTubeIcon,
-  LocationOn as LocationIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon
-} from '@mui/icons-material';
-
-const FooterWrapper = styled(Box)(({ theme }) => ({
-  backgroundColor: '#003366',
-  color: 'white',
-  paddingTop: '60px'
-}));
-
-const FooterTop = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: '30px',
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-  },
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-  }
-}));
-
-const FooterHeading = styled(Typography)(({ theme }) => ({
-  fontSize: '1.2rem',
-  fontWeight: 600,
-  marginBottom: '20px',
-  position: 'relative',
-  '&::after': {
-    content: '""',
-    display: 'block',
-    width: '50px',
-    height: '3px',
-    backgroundColor: 'white',
-    marginTop: '10px'
-  }
-}));
-
-const FooterText = styled(Typography)(({ theme }) => ({
-  marginBottom: '15px',
-  display: 'flex',
-  alignItems: 'center',
-  fontSize: '0.9rem',
-  '& svg': {
-    marginRight: '10px',
-    fontSize: '1.2rem'
-  }
-}));
-
-const FooterLinkList = styled('ul')(({ theme }) => ({
-  padding: 0,
-  listStyle: 'none'
-}));
-
-const FooterLinkItem = styled('li')(({ theme }) => ({
-  marginBottom: '10px'
-}));
-
-const FooterLink = styled(MuiLink)(({ theme }) => ({
-  color: 'white',
-  textDecoration: 'none',
-  transition: 'color 0.3s',
-  fontSize: '0.9rem',
-  '&:hover': {
-    color: '#ccc',
-    textDecoration: 'none'
-  }
-}));
-
-const SocialMediaLinks = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  marginTop: '15px',
-  '& a': {
-    marginRight: '15px',
-    width: '36px',
-    height: '36px',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'background-color 0.3s',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)'
-    }
-  }
-}));
-
-const FooterBottom = styled(Box)(({ theme }) => ({
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-  marginTop: '40px',
-  padding: '20px 0',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  fontSize: '0.9rem',
-  [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column',
-    textAlign: 'center',
-    '& p': {
-      marginBottom: '15px'
-    }
-  }
-}));
-
-const FooterBottomLinks = styled(Box)(({ theme }) => ({
-  '& a': {
-    color: 'white',
-    marginLeft: '15px',
-    textDecoration: 'none',
-    transition: 'color 0.3s',
-    fontSize: '0.9rem',
-    '&:hover': {
-      color: '#ccc'
-    }
-  },
-  [theme.breakpoints.down('sm')]: {
-    '& a': {
-      marginLeft: '10px',
-      marginRight: '10px'
-    }
-  }
-}));
+import { Box, Container, Grid, Typography, Link, IconButton } from '@mui/material';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import YouTubeIcon from '@mui/icons-material/YouTube';
 
 const Footer = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   return (
-    <FooterWrapper>
-      <Container maxWidth="lg">
-        <FooterTop>
-          {/* About Column */}
-          <Box>
-            <FooterHeading variant="h3">Về DUPSS</FooterHeading>
-            <FooterText>
-              DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, 
-              nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.
-            </FooterText>
-          </Box>
-
-          {/* Quick Links Column */}
-          <Box>
-            <FooterHeading variant="h3">Liên kết nhanh</FooterHeading>
-            <FooterLinkList>
-              <FooterLinkItem><FooterLink href="/">Trang chủ</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="/courses">Khóa học</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="/blogs">Tin tức & Blog</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="/survey">Khảo sát</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="/appointment">Đặt lịch hẹn</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="/about-us">Về chúng tôi</FooterLink></FooterLinkItem>
-            </FooterLinkList>
-          </Box>
-
-          {/* Resources Column */}
-          <Box>
-            <FooterHeading variant="h3">Tài nguyên</FooterHeading>
-            <FooterLinkList>
-              <FooterLinkItem><FooterLink href="#">Thư viện tài liệu</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="#">Video giáo dục</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="#">Infographics</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="#">Báo cáo nghiên cứu</FooterLink></FooterLinkItem>
-              <FooterLinkItem><FooterLink href="#">Câu hỏi thường gặp</FooterLink></FooterLinkItem>
-            </FooterLinkList>
-          </Box>
-
-          {/* Contact Column */}
-          <Box>
-            <FooterHeading variant="h3">Liên hệ</FooterHeading>
-            <FooterText>
-              <LocationIcon />
-              123 Đường Nguyễn Tấn Dũng, Quận Nguyễn Thành Đạt, TP. Lương Gia Lâm
-            </FooterText>
-            <FooterText>
-              <PhoneIcon />
-              (84) 123-456-789
-            </FooterText>
-            <FooterText>
-              <EmailIcon />
-              info@dupss.org
-            </FooterText>
-            <SocialMediaLinks>
-              <FooterLink href="#"><FacebookIcon /></FooterLink>
-              <FooterLink href="#"><TwitterIcon /></FooterLink>
-              <FooterLink href="#"><InstagramIcon /></FooterLink>
-              <FooterLink href="#"><YouTubeIcon /></FooterLink>
-            </SocialMediaLinks>
-          </Box>
-        </FooterTop>
-
-        <FooterBottom>
-          <Typography variant="body2">
-            &copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.
-          </Typography>
-          <FooterBottomLinks>
-            <FooterLink href="#">Chính sách bảo mật</FooterLink>
-            <FooterLink href="#">Điều khoản sử dụng</FooterLink>
-            <FooterLink href="#">Sitemap</FooterLink>
-          </FooterBottomLinks>
-        </FooterBottom>
-      </Container>
-    </FooterWrapper>
+    <footer>
+      <div className="footer-container">
+        <div className="footer-top">
+          <div className="footer-column">
+            <h3>Về DUPSS</h3>
+            <p>DUPSS là dự án phòng ngừa sử dụng ma túy trong cộng đồng của tổ chức tình nguyện, nhằm nâng cao nhận thức và giáo dục cộng đồng về tác hại của ma túy.</p>
+          </div>
+          
+          <div className="footer-column">
+            <h3>Liên kết nhanh</h3>
+            <ul>
+              <li><a href="/">Trang chủ</a></li>
+              <li><a href="/courses">Khóa học</a></li>
+              <li><a href="/blogs">Tin tức & Blog</a></li>
+              <li><a href="/survey">Khảo sát</a></li>
+              <li><a href="/appointment">Đặt lịch hẹn</a></li>
+              <li><a href="/about-us">Về chúng tôi</a></li>
+            </ul>
+          </div>
+          
+          <div className="footer-column">
+            <h3>Tài nguyên</h3>
+            <ul>
+              <li><a href="#">Thư viện tài liệu</a></li>
+              <li><a href="#">Video giáo dục</a></li>
+              <li><a href="#">Infographics</a></li>
+              <li><a href="#">Báo cáo nghiên cứu</a></li>
+              <li><a href="#">Câu hỏi thường gặp</a></li>
+            </ul>
+          </div>
+          
+          <div className="footer-column">
+            <h3>Liên hệ</h3>
+            <p><i className="fas fa-map-marker-alt"></i> 123 Đường Nguyễn Tấn Dũng, Quận Nguyễn Thành Đạt, TP. Lương Gia Lâm</p>
+            <p><i className="fas fa-phone"></i> (84) 123-456-789</p>
+            <p><i className="fas fa-envelope"></i> info@dupss.org</p>
+            <div className="social-media">
+              <a href="#"><i className="fab fa-facebook-f"></i></a>
+              <a href="#"><i className="fab fa-twitter"></i></a>
+              <a href="#"><i className="fab fa-instagram"></i></a>
+              <a href="#"><i className="fab fa-youtube"></i></a>
+            </div>
+          </div>
+        </div>
+        
+        <div className="footer-bottom">
+          <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+          <div className="footer-links">
+            <a href="#">Chính sách bảo mật</a>
+            <a href="#">Điều khoản sử dụng</a>
+            <a href="#">Sitemap</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 };
 
-export default Footer; 
+export default Footer;
