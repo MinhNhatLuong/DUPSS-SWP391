@@ -1,0 +1,169 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+a {
+    text-decoration: none;
+    color: #0056b3;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Scroll to top button */
+#scroll-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+#scroll-to-top:hover {
+    background-color: #003d82;
+    transform: translateY(-3px);
+}
+
+#scroll-to-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Section Styles */
+.section-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 40px;
+    color: #0056b3;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #0056b3;
+    margin: 15px auto 0;
+}
+
+.view-all {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.view-all a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #0056b3;
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.view-all a:hover {
+    background-color: #003d82;
+}
+
+/* Card hover effects */
+.card-hover {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Image hover effect */
+.image-hover {
+    overflow: hidden;
+}
+
+.image-hover img {
+    transition: transform 0.3s ease;
+}
+
+.image-hover:hover img {
+    transform: scale(1.05);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1200px) {
+    .section-container {
+        padding: 50px 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .section-container {
+        padding: 40px 20px;
+    }
+    .section-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1.6rem;
+    }
+    .featured-card {
+        flex-direction: column !important;
+    }
+    .featured-image {
+        width: 100% !important;
+    }
+    .featured-content {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .section-container {
+        padding: 30px 15px;
+    }
+    .section-title {
+        font-size: 1.5rem;
+    }
+    .card-grid {
+        grid-template-columns: 1fr !important;
+    }
+} 
