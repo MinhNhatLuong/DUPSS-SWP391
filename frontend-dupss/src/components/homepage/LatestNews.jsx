@@ -53,15 +53,15 @@ const LatestNews = () => {
         <h2 className="section-title">Tin tức & Cập nhật mới nhất</h2>
         <div className="news-grid">
           {featuredNews && (
-            <div className="news-card featured">
-              <div className="news-image">
-                <img src={featuredNews.image} alt={featuredNews.title} />
+            <div className="news-card featured" style={{ display: 'flex', gap: '20px', background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+              <div className="news-image" style={{ flex: '1', maxWidth: '50%' }}>
+                <img src={featuredNews.image} alt={featuredNews.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div className="news-content">
-                <span className="news-tag">{featuredNews.tag}</span>
-                <h3>{featuredNews.title}</h3>
-                <p>{featuredNews.content}</p>
-                <a href={featuredNews.url} className="read-more">Đọc tiếp</a>
+              <div className="news-content" style={{ flex: '1', padding: '20px 20px 20px 0' }}>
+                <span className="news-tag" style={{ display: 'inline-block', padding: '4px 12px', backgroundColor: '#e6f7ff', color: '#0066cc', borderRadius: '4px', fontSize: '14px', marginBottom: '12px' }}>{featuredNews.tag}</span>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>{featuredNews.title}</h3>
+                <p style={{ marginBottom: '20px' }}>{featuredNews.content}</p>
+                <a href={featuredNews.url} className="read-more" style={{ color: '#0066cc', textDecoration: 'none', fontWeight: 'bold' }}>Đọc tiếp</a>
               </div>
             </div>
           )}
