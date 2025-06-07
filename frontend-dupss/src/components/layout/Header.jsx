@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { TextField, Button, Box, Container, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -16,9 +17,9 @@ const Header = () => {
     <header>
       <div className="header-container">
         <div className="logo">
-          <a href="/">
+          <RouterLink to="/">
             <img src="/Logo_Website_Blue.png" alt="DUPSS Logo" />
-          </a>
+          </RouterLink>
         </div>
         
         <div className="search-bar">
@@ -36,14 +37,14 @@ const Header = () => {
         <div className="user-actions">
           {!isLoggedIn ? (
             <div className="auth-buttons">
-              <a href="/login" className="login-btn">Đăng nhập</a>
-              <a href="/register" className="register-btn">Đăng ký</a>
+              <RouterLink to="/login" className="login-btn">Đăng nhập</RouterLink>
+              <RouterLink to="/register" className="register-btn">Đăng ký</RouterLink>
             </div>
           ) : (
             <div className="user-dropdown">
               <button className="dropbtn">Tài khoản <i className="fas fa-caret-down"></i></button>
               <div className="dropdown-content">
-                <a href="/profile">Hồ sơ</a>
+                <RouterLink to="/profile">Hồ sơ</RouterLink>
                 <a href="#" onClick={() => setIsLoggedIn(false)}>Đăng xuất</a>
               </div>
             </div>

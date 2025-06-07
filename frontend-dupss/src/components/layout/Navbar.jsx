@@ -1,65 +1,76 @@
 import { useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
-  const [activePage, setActivePage] = useState('home');
+  const location = useLocation();
+  const [activePage, setActivePage] = useState(() => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path.startsWith('/courses')) return 'courses';
+    if (path.startsWith('/blogs')) return 'blogs';
+    if (path.startsWith('/survey')) return 'survey';
+    if (path.startsWith('/appointment')) return 'appointment';
+    if (path.startsWith('/about-us')) return 'about';
+    return '';
+  });
 
   return (
     <nav className="navbar">
       <div className="nav-container">
         <ul className="nav-links">
           <li>
-            <a 
-              href="/" 
+            <RouterLink 
+              to="/" 
               className={activePage === 'home' ? 'active' : ''}
               onClick={() => setActivePage('home')}
             >
               Trang chủ
-            </a>
+            </RouterLink>
           </li>
           <li>
-            <a 
-              href="/courses" 
+            <RouterLink 
+              to="/courses" 
               className={activePage === 'courses' ? 'active' : ''}
               onClick={() => setActivePage('courses')}
             >
               Khóa học
-            </a>
+            </RouterLink>
           </li>
           <li>
-            <a 
-              href="/blogs" 
+            <RouterLink 
+              to="/blogs" 
               className={activePage === 'blogs' ? 'active' : ''}
               onClick={() => setActivePage('blogs')}
             >
               Blogs & Thông tin
-            </a>
+            </RouterLink>
           </li>
           <li>
-            <a 
-              href="/survey" 
+            <RouterLink 
+              to="/survey" 
               className={activePage === 'survey' ? 'active' : ''}
               onClick={() => setActivePage('survey')}
             >
               Khảo sát
-            </a>
+            </RouterLink>
           </li>
           <li>
-            <a 
-              href="/appointment" 
+            <RouterLink 
+              to="/appointment" 
               className={activePage === 'appointment' ? 'active' : ''}
               onClick={() => setActivePage('appointment')}
             >
               Đặt lịch hẹn
-            </a>
+            </RouterLink>
           </li>
           <li>
-            <a 
-              href="/about-us" 
+            <RouterLink 
+              to="/about-us" 
               className={activePage === 'about' ? 'active' : ''}
               onClick={() => setActivePage('about')}
             >
               Về chúng tôi
-            </a>
+            </RouterLink>
           </li>
         </ul>
       </div>
