@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import HomePage from './components/homepage/HomePage';
 import Login from './components/auth/Login';
+import AboutUs from './components/about/AboutUs';
 import './App.css';
 
 function App() {
@@ -17,6 +18,11 @@ function App() {
         <Route path="/login" element={
           <Layout>
             <Login />
+          </Layout>
+        } />
+        <Route path="/about-us" element={
+          <Layout>
+            <AboutUs />
           </Layout>
         } />
       </Routes>
