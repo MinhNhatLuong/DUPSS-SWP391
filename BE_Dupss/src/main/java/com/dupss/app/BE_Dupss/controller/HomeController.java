@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/public")
-public class GuestController {
+public class HomeController {
 
     private final CourseService courseService;
 
