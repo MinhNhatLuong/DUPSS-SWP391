@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.BlogRequest;
+import com.dupss.app.BE_Dupss.dto.response.BlogHomeResponse;
 import com.dupss.app.BE_Dupss.dto.response.BlogResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.entity.*;
@@ -14,6 +15,9 @@ import com.dupss.app.BE_Dupss.service.CloudinaryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -142,6 +146,59 @@ public class BlogServiceImpl implements BlogService {
                     return mapToResponse(blog, imageUrls, currentUser.getFullname());
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String generateSummary(String content) {
+        if (content == null) return "";
+        int maxLength = 150;
+        return content.length() > maxLength ? content.substring(0, maxLength) + "..." : content;
+    }
+
+    public List<BlogHomeResponse> getLatestBlogs() {
+        return blogRepository.findTop3ByOrderByCreatedAtDesc()
+                .stream()
+                .map(blog -> {
+                    BlogHomeResponse res = new BlogHomeResponse();
+                    res.setId(blog.getId());
+                    res.setTitle(blog.getTitle());
+
+                    // Xử lý an toàn khi không có ảnh
+                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
+                        res.setCoverImage(blog.getImages().get(0).getImageUrl());
+                    }
+
+                    res.setSummary(generateSummary(blog.getContent()));
+                    res.setCreatedAt(blog.getCreatedAt());
+                    res.setTags(blog.getTags());
+                    return res;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<BlogHomeResponse> searchBlogs(String keyword, String tags, Pageable pageable) {
+        log.info("Searching blogs with keyword: {}, tags: {}", keyword, tags);
+
+        Page<Blog> blogPage = blogRepository.search(keyword, tags, pageable);
+
+        List<BlogHomeResponse> blogResponses = blogPage.getContent().stream()
+                .map(blog -> {
+                    BlogHomeResponse dto = new BlogHomeResponse();
+                    dto.setId(blog.getId());
+                    dto.setTitle(blog.getTitle());
+                    dto.setTags(blog.getTags());
+                    dto.setCreatedAt(blog.getCreatedAt());
+                    dto.setSummary(generateSummary(blog.getContent()));
+
+                    // Xử lý an toàn khi không có ảnh
+                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
+                        dto.setCoverImage(blog.getImages().get(0).getImageUrl());
+                    }
+
+                    return dto;
+                }).collect(Collectors.toList());
+
+        return new PageImpl<>(blogResponses, pageable, blogPage.getTotalElements());
     }
 
     private BlogResponse mapToResponse(Blog blog, List<String> imageUrls, String authorName) {
