@@ -18,7 +18,7 @@ const LeadershipTeam = () => {
     {
       image: 'https://scontent.fsgn5-3.fna.fbcdn.net/v/t39.30808-6/480459884_1173203430862389_3609239197064390599_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeECfACjzjn7ulI73jwxX4TfbVR2nJGgSlBtVHackaBKUEjinTwUv5yeutF6LDL-h5y9C8_4tpjEnW6nFPiOePvS&_nc_ohc=p6Tqj6zzH2oQ7kNvwGipNTl&_nc_oc=AdlBPIvBAK-bCx6_uBGvblNKm4KSdUJYN-uFRivMsEf8G3GB07guxN1x3E80ibiIRiLcKgd64G52kcLWLLuC5YnM&_nc_zt=23&_nc_ht=scontent.fsgn5-3.fna&_nc_gid=4BAOWpnztB7zcgRCanJxmA&oh=00_AfN7EGS0ZmWkTBeUtlr-Y6suvwrRliEBWRc8WI2a1PqzsQ&oe=684A459D',
       name: 'Nguyễn Tấn Dũng',
-      title: 'Giám đốc truyền thông',
+      title: 'Nô lệ toàn thời gian',
       bio: 'Chuyên gia truyền thông với kinh nghiệm phong phú trong các chiến dịch nâng cao nhận thức cộng đồng.'
     }
   ];

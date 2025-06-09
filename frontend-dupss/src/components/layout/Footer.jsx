@@ -52,7 +52,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-bottom">
-          <p>&copy; 2023 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
+          <p>&copy; 2025 DUPSS - Dự án Phòng ngừa Sử dụng Ma túy trong Cộng đồng. Tất cả quyền được bảo lưu.</p>
           <div className="footer-links">
             <a href="#">Chính sách bảo mật</a>
             <a href="#">Điều khoản sử dụng</a>

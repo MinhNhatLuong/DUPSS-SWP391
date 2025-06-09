@@ -5,6 +5,7 @@ import HomePage from './components/homepage/HomePage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import AboutUs from './components/about/AboutUs';
+import Appointment from './components/appointment/Appointment';
 import './App.css';
 
 function App() {
@@ -29,6 +30,11 @@ function App() {
         <Route path="/about-us" element={
           <Layout>
             <AboutUs />
+          </Layout>
+        } />
+        <Route path="/appointment" element={
+          <Layout>
+            <Appointment />
           </Layout>
         } />
       </Routes>
