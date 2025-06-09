@@ -54,16 +54,5 @@ public class AdminController {
         }
     }
 
-    @DeleteMapping("/users/{userId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        try {
-            adminService.deleteUser(userId);
-            return ResponseEntity.ok(Map.of("message", "Người dùng đã được xóa thành công"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("message", "Lỗi: " + e.getMessage())
-            );
-        }
-    }
+
 }
