@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.ERole;
+import com.dupss.app.BE_Dupss.validation.PasswordMatch;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -8,11 +9,9 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Data
-
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@PasswordMatch
 public class RegisterRequest {
 
     @NotEmpty(message = "Username cannot be empty")
@@ -23,6 +22,9 @@ public class RegisterRequest {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
+    @NotEmpty(message = "Confirm password cannot be empty")
+    private String confirmPassword;
+
     @NotEmpty(message = "Full name cannot be empty")
     private String fullname;
 
@@ -32,14 +34,11 @@ public class RegisterRequest {
     @Email(message = "Email should be valid")
     private String email;
 
-    @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone number must be 10-11 digits")
+    @Pattern(regexp = "(84|0[3|5|7|8|9])+([0-9]{8})\\b", message = "Phone invalid!!" )
     private String phone;
 
     private String address;
 
     private ERole role = ERole.ROLE_MEMBER; // Default role is MEMBER
-
-
-
 
 }

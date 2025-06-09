@@ -32,8 +32,8 @@ public class JwtService {
     private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     public String generateAccessToken(User user) {
-        Collection<? extends GrantedAuthority> authorities = user.getAuthorities(); // role : {USER} ==> {USER, ADMIN}
-        List<String> authorityName = authorities.stream()
+        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
+        List<String> authorityNames = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
@@ -43,7 +43,9 @@ public class JwtService {
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issueTime(new Date())
-                .claim("authorities", authorityName)
+                .claim("authorities", authorityNames)
+                .claim("email", user.getEmail())
+                .claim("userId", user.getId())
                 .expirationTime(new Date(Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
@@ -66,6 +68,7 @@ public class JwtService {
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issueTime(new Date())
+                .claim("userId", user.getId())
                 .expirationTime(new Date(Instant.now().plus(14, ChronoUnit.DAYS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .build();

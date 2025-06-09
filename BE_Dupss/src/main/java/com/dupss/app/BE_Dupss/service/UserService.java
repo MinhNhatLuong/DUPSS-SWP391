@@ -6,9 +6,7 @@ import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
-import com.dupss.app.BE_Dupss.entity.Role;
 import com.dupss.app.BE_Dupss.entity.User;
-import com.dupss.app.BE_Dupss.respository.RoleRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @Slf4j
@@ -40,14 +36,12 @@ public class UserService implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
     private final MailService mailService;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       RoleRepository roleRepository, MailService mailService) {
+                       MailService mailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
         this.mailService = mailService;
     }
 
@@ -65,19 +59,11 @@ public class UserService implements CommandLineRunner {
                     .fullname("Administrator")
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
-                    .roles(new HashSet<>())
+                    .role(ERole.ROLE_ADMIN)
                     .build();
 
-            Optional<Role> adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
-            if (adminRole.isPresent()) {
-                Set<Role> roles = new HashSet<>();
-                roles.add(adminRole.get());
-                adminUser.setRoles(roles);
-                userRepository.save(adminUser);
-                log.info("Admin user created successfully");
-            } else {
-                log.error("Admin role not found. Please ensure RoleInitializer has run first.");
-            }
+            userRepository.save(adminUser);
+            log.info("Admin user created successfully"); 
         }
     }
 
@@ -95,23 +81,8 @@ public class UserService implements CommandLineRunner {
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(new HashSet<>())
+                .role(ERole.ROLE_MEMBER)
                 .build();
-
-        Optional<Role> role = roleRepository.findByName(ERole.ROLE_MEMBER);
-        if(role.isEmpty()) {
-            Role newRole = Role.builder()
-                    .name(ERole.ROLE_MEMBER)
-                    .build();
-            roleRepository.save(newRole);
-            Set<Role> roles = new HashSet<>();
-            roles.add(newRole);
-            user.setRoles(roles);
-        } else {
-            Set<Role> roles = new HashSet<>();
-            roles.add(role.get());
-            user.setRoles(roles);
-        }
 
         userRepository.save(user);
 
@@ -138,6 +109,7 @@ public class UserService implements CommandLineRunner {
                         .firstName(user.getUsername())
                         .lastName(user.getFullname())
                         .avatar(user.getAddress())
+                        .role(user.getRole().name())
                         .build())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
@@ -151,6 +123,7 @@ public class UserService implements CommandLineRunner {
                         .firstName(user.getUsername())
                         .lastName(user.getFullname())
                         .avatar(user.getAddress())
+                        .role(user.getRole().name())
                         .build())
                 .toList();
     }

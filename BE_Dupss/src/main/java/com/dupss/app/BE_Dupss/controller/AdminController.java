@@ -1,13 +1,17 @@
 package com.dupss.app.BE_Dupss.controller;
 
-import com.dupss.app.BE_Dupss.dto.request.AssignRoleRequest;
+
+import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
+import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -36,17 +40,30 @@ public class AdminController {
         return adminService.getUsersByRole("ROLE_CONSULTANT");
     }
 
-    @PostMapping("/users/{userId}/roles")
+
+    @PatchMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> assignRole(@PathVariable Long userId, @RequestBody AssignRoleRequest request) {
-        adminService.assignRoleToUser(userId, request.getRoleName());
-        return ResponseEntity.ok(Map.of("message", "Role assigned successfully"));
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
+        try {
+            UpdateUserResponse response = adminService.updateUser(userId, request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("message", "Lỗi: " + e.getMessage())
+            );
+        }
     }
 
-    @DeleteMapping("/users/{userId}/roles/{roleName}")
+    @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> removeRole(@PathVariable Long userId, @PathVariable String roleName) {
-        adminService.removeRoleFromUser(userId, roleName);
-        return ResponseEntity.ok(Map.of("message", "Role removed successfully"));
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            adminService.deleteUser(userId);
+            return ResponseEntity.ok(Map.of("message", "Người dùng đã được xóa thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("message", "Lỗi: " + e.getMessage())
+            );
+        }
     }
 }

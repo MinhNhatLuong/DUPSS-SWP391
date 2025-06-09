@@ -38,6 +38,8 @@ public class ManagerController {
         return adminService.getUsersByRole("ROLE_CONSULTANT");
     }
 
+
+
     @PostMapping("/reports")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Map<String, String>> generateReport() {

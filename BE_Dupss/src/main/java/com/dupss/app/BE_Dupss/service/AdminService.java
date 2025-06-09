@@ -1,20 +1,20 @@
 package com.dupss.app.BE_Dupss.service;
 
+
+import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
+import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
-import com.dupss.app.BE_Dupss.entity.Role;
 import com.dupss.app.BE_Dupss.entity.User;
-import com.dupss.app.BE_Dupss.respository.RoleRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserDetailResponse> getAllUsers() {
         return userRepository.findAll()
@@ -35,8 +35,7 @@ public class AdminService {
         try {
             ERole eRole = ERole.valueOf(roleName);
             return userRepository.findAll().stream()
-                    .filter(user -> user.getRoles().stream()
-                            .anyMatch(role -> role.getName() == eRole))
+                    .filter(user -> user.getRole() == eRole)
                     .map(this::mapToUserDetailResponse)
                     .toList();
         } catch (IllegalArgumentException e) {
@@ -52,15 +51,7 @@ public class AdminService {
 
         try {
             ERole eRole = ERole.valueOf(roleName);
-            Role role = roleRepository.findByName(eRole)
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
-
-            Set<Role> roles = user.getRoles();
-            if (roles == null) {
-                roles = new HashSet<>();
-            }
-            roles.add(role);
-            user.setRoles(roles);
+            user.setRole(eRole);
             userRepository.save(user);
             log.info("Role {} assigned to user {}", roleName, userId);
         } catch (IllegalArgumentException e) {
@@ -70,26 +61,58 @@ public class AdminService {
     }
 
     @Transactional
-    public void removeRoleFromUser(Long userId, String roleName) {
+    public UpdateUserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
 
-        try {
-            ERole eRole = ERole.valueOf(roleName);
-            Set<Role> roles = user.getRoles();
-            if (roles != null) {
-                roles = roles.stream()
-                        .filter(role -> role.getName() != eRole)
-                        .collect(Collectors.toSet());
-                user.setRoles(roles);
-                userRepository.save(user);
-                log.info("Role {} removed from user {}", roleName, userId);
-            }
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid role name: {}", roleName);
-            throw new IllegalArgumentException("Invalid role name: " + roleName);
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) &&
+                userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại");
         }
+
+        if (request.getFullname() != null) {
+            user.setFullname(request.getFullname());
+        }
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("Admin updated user: {}", updatedUser.getUsername());
+
+        return UpdateUserResponse.builder()
+                .id(updatedUser.getId())
+                .fullname(updatedUser.getFullname())
+                .email(updatedUser.getEmail())
+                .phone(updatedUser.getPhone())
+                .address(updatedUser.getAddress())
+                .role(updatedUser.getRole())
+                .message("Cập nhật người dùng thành công")
+                .build();
     }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
+
+        userRepository.delete(user);
+        log.info("Admin deleted user: {} with ID: {}", user.getUsername(), userId);
+    }
+
+
 
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
@@ -97,9 +120,7 @@ public class AdminService {
                 .firstName(user.getUsername())
                 .lastName(user.getFullname())
                 .avatar(user.getAddress())
-                .roles(user.getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .toList())
+                .role(user.getRole().name())
                 .build();
     }
 }
