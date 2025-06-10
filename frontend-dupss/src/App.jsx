@@ -8,6 +8,9 @@ import AboutUs from './components/about/AboutUs';
 import Appointment from './components/appointment/Appointment';
 import BlogDetail from './components/blogs/BlogDetail';
 import BlogsList from './components/blogs/BlogsList';
+import CoursesList from './components/courses/CoursesList';
+import CourseDetail from './components/courses/CourseDetail';
+import CourseLearning from './components/courses/CourseLearning';
 import './App.css';
 
 function App() {
@@ -47,6 +50,21 @@ function App() {
         <Route path="/blogs/:id" element={
           <Layout>
             <BlogDetail />
+          </Layout>
+        } />
+        <Route path="/courses" element={
+          <Layout>
+            <CoursesList />
+          </Layout>
+        } />
+        <Route path="/courses/:id" element={
+          <Layout>
+            <CourseDetail />
+          </Layout>
+        } />
+        <Route path="/courses/:id/learn" element={
+          <Layout>
+            <CourseLearning />
           </Layout>
         } />
       </Routes>

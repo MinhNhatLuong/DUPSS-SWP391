@@ -1,4 +1,5 @@
 import { Box, Typography, Button, Container } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 const HeroBanner = () => {
   return (
@@ -6,7 +7,7 @@ const HeroBanner = () => {
       <div className="hero-content">
         <h1>Phòng Ngừa Sử Dụng Ma Túy Trong Cộng Đồng</h1>
         <p>Chung tay xây dựng cộng đồng lành mạnh, phòng chống tác hại của ma túy</p>
-        <a href="/about-us" className="cta-button">Tìm hiểu thêm</a>
+        <Link to="/about-us" className="cta-button">Tìm hiểu thêm</Link>
       </div>
     </section>
   );
