@@ -125,6 +125,9 @@ const BlogDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set a default loading title
+    document.title = "Đang tải bài viết... - DUPSS";
+    
     // In a real application, we would fetch the blog data by ID from an API
     // For now, we'll use the fake data
     setTimeout(() => {
@@ -132,6 +135,13 @@ const BlogDetail = () => {
       setLoading(false);
     }, 500); // Simulate loading time
   }, [id]);
+  
+  // Update title when blog data is loaded
+  useEffect(() => {
+    if (blog) {
+      document.title = `${blog.title} - DUPSS`;
+    }
+  }, [blog]);
 
   if (loading) {
     return (

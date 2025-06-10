@@ -5,8 +5,13 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import SecurityIcon from '@mui/icons-material/Security';
 import AppointmentForm from './AppointmentForm';
 import './Appointment.css';
+import { useEffect } from 'react';
 
 const Appointment = () => {
+  useEffect(() => {
+    document.title = "Đặt Lịch Hẹn - DUPSS";
+  }, []);
+
   return (
     <Container maxWidth="lg" className="appointment-container">
       {/* Header */}

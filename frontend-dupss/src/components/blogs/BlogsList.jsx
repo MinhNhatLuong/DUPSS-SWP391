@@ -84,6 +84,8 @@ const BlogsList = () => {
   const [category, setCategory] = useState('all');
 
   useEffect(() => {
+    document.title = "Blogs & Thông Tin - DUPSS";
+    
     // In a real application, we would fetch the blogs from an API
     // For now, we'll use the fake data
     setTimeout(() => {
