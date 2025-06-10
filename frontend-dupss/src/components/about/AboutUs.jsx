@@ -5,8 +5,13 @@ import History from './History';
 import LeadershipTeam from './LeadershipTeam';
 import Partners from './Partners';
 import Contact from './Contact';
+import { useEffect } from 'react';
 
 const AboutUs = () => {
+  useEffect(() => {
+    document.title = "Về Chúng Tôi - DUPSS";
+  }, []);
+
   return (
     <Container maxWidth="lg" sx={{ py: 5 }}>
       {/* Header Section */}

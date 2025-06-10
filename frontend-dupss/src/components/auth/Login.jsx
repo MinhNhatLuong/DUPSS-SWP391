@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Box, 
   Card, 
@@ -26,6 +26,10 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    document.title = "Đăng Nhập - DUPSS";
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
