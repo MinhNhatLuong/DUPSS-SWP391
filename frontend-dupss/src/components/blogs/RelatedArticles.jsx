@@ -41,6 +41,8 @@ const ArticleChip = styled(Chip)(({ theme }) => ({
   color: '#0056b3',
   marginBottom: theme.spacing(1),
   fontSize: '0.8rem',
+  width: 'fit-content',
+  display: 'inline-flex',
 }));
 
 const ReadMoreLink = styled(RouterLink)(({ theme }) => ({
@@ -107,6 +109,7 @@ const RelatedArticles = ({ articles }) => {
                   fontSize: '1rem', 
                   lineHeight: 1.4,
                   mb: 1,
+                  fontWeight: 'bold',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   display: '-webkit-box',
