@@ -6,6 +6,8 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import AboutUs from './components/about/AboutUs';
 import Appointment from './components/appointment/Appointment';
+import BlogDetail from './components/blogs/BlogDetail';
+import BlogsList from './components/blogs/BlogsList';
 import './App.css';
 
 function App() {
@@ -35,6 +37,16 @@ function App() {
         <Route path="/appointment" element={
           <Layout>
             <Appointment />
+          </Layout>
+        } />
+        <Route path="/blogs" element={
+          <Layout>
+            <BlogsList />
+          </Layout>
+        } />
+        <Route path="/blogs/:id" element={
+          <Layout>
+            <BlogDetail />
           </Layout>
         } />
       </Routes>

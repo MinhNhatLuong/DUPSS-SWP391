@@ -9,7 +9,7 @@ const LatestNews = () => {
       tag: "Giáo dục",
       title: "Chương trình giáo dục phòng chống ma túy tại trường học",
       content: "Triển khai chương trình giáo dục phòng chống ma túy tại các trường học trên toàn quốc...",
-      url: "/article-education-program"
+      url: "/education-program"
     },
     {
       id: 2,
@@ -17,7 +17,7 @@ const LatestNews = () => {
       tag: "Cộng đồng",
       title: "Hoạt động tình nguyện phòng chống ma túy tại cộng đồng",
       content: "Các hoạt động tình nguyện phòng chống ma túy đang được triển khai rộng rãi tại nhiều địa phương...",
-      url: "/article-education-program"
+      url: "/education-program"
     },
     {
       id: 3,
@@ -25,7 +25,7 @@ const LatestNews = () => {
       tag: "Nghiên cứu",
       title: "Phương pháp mới trong điều trị nghiện ma túy",
       content: "Các nhà khoa học đã phát triển phương pháp mới giúp điều trị hiệu quả tình trạng nghiện ma túy...",
-      url: "/article-education-program"
+      url: "/education-program"
     }
   ]);
 
