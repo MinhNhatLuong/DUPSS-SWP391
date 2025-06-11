@@ -8,6 +8,7 @@ import com.dupss.app.BE_Dupss.entity.*;
 
 import com.dupss.app.BE_Dupss.respository.BlogImageRepository;
 import com.dupss.app.BE_Dupss.respository.BlogRepository;
+import com.dupss.app.BE_Dupss.respository.TopicRepo;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.BlogService;
 
@@ -39,6 +40,7 @@ public class BlogServiceImpl implements BlogService {
     private final BlogImageRepository blogImageRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final TopicRepo topicRepository;
 
     @Override
     @Transactional
@@ -48,18 +50,19 @@ public class BlogServiceImpl implements BlogService {
 
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        // Find the author
-//        User author = userRepository.findById(authorId)
-//                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + authorId));
 
         // Create new blog
         Blog blog = new Blog();
         blog.setTitle(blogRequest.getTitle());
         blog.setContent(blogRequest.getContent());
         blog.setAuthor(author);
-        blog.setStatus("PUBLISHED");
+        blog.setStatus(ApprovalStatus.PENDING);
         blog.setTags(blogRequest.getTags());
 
+        Topic topic = topicRepository.findById(blogRequest.getTopicId())
+                .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + blogRequest.getTopicId()));
+
+        blog.setTopic(topic);
         // Save blog to get ID
         Blog savedBlog = blogRepository.save(blog);
 
@@ -155,16 +158,16 @@ public class BlogServiceImpl implements BlogService {
     }
 
     public List<BlogHomeResponse> getLatestBlogs() {
-        return blogRepository.findTop3ByOrderByCreatedAtDesc()
+        return blogRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
                 .stream()
                 .map(blog -> {
                     BlogHomeResponse res = new BlogHomeResponse();
                     res.setId(blog.getId());
                     res.setTitle(blog.getTitle());
+                    res.setTopic(blog.getTopic().getName());
 
-                    // Xử lý an toàn khi không có ảnh
                     if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-                        res.setCoverImage(blog.getImages().get(0).getImageUrl());
+                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
                     }
 
                     res.setSummary(generateSummary(blog.getContent()));
@@ -190,9 +193,8 @@ public class BlogServiceImpl implements BlogService {
                     dto.setCreatedAt(blog.getCreatedAt());
                     dto.setSummary(generateSummary(blog.getContent()));
 
-                    // Xử lý an toàn khi không có ảnh
                     if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-                        dto.setCoverImage(blog.getImages().get(0).getImageUrl());
+                        dto.setCoverImage(blog.getImages().getFirst().getImageUrl());
                     }
 
                     return dto;
@@ -205,13 +207,14 @@ public class BlogServiceImpl implements BlogService {
         return BlogResponse.builder()
                 .id(blog.getId())
                 .title(blog.getTitle())
+                .topic(blog.getTopic().getName())
                 .content(blog.getContent())
                 .imageUrls(imageUrls)
                 .authorName(authorName)
                 .createdAt(blog.getCreatedAt())
                 .updatedAt(blog.getUpdatedAt())
-                .status(blog.getStatus())
                 .tags(blog.getTags())
+                .status(blog.getStatus())
                 .build();
     }
 }

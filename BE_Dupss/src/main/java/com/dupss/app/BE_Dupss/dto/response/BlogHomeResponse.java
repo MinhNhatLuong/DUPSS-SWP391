@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public class BlogHomeResponse {
     private Long id;
     private String title;
+    private String topic;
     private String summary;
     private String coverImage;
     private LocalDate createdAt;

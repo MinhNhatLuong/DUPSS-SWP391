@@ -31,6 +31,7 @@ public class Blog {
     private User author;
     private LocalDate createdAt;
     private LocalDate updatedAt;
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApprovalStatus status;
