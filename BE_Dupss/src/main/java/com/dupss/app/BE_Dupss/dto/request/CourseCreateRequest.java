@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,13 +16,15 @@ import java.util.List;
 public class CourseCreateRequest {
     @NotBlank(message = "Tiêu đề khóa học không được để trống")
     private String title;
-    
+
+    private Long topicId;
+
     private String description;
     
     @NotBlank(message = "Đối tượng học viên không được để trống")
     private String targetAudience;
     
-    private String coverImage;
+    private MultipartFile coverImage;
     
     private String content;
     

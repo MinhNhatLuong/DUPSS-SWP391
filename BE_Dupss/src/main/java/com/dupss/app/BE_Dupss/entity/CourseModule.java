@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -22,10 +24,9 @@ public class CourseModule {
     private String description;
     
     private String content;
-    
-    private String videoUrl;
-    
-    private String documentUrl;
+
+    @OneToMany(mappedBy = "courseModule", cascade = CascadeType.ALL)
+    private List<VideoCourse> videos = new ArrayList<>();
     
     private Integer duration; // Duration in minutes
     

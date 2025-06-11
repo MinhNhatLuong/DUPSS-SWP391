@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,7 +17,7 @@ public class CourseModuleResponse {
     private String title;
     private String description;
     private String content;
-    private String videoUrl;
+    private List<String> videoUrl;
     private String documentUrl;
     private Integer duration;
     private Integer orderIndex;

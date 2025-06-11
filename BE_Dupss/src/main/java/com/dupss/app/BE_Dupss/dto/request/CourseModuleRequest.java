@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,10 +19,8 @@ public class CourseModuleRequest {
     private String description;
     
     private String content;
-    
-    private String videoUrl;
-    
-    private String documentUrl;
+
+    private List<String> videos;
     
     private Integer duration;
     

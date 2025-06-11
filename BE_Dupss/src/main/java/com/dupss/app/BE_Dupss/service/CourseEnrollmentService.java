@@ -5,11 +5,7 @@ import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
-import com.dupss.app.BE_Dupss.entity.Course;
-import com.dupss.app.BE_Dupss.entity.CourseEnrollment;
-import com.dupss.app.BE_Dupss.entity.CourseModule;
-import com.dupss.app.BE_Dupss.entity.ERole;
-import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.CourseEnrollmentRepository;
 import com.dupss.app.BE_Dupss.respository.CourseModuleRepository;
 import com.dupss.app.BE_Dupss.respository.CourseRepository;
@@ -22,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -162,13 +159,17 @@ public class CourseEnrollmentService {
     }
     
     private CourseModuleResponse mapToModuleResponse(CourseModule module) {
+        List<String> videoUrls = module.getVideos() != null
+                ? module.getVideos().stream()
+                .map(VideoCourse::getVideoUrl)
+                .collect(Collectors.toList())
+                : new ArrayList<>();
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
                 .description(module.getDescription())
                 .content(module.getContent())
-                .videoUrl(module.getVideoUrl())
-                .documentUrl(module.getDocumentUrl())
+                .videoUrl(videoUrls)
                 .duration(module.getDuration())
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
