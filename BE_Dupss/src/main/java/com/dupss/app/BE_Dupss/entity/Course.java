@@ -21,6 +21,10 @@ public class Course {
     @Column(nullable = false)
     private String title;
 
+    @ManyToOne
+    @JoinColumn(name = "topic_id")
+    private Topic topic;
+
     @Column(length = 1000)
     private String description;
 
@@ -31,6 +35,10 @@ public class Course {
     private String content;
     private Integer duration; // Duration in minutes
     private boolean isActive;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApprovalStatus status;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseModule> modules = new ArrayList<>();

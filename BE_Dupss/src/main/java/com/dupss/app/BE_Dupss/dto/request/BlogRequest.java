@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import com.dupss.app.BE_Dupss.entity.Topic;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,8 @@ import java.util.List;
 public class BlogRequest {
     @NotBlank(message = "Title cannot be blank")
     private String title;
+
+    private Long topicId;
 
     @NotBlank(message = "Content cannot be blank")
     private String content;
