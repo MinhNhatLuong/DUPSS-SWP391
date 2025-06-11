@@ -2,6 +2,7 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.response.BlogHomeResponse;
 import com.dupss.app.BE_Dupss.dto.response.BlogResponse;
+import com.dupss.app.BE_Dupss.dto.response.CourseHomeResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.service.BlogService;
 import com.dupss.app.BE_Dupss.service.CourseService;
@@ -39,11 +40,11 @@ public class HomeController {
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<CourseResponse> coursePage;
+        Page<CourseHomeResponse> coursePage;
         if (targetAudience != null && !targetAudience.isEmpty()) {
             coursePage = courseService.searchCoursesByTargetAudience(keyword, targetAudience, pageable);
         } else {
-            coursePage = courseService.searchCourses(keyword, pageable);
+            coursePage = courseService.searchCoursesSummary(keyword, pageable);
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -53,6 +54,12 @@ public class HomeController {
         response.put("totalPages", coursePage.getTotalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/courses/latest")
+    public ResponseEntity<List<CourseHomeResponse>> getLatestCourses() {
+        List<CourseHomeResponse> latestCourses = courseService.getLastestCourses();
+        return ResponseEntity.ok(latestCourses);
     }
 
     @GetMapping("/blogs/latest")
