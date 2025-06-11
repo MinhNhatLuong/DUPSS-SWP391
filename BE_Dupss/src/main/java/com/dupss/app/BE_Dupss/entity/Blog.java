@@ -19,6 +19,9 @@ public class Blog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+    @ManyToOne
+    @JoinColumn(name = "topic_id")
+    private Topic topic;
     @Lob
     private String content;
     @OneToMany(mappedBy = "blogPost", cascade = CascadeType.ALL)
