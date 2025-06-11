@@ -28,7 +28,9 @@ public class Blog {
     private User author;
     private LocalDate createdAt;
     private LocalDate updatedAt;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApprovalStatus status;
     private String tags;
 
     @PrePersist
