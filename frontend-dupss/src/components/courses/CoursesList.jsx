@@ -342,13 +342,21 @@ function CoursesList() {
         <GridWrapper>
           {filteredCourses.map((course) => (
             <CourseCard key={course.id}>
-              <Box sx={{ position: 'relative' }}>
+              <Box sx={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
                 <CardMedia
                   component="img"
-                  height="200"
                   image={course.coverImage}
                   alt={course.title}
-                  sx={{ transition: 'transform 0.5s', '&:hover': { transform: 'scale(1.05)' } }}
+                  sx={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transition: 'transform 0.5s', 
+                    '&:hover': { transform: 'scale(1.05)' } 
+                  }}
                 />
                 <Chip
                   label={course.topicName}
