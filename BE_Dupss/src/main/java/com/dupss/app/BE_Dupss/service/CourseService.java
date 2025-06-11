@@ -209,6 +209,108 @@ public class CourseService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public CourseResponse updateCourse(Long courseId, CourseUpdateRequest request) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user has STAFF or MANAGER role
+        if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
+            throw new AccessDeniedException("Only STAFF and MANAGER can update courses");
+        }
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+
+        // Check if the user is the creator of the course or a manager
+        if (course.getCreator().getId() != currentUser.getId() && currentUser.getRole() != ERole.ROLE_MANAGER) {
+            throw new AccessDeniedException("You can only update your own courses");
+        }
+
+        // Staff cannot update status
+        if (currentUser.getRole() == ERole.ROLE_STAFF && request.getStatus() != null) {
+            throw new AccessDeniedException("Staff cannot update course status");
+        }
+
+        // Update course fields if provided
+        if (request.getTitle() != null) {
+            course.setTitle(request.getTitle());
+        }
+
+        if (request.getDescription() != null) {
+            course.setDescription(request.getDescription());
+        }
+
+        if (request.getTargetAudience() != null) {
+            course.setTargetAudience(request.getTargetAudience());
+        }
+
+        if (request.getContent() != null) {
+            course.setContent(request.getContent());
+        }
+
+        if (request.getDuration() != null) {
+            course.setDuration(request.getDuration());
+        }
+
+        // Only manager can update status
+        if (currentUser.getRole() == ERole.ROLE_MANAGER && request.getStatus() != null) {
+            course.setStatus(request.getStatus());
+        }
+
+        if (request.getTopicId() != null) {
+            Topic topic = topicRepository.findById(request.getTopicId())
+                    .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + request.getTopicId()));
+            course.setTopic(topic);
+        }
+
+        if (request.getCoverImage() != null && !request.getCoverImage().isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(request.getCoverImage());
+            course.setCoverImage(imageUrl);
+        }
+
+        Course savedCourse = courseRepository.save(course);
+        log.info("Course updated: {}", savedCourse.getTitle());
+
+        // Update or create modules if provided
+        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+
+        if (request.getModules() != null && !request.getModules().isEmpty()) {
+            // Remove existing modules
+            moduleRepository.deleteAll(modules);
+
+            // Create new modules
+            List<CourseModule> newModules = new ArrayList<>();
+            for (CourseModuleRequest moduleRequest : request.getModules()) {
+                CourseModule module = new CourseModule();
+                module.setTitle(moduleRequest.getTitle());
+                module.setContent(moduleRequest.getContent());
+                module.setDuration(moduleRequest.getDuration());
+                module.setOrderIndex(moduleRequest.getOrderIndex());
+                module.setCourse(savedCourse);
+
+                List<VideoCourse> videos = new ArrayList<>();
+                if (moduleRequest.getVideos() != null) {
+                    for (String url : moduleRequest.getVideos()) {
+                        VideoCourse video = new VideoCourse();
+                        video.setVideoUrl(url);
+                        video.setCourseModule(module);
+                        videos.add(video);
+                    }
+                }
+                module.setVideos(videos);
+                newModules.add(module);
+            }
+            moduleRepository.saveAll(newModules);
+            modules = newModules;
+        }
+
+        return mapToCourseResponse(savedCourse, modules, false);
+    }
     
     private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, boolean isEnrolled) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
