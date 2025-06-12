@@ -63,6 +63,8 @@ const Login = () => {
         navigate('/admin/dashboard');
       } else if (formData.role === 'manager') {
         navigate('/manager/dashboard');
+      } else if (formData.role === 'consultant') {
+        navigate('/consultant/dashboard');
       }
     }, 1000);
   };
@@ -168,6 +170,7 @@ const Login = () => {
               >
                 <MenuItem value="admin">Admin</MenuItem>
                 <MenuItem value="manager">Manager</MenuItem>
+                <MenuItem value="consultant">Consultant</MenuItem>
               </Select>
             </FormControl>
 

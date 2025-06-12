@@ -7,6 +7,11 @@ import ConsultantManagement from './pages/manager/ConsultantManagement';
 import ContentReview from './pages/manager/ContentReview';
 import Login from './pages/Login';
 import AdminPage from './pages/admin/AdminPage';
+import HeaderConsultant from './layout/HeaderConsultant';
+import ConsultantDashboard from './pages/consultant/Dashboard';
+import Schedule from './pages/consultant/Schedule';
+import BookingRequests from './pages/consultant/BookingRequests';
+import ConsultantProfile from './pages/consultant/Profile';
 import './App.css';
 
 function App() {
@@ -43,6 +48,24 @@ function App() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="consultants" element={<ConsultantManagement />} />
                     <Route path="content-review" element={<ContentReview />} />
+                  </Routes>
+                </main>
+              </>
+            }
+          />
+
+          {/* Consultant Routes */}
+          <Route
+            path="/consultant/*"
+            element={
+              <>
+                <HeaderConsultant userName="Consultant" />
+                <main className="content">
+                  <Routes>
+                    <Route path="dashboard" element={<ConsultantDashboard />} />
+                    <Route path="schedule" element={<Schedule />} />
+                    <Route path="requests" element={<BookingRequests />} />
+                    <Route path="profile" element={<ConsultantProfile />} />
                   </Routes>
                 </main>
               </>
