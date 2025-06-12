@@ -11,6 +11,8 @@ import BlogsList from './components/blogs/BlogsList';
 import CoursesList from './components/courses/CoursesList';
 import CourseDetail from './components/courses/CourseDetail';
 import CourseLearning from './components/courses/CourseLearning';
+import SurveysList from './components/surveys/SurveysList';
+import SurveyDetail from './components/surveys/SurveyDetail';
 import './App.css';
 
 function App() {
@@ -65,6 +67,16 @@ function App() {
         <Route path="/courses/:id/learn" element={
           <Layout>
             <CourseLearning />
+          </Layout>
+        } />
+        <Route path="/surveys" element={
+          <Layout>
+            <SurveysList />
+          </Layout>
+        } />
+        <Route path="/surveys/:id" element={
+          <Layout>
+            <SurveyDetail />
           </Layout>
         } />
       </Routes>

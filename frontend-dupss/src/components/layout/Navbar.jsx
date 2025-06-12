@@ -8,7 +8,7 @@ const Navbar = () => {
     if (path === '/') return 'home';
     if (path.startsWith('/courses')) return 'courses';
     if (path.startsWith('/blogs')) return 'blogs';
-    if (path.startsWith('/survey')) return 'survey';
+    if (path.startsWith('/surveys')) return 'surveys';
     if (path.startsWith('/appointment')) return 'appointment';
     if (path.startsWith('/about-us')) return 'about';
     return '';
@@ -47,9 +47,9 @@ const Navbar = () => {
           </li>
           <li>
             <RouterLink 
-              to="/survey" 
-              className={activePage === 'survey' ? 'active' : ''}
-              onClick={() => setActivePage('survey')}
+              to="/surveys" 
+              className={activePage === 'surveys' ? 'active' : ''}
+              onClick={() => setActivePage('surveys')}
             >
               Khảo sát
             </RouterLink>
