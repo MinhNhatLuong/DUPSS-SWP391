@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Container, Card, CardMedia, CardContent, CardActions, 
-         Button, Chip, Rating, TextField, MenuItem, InputAdornment } from '@mui/material';
+import {
+  Box, Typography, Container, Card, CardMedia, CardContent, CardActions,
+  Button, Chip, Rating, TextField, MenuItem, InputAdornment
+} from '@mui/material';
 import { Link } from 'react-router-dom';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import SearchIcon from '@mui/icons-material/Search';
@@ -257,21 +259,21 @@ function CoursesList() {
   // Filter courses when category or search query changes
   useEffect(() => {
     let result = [...courses];
-    
+
     // Filter by category
     if (category !== "all") {
       result = result.filter(course => course.topicName === category);
     }
-    
+
     // Filter by search query
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
-      result = result.filter(course => 
-        course.title.toLowerCase().includes(query) || 
+      result = result.filter(course =>
+        course.title.toLowerCase().includes(query) ||
         course.description.toLowerCase().includes(query)
       );
     }
-    
+
     setFilteredCourses(result);
   }, [category, searchQuery, courses]);
 
@@ -291,12 +293,12 @@ function CoursesList() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 5, mb: 8, px: { xs: 1, sm: 2, md: 3 } }}>
-      <Typography 
-        variant="h4" 
-        component="h1" 
+      <Typography
+        variant="h4"
+        component="h1"
         gutterBottom
-        sx={{ 
-          mb: 4, 
+        sx={{
+          mb: 4,
           textAlign: 'center',
           fontWeight: 600
         }}
@@ -320,7 +322,7 @@ function CoursesList() {
             ),
           }}
         />
-        
+
         <TextField
           select
           label="Chủ đề"
@@ -347,15 +349,15 @@ function CoursesList() {
                   component="img"
                   image={course.coverImage}
                   alt={course.title}
-                  sx={{ 
+                  sx={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    transition: 'transform 0.5s', 
-                    '&:hover': { transform: 'scale(1.05)' } 
+                    transition: 'transform 0.5s',
+                    '&:hover': { transform: 'scale(1.05)' }
                   }}
                 />
                 <Chip
@@ -385,7 +387,7 @@ function CoursesList() {
                   }}
                 />
               </Box>
-              
+
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h6" component="h2" sx={{
                   height: '3.6em',
@@ -397,7 +399,7 @@ function CoursesList() {
                 }}>
                   {course.title}
                 </Typography>
-                
+
                 <Box display="flex" justifyContent="space-between" mb={1.5}>
                   <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
                     <PersonIcon fontSize="small" sx={{ mr: 0.5 }} />
@@ -408,7 +410,7 @@ function CoursesList() {
                     {course.level}
                   </Typography>
                 </Box>
-                
+
                 <Typography variant="body2" color="text.secondary" sx={{
                   height: '4.8em',
                   overflow: 'hidden',
@@ -421,7 +423,7 @@ function CoursesList() {
                   {course.description}
                 </Typography>
               </CardContent>
-              
+
               <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
                 <Button
                   component={Link}

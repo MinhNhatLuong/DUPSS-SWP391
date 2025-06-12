@@ -20,7 +20,7 @@ const Footer = () => {
               <li><a href="/">Trang chủ</a></li>
               <li><a href="/courses">Khóa học</a></li>
               <li><a href="/blogs">Tin tức & Blog</a></li>
-              <li><a href="/survey">Khảo sát</a></li>
+              <li><a href="/surveys">Khảo sát</a></li>
               <li><a href="/appointment">Đặt lịch hẹn</a></li>
               <li><a href="/about-us">Về chúng tôi</a></li>
             </ul>
