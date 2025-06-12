@@ -76,7 +76,7 @@ public class EmailServiceImpl implements EmailService {
                 "<p><strong>Ngày hẹn:</strong> " + appointment.getAppointmentDate().format(dateFormatter) + "</p>" +
                 "<p><strong>Giờ hẹn:</strong> " + appointment.getAppointmentTime().format(timeFormatter) + "</p>" +
                 "<p><strong>Chủ đề tư vấn:</strong> " + appointment.getTopic().getName() + "</p>" +
-                "<p><strong>Tư vấn viên:</strong> " + appointment.getConsultant().getName() + "</p>" +
+                "<p><strong>Tư vấn viên:</strong> " + appointment.getConsultant().getFullname() + "</p>" +
                 "<p><strong>Trạng thái:</strong> " + getStatusVietnamese(appointment.getStatus()) + "</p>" +
                 "</div>" +
                 "<p>Vui lòng lưu ý rằng tư vấn viên của chúng tôi sẽ liên hệ với bạn để xác nhận cuộc hẹn. " +
@@ -110,7 +110,7 @@ public class EmailServiceImpl implements EmailService {
                 "<p><strong>Ngày hẹn:</strong> " + appointment.getAppointmentDate().format(dateFormatter) + "</p>" +
                 "<p><strong>Giờ hẹn:</strong> " + appointment.getAppointmentTime().format(timeFormatter) + "</p>" +
                 "<p><strong>Chủ đề tư vấn:</strong> " + appointment.getTopic().getName() + "</p>" +
-                "<p><strong>Tư vấn viên:</strong> " + appointment.getConsultant().getName() + "</p>" +
+                "<p><strong>Tư vấn viên:</strong> " + appointment.getConsultant().getFullname() + "</p>" +
                 "<p><strong>Trạng thái mới:</strong> " + getStatusVietnamese(appointment.getStatus()) + "</p>" +
                 "</div>" +
                 "<p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email hoặc số điện thoại đã cung cấp.</p>" +

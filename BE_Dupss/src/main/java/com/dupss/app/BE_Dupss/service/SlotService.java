@@ -1,5 +1,7 @@
 package com.dupss.app.BE_Dupss.service;
 
+import com.dupss.app.BE_Dupss.dto.request.SlotRequestDto;
+import com.dupss.app.BE_Dupss.dto.response.SlotResponseDto;
 import com.dupss.app.BE_Dupss.entity.Slot;
 
 import java.time.LocalDate;
@@ -10,7 +12,7 @@ public interface SlotService {
     /**
      * Tạo slot thời gian mới cho tư vấn viên
      */
-    Slot createSlot(Slot slot);
+    SlotResponseDto createSlot(SlotRequestDto requestDto);
     
     /**
      * Lấy tất cả các slot của một tư vấn viên

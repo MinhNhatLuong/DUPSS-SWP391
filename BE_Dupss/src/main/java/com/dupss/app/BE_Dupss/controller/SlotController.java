@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -32,24 +33,26 @@ public class SlotController {
      * Chỉ tư vấn viên mới có thể tạo slot của chính họ
      */
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
     public ResponseEntity<SlotResponseDto> createSlot(@Valid @RequestBody SlotRequestDto requestDto) {
         // Lấy thông tin tư vấn viên
-        Consultant consultant = consultantRepository.findById(requestDto.getConsultantId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + requestDto.getConsultantId()));
-        
-        // Tạo đối tượng Slot từ requestDto
-        Slot slot = new Slot();
-        slot.setDate(requestDto.getDate());
-        slot.setStartTime(requestDto.getStartTime());
-        slot.setEndTime(requestDto.getEndTime());
-        slot.setConsultant(consultant);
-        slot.setAvailable(requestDto.isAvailable());
+//        Consultant consultant = consultantRepository.findById(requestDto.getConsultantId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + requestDto.getConsultantId()));
+//
+//        // Tạo đối tượng Slot từ requestDto
+//        Slot slot = new Slot();
+//        slot.setDate(requestDto.getDate());
+//        slot.setStartTime(requestDto.getStartTime());
+//        slot.setEndTime(requestDto.getEndTime());
+//        slot.setConsultant(consultant);
+//        slot.setAvailable(requestDto.isAvailable());
         
         // Lưu slot
-        Slot createdSlot = slotService.createSlot(slot);
+//        Slot createdSlot = slotService.createSlot(requestDto);
         
         // Chuyển đổi thành SlotResponseDto
-        SlotResponseDto responseDto = mapToResponseDto(createdSlot);
+//        SlotResponseDto responseDto = mapToResponseDto(createdSlot);
+        SlotResponseDto responseDto = slotService.createSlot(requestDto);
         
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
@@ -117,8 +120,12 @@ public class SlotController {
         responseDto.setStartTime(slot.getStartTime());
         responseDto.setEndTime(slot.getEndTime());
         responseDto.setConsultantId(slot.getConsultant().getId());
-        responseDto.setConsultantName(slot.getConsultant().getName());
+        responseDto.setConsultantName(slot.getConsultant().getFullname());
         responseDto.setAvailable(slot.isAvailable());
         return responseDto;
     }
-} 
+}
+
+//Lịch sử API: lấy danh sách các apoiment của một tư vấn viên đã được tư vấn thành công (vd: sattus = "COMPLETED")
+//list slot: sau khi ăng ký lịch thành công thì có api get all slot của một tư vấn viên
+// manager gán topic cho consultant : update consultant

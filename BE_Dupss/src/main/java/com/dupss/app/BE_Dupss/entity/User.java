@@ -19,6 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table (name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
@@ -34,7 +35,7 @@ public class User implements UserDetails {
     private String email;
     private String phone;
     private String address;
-
+    private boolean enabled = true;
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private ERole role;
@@ -68,8 +69,8 @@ public class User implements UserDetails {
         return true;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+//    @Override
+//    public boolean isEnabled() {
+//        return true;
+//    }
 }

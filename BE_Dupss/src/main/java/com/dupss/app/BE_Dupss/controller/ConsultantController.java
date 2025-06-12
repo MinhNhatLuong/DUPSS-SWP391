@@ -43,7 +43,7 @@ public class ConsultantController {
      */
     @GetMapping("/api/consultants/topic/{topicId}")
     public ResponseEntity<List<Consultant>> getConsultantsByTopic(@PathVariable Long topicId) {
-        List<Consultant> consultants = consultantRepository.findByTopicIdAndStatusActive(topicId);
+        List<Consultant> consultants = consultantRepository.findByTopicId(topicId);
         return ResponseEntity.ok(consultants);
     }
 

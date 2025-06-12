@@ -10,31 +10,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 @Entity
-@Table(name = "consultants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Consultant {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;
+@Table(name = "consultants")
+public class Consultant extends User {
 
     @Column(name = "specialization")
     private String specialization;
 
-    @Column(name = "status")
-    private String status = "ACTIVE"; // ACTIVE, INACTIVE
+//    @Column(name = "status")
+//    private String status = "ACTIVE"; // ACTIVE, INACTIVE
 
     @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Appointment> appointments = new ArrayList<>();

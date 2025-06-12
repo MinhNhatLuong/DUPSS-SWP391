@@ -13,9 +13,9 @@ import java.util.Optional;
 @Repository
 public interface ConsultantRepository extends JpaRepository<Consultant, Long> {
     Optional<Consultant> findByEmail(String email);
-    List<Consultant> findByStatus(String status);
+//    List<Consultant> findByStatus(String status);
     
     // Tìm consultant theo topic và status active
-    @Query("SELECT c FROM Consultant c JOIN c.topics t WHERE t.id = :topicId AND c.status = 'ACTIVE'")
-    List<Consultant> findByTopicIdAndStatusActive(@Param("topicId") Long topicId);
+    @Query("SELECT c FROM Consultant c JOIN c.topics t WHERE t.id = :topicId AND c.enabled = true")
+    List<Consultant> findByTopicId(@Param("topicId") Long topicId);
 } 
