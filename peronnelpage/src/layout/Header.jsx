@@ -1,62 +1,116 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Avatar,
+  Menu,
+  MenuItem,
+  IconButton,
+  ListItemIcon,
+  Divider,
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  People as PeopleIcon,
+  Settings as SettingsIcon,
+  AccountCircle,
+  Logout,
+  Settings,
+} from '@mui/icons-material';
 
-export default function Header({ userName = 'Admin', avatar }) {
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
+const Header = ({ userName }) => {
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
 
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
   };
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
+
+  const handleClose = () => {
+    setAnchorEl(null);
   };
+
+  const handleLogout = () => {
+    // Xử lý logout ở đây (xóa token, clear state, etc.)
+    navigate('/login');
+  };
+
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' }
+  ];
 
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          {/* Logo chỉ là ảnh trắng */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <img src="/Logo_Website_White.png" alt="dupSS logo" style={{ height: 40, marginRight: 16 }} />
-          </Box>
-          {/* Avatar user bên phải */}
-          <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title={userName}>
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt={userName} src={avatar || '/Logo_Website_Blue.png'} />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar-user"
-              anchorEl={anchorElUser}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              keepMounted
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
+    <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 4 }}>
+          DUPSS
+        </Typography>
+
+        <Box sx={{ flexGrow: 1, display: 'flex', gap: 1 }}>
+          {menuItems.map((item) => (
+            <Button
+              key={item.text}
+              color="inherit"
+              startIcon={item.icon}
+              onClick={() => navigate(item.path)}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
             >
-              <MenuItem onClick={() => { window.location.href = '/'; }}>
-                <Typography textAlign="center">Home</Typography>
-              </MenuItem>
-              <MenuItem onClick={() => { alert('Logged out!'); }}>
-                <Typography textAlign="center">Logout</Typography>
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </Container>
+              {item.text}
+            </Button>
+          ))}
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body1" sx={{ mr: 1 }}>
+            {userName}
+          </Typography>
+          <IconButton
+            onClick={handleClick}
+            size="small"
+            sx={{ ml: 2 }}
+            aria-controls={open ? 'account-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? 'true' : undefined}
+          >
+            <Avatar sx={{ width: 32, height: 32 }}>A</Avatar>
+          </IconButton>
+        </Box>
+
+        <Menu
+          anchorEl={anchorEl}
+          id="account-menu"
+          open={open}
+          onClose={handleClose}
+          onClick={handleClose}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem onClick={() => navigate('/admin/profile')}>
+            <ListItemIcon>
+              <AccountCircle fontSize="small" />
+            </ListItemIcon>
+            Profile
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Logout
+          </MenuItem>
+        </Menu>
+      </Toolbar>
     </AppBar>
   );
-} 
+};
+
+export default Header; 
