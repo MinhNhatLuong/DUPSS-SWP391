@@ -1,20 +1,16 @@
 package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
-import com.dupss.app.BE_Dupss.dto.request.CourseEnrollmentRequest;
+import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
 import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseHomeResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,11 +46,11 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getCreatedCourses());
     }
 
-    @PostMapping("/enroll")
+    @PostMapping("/{courseId}/enroll")
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
-    public ResponseEntity<?> enrollCourse(@Valid @RequestBody CourseEnrollmentRequest request) {
+    public ResponseEntity<?> enrollCourse(@Valid @RequestParam("courseId") Long id) {
         try {
-            CourseEnrollmentResponse response = enrollmentService.enrollCourse(request);
+            CourseEnrollmentResponse response = enrollmentService.enrollCourse(id);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
@@ -78,6 +74,23 @@ public class CourseController {
             CourseEnrollmentResponse response = enrollmentService.updateProgress(enrollmentId, progress);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @Valid @ModelAttribute CourseUpdateRequest request) {
+        try {
+            CourseResponse response = courseService.updateCourse(id, request);
+            return ResponseEntity.ok(response);
+        } catch (AccessDeniedException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        } catch (RuntimeException | IOException e) {
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
