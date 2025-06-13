@@ -140,7 +140,6 @@ const columns = [
   { id: 'date', label: 'Ngày tư vấn', sortable: true },
   { id: 'topic', label: 'Chủ đề tư vấn', sortable: true },
   { id: 'status', label: 'Trạng thái', sortable: true },
-  { id: 'note', label: 'Ghi chú', sortable: false },
 ];
 
 function sortRows(rows, orderBy, order) {
@@ -163,8 +162,6 @@ export default function History() {
   const [filter, setFilter] = useState('all');
   const [orderBy, setOrderBy] = useState('date');
   const [order, setOrder] = useState('desc');
-  const [editId, setEditId] = useState(null);
-  const [editNote, setEditNote] = useState('');
 
   const handleSort = (col) => {
     if (orderBy === col) {
@@ -173,22 +170,6 @@ export default function History() {
       setOrderBy(col);
       setOrder('asc');
     }
-  };
-
-  const handleEdit = (id, note) => {
-    setEditId(id);
-    setEditNote(note);
-  };
-
-  const handleSave = (id) => {
-    setRows((prev) => prev.map((row) => row.id === id ? { ...row, note: editNote } : row));
-    setEditId(null);
-    setEditNote('');
-  };
-
-  const handleCancel = () => {
-    setEditId(null);
-    setEditNote('');
   };
 
   const filteredRows = rows.filter(row => filter === 'all' ? true : row.status === filter);
@@ -259,34 +240,6 @@ export default function History() {
                   <TableCell>{row.topic}</TableCell>
                   <TableCell>
                     <Chip label={statusMap[row.status] || row.status} color={getStatusColor(row.status)} size="small" />
-                  </TableCell>
-                  <TableCell>
-                    {editId === row.id ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <TextField
-                          value={editNote}
-                          onChange={e => setEditNote(e.target.value)}
-                          size="small"
-                          variant="standard"
-                          sx={{ mr: 1, minWidth: 100 }}
-                          onKeyDown={e => { if (e.key === 'Enter') handleSave(row.id); }}
-                          autoFocus
-                        />
-                        <IconButton onClick={() => handleSave(row.id)} color="primary">
-                          <SaveIcon />
-                        </IconButton>
-                        <IconButton onClick={handleCancel} color="error">
-                          <CancelIcon />
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <span>{row.note || '-'}</span>
-                        <IconButton onClick={() => handleEdit(row.id, row.note)} size="small">
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
                   </TableCell>
                 </TableRow>
               ))
