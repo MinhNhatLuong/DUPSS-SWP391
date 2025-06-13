@@ -21,36 +21,45 @@ import dayjs from 'dayjs';
 
 // Khung giờ từ 7h đến 19h
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => 7 + i); // 7h-19h
-const WEEK_DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6']; // Chỉ thứ 2 đến thứ 6
 
 // Fake data các lịch hẹn tư vấn trong tuần
 const fakeAppointments = [
   {
     id: 1,
     client: 'Nguyen Van A',
-    topic: 'Tư vấn du học',
-    start: '2025-06-12T15:00', // Thứ 5, 15h
-    end: '2025-06-12T16:00',
+    topic: 'Phòng ngừa sử dụng ma túy',
+    start: '2025-06-09T15:00', // Thứ 2, 15h
+    end: '2025-06-09T16:00',
     meet: 'https://meet.google.com/abc',
-    note: 'Muốn hỏi về học bổng',
+    note: 'Muốn hỏi về nguy cơ',
   },
   {
     id: 2,
     client: 'Tran Thi B',
-    topic: 'Định hướng nghề nghiệp',
-    start: '2025-06-13T09:00', // Thứ 6, 9h
-    end: '2025-06-13T10:00',
+    topic: 'Điều trị nghiện ma túy',
+    start: '2025-06-10T09:00', // Thứ 3, 9h
+    end: '2025-06-10T10:00',
     meet: 'https://meet.google.com/def',
     note: '',
   },
   {
     id: 3,
     client: 'Le Van C',
-    topic: 'Tư vấn tâm lý',
-    start: '2025-06-14T14:00', // Thứ 7, 14h
-    end: '2025-06-14T15:30',
+    topic: 'Hỗ trợ người thân',
+    start: '2025-06-12T14:00', // Thứ 5, 14h
+    end: '2025-06-12T15:30',
     meet: 'https://meet.google.com/ghi',
-    note: 'Cần tư vấn về stress',
+    note: 'Cần tư vấn cho người thân',
+  },
+  {
+    id: 4,
+    client: 'Pham Thi D',
+    topic: 'Giáo dục cộng đồng',
+    start: '2025-06-13T10:00', // Thứ 6, 10h
+    end: '2025-06-13T11:00',
+    meet: 'https://meet.google.com/jkl',
+    note: '',
   },
 ];
 
@@ -67,62 +76,63 @@ const statusColor = {
   done: 'success',
 };
 const statusLabel = {
-  notstarted: 'Not started',
-  ongoing: 'Ongoing',
-  done: 'Done',
+  notstarted: 'Chưa bắt đầu',
+  ongoing: 'Đang diễn ra',
+  done: 'Đã xong',
 };
 
 // Lấy ngày đầu tuần (thứ 2)
 function getStartOfWeek(date) {
   const d = dayjs(date);
-  return d.startOf('week'); // CN là ngày đầu tuần
+  // Đảm bảo trả về thứ 2
+  return d.startOf('week').add(1, 'day');
 }
 
 export default function Schedule() {
   const [dialog, setDialog] = useState({ open: false, appt: null });
-  // Tuần hiện tại (giả lập tuần 2025-06-08 -> 2025-06-14)
-  const [weekStart, setWeekStart] = useState(dayjs('2025-06-08'));
-  const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day'));
+  // Tuần hiện tại (giả lập tuần 2025-06-09 -> 2025-06-13)
+  const [weekStart, setWeekStart] = useState(dayjs('2025-06-09'));
+  const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.add(i, 'day'));
 
   // Tìm lịch hẹn cho từng ô
   function findAppointment(day, hour) {
     return fakeAppointments.find(appt => {
       const start = dayjs(appt.start);
-      return start.day() === day.day() && start.hour() === hour;
+      return start.date() === day.date() && start.hour() === hour;
     });
   }
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Lịch tư vấn dạng tuần (Google Calendar style)
+        Lịch tư vấn (Thứ 2 - Thứ 6)
       </Typography>
-      <TableContainer component={Paper}>
-        <Table size="small" sx={{ minWidth: 900, tableLayout: 'fixed' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, background: '#fafcff' }}>
+        <Table size="small" sx={{ minWidth: 900, tableLayout: 'fixed', borderRadius: 3 }}>
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ width: 70, fontWeight: 600, background: '#f5f5f5' }}>GMT+07</TableCell>
+            <TableRow sx={{ background: '#e3f2fd' }}>
+              <TableCell sx={{ width: 70, fontWeight: 700, background: '#e3f2fd', color: '#1976d2', fontSize: 16 }}>Giờ</TableCell>
               {weekDays.map((d, idx) => (
-                <TableCell key={idx} align="center" sx={{ fontWeight: 600, background: '#f5f5f5' }}>
-                  <div style={{ fontSize: 18 }}>{WEEK_DAYS[idx]}</div>
-                  <div style={{ fontSize: 16 }}>{d.date()}</div>
+                <TableCell key={idx} align="center" sx={{ fontWeight: 700, background: '#e3f2fd', color: '#1976d2', fontSize: 16 }}>
+                  <div>{WEEK_DAYS[idx]}</div>
+                  <div style={{ fontSize: 15 }}>{d.format('DD/MM')}</div>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {TIME_SLOTS.map((hour) => (
-              <TableRow key={hour} sx={{ height: 48 }}>
-                <TableCell sx={{ fontWeight: 600 }}>{hour}:00</TableCell>
+              <TableRow key={hour} sx={{ height: 48, '&:hover': { background: '#f1f8ff' } }}>
+                <TableCell sx={{ fontWeight: 600, background: '#f5f5f5', fontSize: 15 }}>{hour}:00</TableCell>
                 {weekDays.map((d, idx) => {
                   const appt = findAppointment(d, hour);
                   return (
-                    <TableCell key={idx} align="center" sx={{ p: 0 }}>
+                    <TableCell key={idx} align="center" sx={{ p: 0, border: '1px solid #e3e3e3', borderLeft: 0, borderRight: 0 }}>
                       {appt ? (
-                        <Tooltip title={appt.topic + ' - ' + appt.client}>
+                        <Tooltip title={appt.topic + ' - ' + appt.client} arrow>
                           <Box
                             sx={{
-                              bgcolor: '#f5faff',
+                              bgcolor: '#e3f2fd',
                               border: `2px solid ${appt ? (statusColor[getStatus(appt.start, appt.end)] === 'success' ? '#388e3c' : statusColor[getStatus(appt.start, appt.end)] === 'warning' ? '#ffa726' : '#bdbdbd') : '#e0e0e0'}`,
                               color: '#222',
                               borderRadius: 2,
@@ -187,9 +197,9 @@ export default function Schedule() {
         </DialogActions>
       </Dialog>
       <Box sx={{ fontSize: 14, color: 'text.secondary', mt: 2 }}>
-        <b>Chú thích:</b> <Chip label="Not started" color="default" size="small" sx={{ mr: 1 }} />
-        <Chip label="Ongoing" color="warning" size="small" sx={{ mr: 1 }} />
-        <Chip label="Done" color="success" size="small" sx={{ mr: 1 }} />
+        <b>Chú thích:</b> <Chip label="Chưa bắt đầu" color="default" size="small" sx={{ mr: 1 }} />
+        <Chip label="Đang diễn ra" color="warning" size="small" sx={{ mr: 1 }} />
+        <Chip label="Đã xong" color="success" size="small" sx={{ mr: 1 }} />
       </Box>
     </Box>
   );

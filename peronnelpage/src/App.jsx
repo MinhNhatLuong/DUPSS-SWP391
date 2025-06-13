@@ -12,6 +12,7 @@ import ConsultantDashboard from './pages/consultant/Dashboard';
 import Schedule from './pages/consultant/Schedule';
 import BookingRequests from './pages/consultant/BookingRequests';
 import ConsultantProfile from './pages/consultant/Profile';
+import History from './pages/consultant/History';
 import './App.css';
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
                     <Route path="schedule" element={<Schedule />} />
                     <Route path="requests" element={<BookingRequests />} />
                     <Route path="profile" element={<ConsultantProfile />} />
+                    <Route path="history" element={<History />} />
                   </Routes>
                 </main>
               </>
