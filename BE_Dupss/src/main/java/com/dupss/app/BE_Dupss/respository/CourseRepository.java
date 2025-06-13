@@ -17,12 +17,12 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByCreator(User creator);
     List<Course> findTop6ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus status);
     
-    @Query("SELECT c FROM Course c WHERE c.isActive = true AND " +
+    @Query("SELECT c FROM Course c WHERE c.isActive = true AND c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
            "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Course> searchCourses(@Param("keyword") String keyword, Pageable pageable);
     
-    @Query("SELECT c FROM Course c WHERE c.isActive = true AND " +
+    @Query("SELECT c FROM Course c WHERE c.isActive = true AND c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
            "c.targetAudience = :targetAudience AND " +
            "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")

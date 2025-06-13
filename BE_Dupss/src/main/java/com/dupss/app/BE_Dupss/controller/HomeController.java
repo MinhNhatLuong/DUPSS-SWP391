@@ -32,8 +32,8 @@ public class HomeController {
     public ResponseEntity<Map<String, Object>> getAllCourses(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String targetAudience,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
@@ -49,7 +49,7 @@ public class HomeController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("courses", coursePage.getContent());
-        response.put("currentPage", coursePage.getNumber());
+        response.put("currentPage", coursePage.getNumber() + 1);
         response.put("totalItems", coursePage.getTotalElements());
         response.put("totalPages", coursePage.getTotalPages());
 
@@ -80,7 +80,7 @@ public class HomeController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String tags,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
