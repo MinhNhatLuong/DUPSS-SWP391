@@ -22,19 +22,43 @@ const initialRequests = [
   {
     id: 1,
     client: 'Nguyen Van A',
-    topic: 'Tư vấn du học',
+    topic: 'Phòng ngừa sử dụng ma túy',
     time: '2024-07-15 10:00',
     email: 'vana@example.com',
-    note: 'Muốn hỏi về học bổng',
+    phone: '0912345678',
+    note: 'Muốn hỏi về nguy cơ',
     status: 'pending',
     duration: 60,
   },
   {
     id: 2,
     client: 'Tran Thi B',
-    topic: 'Định hướng nghề nghiệp',
+    topic: 'Điều trị nghiện ma túy',
     time: '2024-07-16 14:00',
     email: 'thib@example.com',
+    phone: '0987654321',
+    note: '',
+    status: 'pending',
+    duration: 60,
+  },
+  {
+    id: 3,
+    client: 'Le Van C',
+    topic: 'Hỗ trợ người thân',
+    time: '2024-07-17 09:00',
+    email: 'levanc@example.com',
+    phone: '0909090909',
+    note: 'Cần tư vấn cho người thân',
+    status: 'pending',
+    duration: 60,
+  },
+  {
+    id: 4,
+    client: 'Pham Thi D',
+    topic: 'Giáo dục cộng đồng',
+    time: '2024-07-18 16:00',
+    email: 'phamthid@example.com',
+    phone: '0933333333',
     note: '',
     status: 'pending',
     duration: 60,
@@ -124,6 +148,9 @@ export default function BookingRequests() {
               </ListItem>
               <ListItem>
                 <ListItemText primary="Email" secondary={selected.email} />
+              </ListItem>
+              <ListItem>
+                <ListItemText primary="Số điện thoại" secondary={selected.phone || '-'} />
               </ListItem>
               <ListItem>
                 <ListItemText primary="Chủ đề" secondary={selected.topic} />

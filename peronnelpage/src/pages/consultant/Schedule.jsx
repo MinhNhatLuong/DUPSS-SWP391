@@ -28,16 +28,16 @@ const fakeAppointments = [
   {
     id: 1,
     client: 'Nguyen Van A',
-    topic: 'Tư vấn du học',
+    topic: 'Phòng ngừa sử dụng ma túy',
     start: '2025-06-09T15:00', // Thứ 2, 15h
     end: '2025-06-09T16:00',
     meet: 'https://meet.google.com/abc',
-    note: 'Muốn hỏi về học bổng',
+    note: 'Muốn hỏi về nguy cơ',
   },
   {
     id: 2,
     client: 'Tran Thi B',
-    topic: 'Định hướng nghề nghiệp',
+    topic: 'Điều trị nghiện ma túy',
     start: '2025-06-10T09:00', // Thứ 3, 9h
     end: '2025-06-10T10:00',
     meet: 'https://meet.google.com/def',
@@ -46,11 +46,20 @@ const fakeAppointments = [
   {
     id: 3,
     client: 'Le Van C',
-    topic: 'Tư vấn tâm lý',
+    topic: 'Hỗ trợ người thân',
     start: '2025-06-12T14:00', // Thứ 5, 14h
     end: '2025-06-12T15:30',
     meet: 'https://meet.google.com/ghi',
-    note: 'Cần tư vấn về stress',
+    note: 'Cần tư vấn cho người thân',
+  },
+  {
+    id: 4,
+    client: 'Pham Thi D',
+    topic: 'Giáo dục cộng đồng',
+    start: '2025-06-13T10:00', // Thứ 6, 10h
+    end: '2025-06-13T11:00',
+    meet: 'https://meet.google.com/jkl',
+    note: '',
   },
 ];
 
