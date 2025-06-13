@@ -19,4 +19,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByAppointmentDate(LocalDate date);
     
     List<Appointment> findByIsGuestAndEmailOrderByAppointmentDateDesc(boolean isGuest, String email);
+    
+    /**
+     * Tìm các cuộc hẹn của một tư vấn viên với trạng thái đã hoàn thành hoặc đã hủy
+     */
+    List<Appointment> findByConsultantAndStatusIn(Consultant consultant, List<String> statuses);
 } 

@@ -51,4 +51,9 @@ public interface AppointmentService {
      * Guest hủy cuộc hẹn
      */
     AppointmentResponseDto cancelAppointmentByGuest(Long id, String email);
+    
+    /**
+     * Lấy danh sách cuộc hẹn của một tư vấn viên đã được tư vấn thành công hoặc đã hủy
+     */
+    List<AppointmentResponseDto> getCompletedOrCanceledAppointmentsByConsultantId(Long consultantId);
 } 

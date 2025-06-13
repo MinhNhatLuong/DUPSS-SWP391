@@ -6,10 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
 
 @Entity
 @Data
@@ -29,12 +26,4 @@ public class Consultant extends User {
 
     @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Slot> slots = new ArrayList<>();
-    
-    @ManyToMany
-    @JoinTable(
-        name = "consultant_topics",
-        joinColumns = @JoinColumn(name = "consultant_id"),
-        inverseJoinColumns = @JoinColumn(name = "topic_id")
-    )
-    private Set<Topic> topics = new HashSet<>();
 } 

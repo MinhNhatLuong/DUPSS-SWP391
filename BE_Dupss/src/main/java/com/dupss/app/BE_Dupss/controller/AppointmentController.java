@@ -81,6 +81,16 @@ public class AppointmentController {
     }
 
     /**
+     * API lấy cuộc hẹn của tư vấn viên đã được tư vấn thành công hoặc đã hủy
+     * Chỉ dành cho tư vấn viên
+     */
+    @GetMapping("/consultant/{consultantId}/history")
+    public ResponseEntity<List<AppointmentResponseDto>> getConsultantAppointmentHistory(@PathVariable Long consultantId) {
+        List<AppointmentResponseDto> appointments = appointmentService.getCompletedOrCanceledAppointmentsByConsultantId(consultantId);
+        return ResponseEntity.ok(appointments);
+    }
+
+    /**
      * API cập nhật trạng thái cuộc hẹn
      * Chỉ dành cho tư vấn viên, và tư vấn viên chỉ được cập nhật cuộc hẹn của chính họ
      */

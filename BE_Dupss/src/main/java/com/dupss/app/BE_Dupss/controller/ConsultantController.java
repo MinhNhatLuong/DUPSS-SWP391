@@ -18,12 +18,12 @@ public class ConsultantController {
     private final ConsultantRepository consultantRepository;
 
     /**
-     * API lấy tất cả tư vấn viên
+     * API lấy tất cả tư vấn viên đang hoạt động
      * Phục vụ cho việc hiển thị danh sách tư vấn viên khi đặt lịch
      */
     @GetMapping("/api/consultants")
     public ResponseEntity<List<Consultant>> getAllConsultants() {
-        List<Consultant> consultants = consultantRepository.findAll();
+        List<Consultant> consultants = consultantRepository.findByEnabledTrue();
         return ResponseEntity.ok(consultants);
     }
 
@@ -35,16 +35,6 @@ public class ConsultantController {
         return consultantRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * API lấy tư vấn viên theo topic
-     * Phục vụ cho việc hiển thị danh sách tư vấn viên theo chủ đề khi đặt lịch
-     */
-    @GetMapping("/api/consultants/topic/{topicId}")
-    public ResponseEntity<List<Consultant>> getConsultantsByTopic(@PathVariable Long topicId) {
-        List<Consultant> consultants = consultantRepository.findByTopicId(topicId);
-        return ResponseEntity.ok(consultants);
     }
 
     @GetMapping("/api/consultant/dashboard")
