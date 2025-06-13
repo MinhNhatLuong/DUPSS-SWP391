@@ -118,34 +118,34 @@
             <h2>Xác nhận đặt lịch tư vấn</h2>
         </div>
         
-        <p>Kính gửi <span class="highlight" th:text="${appointment.customerName}">Nguyễn Văn A</span>,</p>
+        <p>Kính gửi <span class="highlight" th:text="${appointment.customerName}"></span>,</p>
         
         <p>Cảm ơn bạn đã đặt lịch tư vấn với chúng tôi. Dưới đây là thông tin chi tiết về cuộc hẹn của bạn:</p>
         
         <div class="content">
             <div class="info-item">
                 <span class="info-label">Mã cuộc hẹn:</span>
-                <span class="info-value" th:text="${appointment.id}">12345</span>
+                <span class="info-value" th:text="${appointment.id}"></span>
             </div>
             
             <div class="info-item">
                 <span class="info-label">Ngày hẹn:</span>
-                <span class="info-value" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">15/07/2023</span>
+                <span class="info-value" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}"></span>
             </div>
             
             <div class="info-item">
                 <span class="info-label">Giờ hẹn:</span>
-                <span class="info-value" th:text="${#temporals.format(appointment.appointmentTime, 'HH:mm')}">10:00</span>
+                <span class="info-value" th:text="${#temporals.format(appointment.appointmentTime, 'HH:mm')}"></span>
             </div>
             
             <div class="info-item">
                 <span class="info-label">Chủ đề tư vấn:</span>
-                <span class="info-value" th:text="${appointment.topic.name}">Tư vấn tài chính</span>
+                <span class="info-value" th:text="${appointment.topic.name}"></span>
             </div>
             
             <div class="info-item">
                 <span class="info-label">Tư vấn viên:</span>
-                <span class="info-value" th:text="${appointment.consultant.fullname}">Nguyễn Văn B</span>
+                <span class="info-value" th:text="${appointment.consultant.fullname}"></span>
             </div>
             
             <div class="info-item">
@@ -166,13 +166,12 @@
         </div>
         
         <div class="contact-info">
-            <p>Email: support@dupss.com</p>
-            <p>Hotline: 1900 1234</p>
+            <p>Email: dupss.system312@gmail.com</p>
         </div>
         
         <div class="footer">
             <p>Trân trọng,<br>Đội ngũ tư vấn DUPSS</p>
-            <p>© 2024 DUPSS. All rights reserved.</p>
+            <p>© 2025 DUPSS. All rights reserved.</p>
         </div>
     </div>
 </body>
