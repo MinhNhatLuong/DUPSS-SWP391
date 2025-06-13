@@ -179,8 +179,7 @@ public class CourseEnrollmentService {
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
                 .email(user.getEmail())
-                .firstName(user.getUsername())
-                .lastName(user.getFullname())
+                .fullName(user.getUsername())
                 .avatar(user.getAddress())
                 .role(user.getRole().name())
                 .build();

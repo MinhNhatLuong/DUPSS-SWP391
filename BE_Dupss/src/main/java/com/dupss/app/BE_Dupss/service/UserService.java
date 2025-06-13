@@ -2,8 +2,10 @@ package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
+import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
+import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.User;
@@ -14,15 +16,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService implements CommandLineRunner {
 
     @Value("${admin.username:admin}")
@@ -37,13 +43,15 @@ public class UserService implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final CloudinaryService cloudinaryService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       MailService mailService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.mailService = mailService;
-    }
+//    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+//                       MailService mailService, CloudinaryService cloudinaryService) {
+//        this.userRepository = userRepository;
+//        this.passwordEncoder = passwordEncoder;
+//        this.mailService = mailService;
+//        this.cloudinaryService = cloudinaryService;
+//    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -106,8 +114,7 @@ public class UserService implements CommandLineRunner {
         return userRepository.findById(id)
                 .map(user -> UserDetailResponse.builder()
                         .email(user.getEmail())
-                        .firstName(user.getUsername())
-                        .lastName(user.getFullname())
+                        .fullName(user.getFullname())
                         .avatar(user.getAddress())
                         .role(user.getRole().name())
                         .build())
@@ -120,12 +127,74 @@ public class UserService implements CommandLineRunner {
                 .stream()
                 .map(user -> UserDetailResponse.builder()
                         .email(user.getEmail())
-                        .firstName(user.getUsername())
-                        .lastName(user.getFullname())
+                        .fullName(user.getFullname())
                         .avatar(user.getAddress())
                         .role(user.getRole().name())
                         .build())
                 .toList();
+    }
+
+    public UpdateUserResponse updateUserProfile(UpdateUserRequest request) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với username: " + username));
+
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) &&
+                userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        if (request.getFullname() != null) {
+            user.setFullname(request.getFullname());
+        }
+
+        if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(request.getAvatar());
+            user.setAvatar(imageUrl);
+        }
+
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+        if (request.getYob() != null) {
+            user.setYob(request.getYob());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if (request.getRole() != null) {
+            if (isAdmin) {
+                user.setRole(request.getRole());
+            } else {
+                throw new RuntimeException("Bạn không có quyền thay đổi vai trò người dùng");
+            }
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("Admin updated user: {}", updatedUser.getUsername());
+
+        return UpdateUserResponse.builder()
+                .username(updatedUser.getUsername())
+                .fullname(updatedUser.getFullname())
+                .avatar(updatedUser.getAvatar())
+                .yob(updatedUser.getYob())
+                .gender(updatedUser.getGender())
+                .email(updatedUser.getEmail())
+                .phone(updatedUser.getPhone())
+                .address(updatedUser.getAddress())
+                .role(updatedUser.getRole())
+                .message("Cập nhật người dùng thành công")
+                .build();
     }
 }
 

@@ -82,6 +82,7 @@ public class AdminService {
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .role(request.getRole())
+                .enabled(true)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -132,7 +133,7 @@ public class AdminService {
         log.info("Admin updated user: {}", updatedUser.getUsername());
 
         return UpdateUserResponse.builder()
-                .id(updatedUser.getId())
+                .username(updatedUser.getUsername())
                 .fullname(updatedUser.getFullname())
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
@@ -154,8 +155,7 @@ public class AdminService {
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
                 .email(user.getEmail())
-                .firstName(user.getUsername())
-                .lastName(user.getFullname())
+                .fullName(user.getFullname())
                 .avatar(user.getAddress())
                 .role(user.getRole().name())
                 .build();

@@ -104,7 +104,7 @@ public class CourseService {
 
 
     public List<CourseHomeResponse> getLastestCourses() {
-        List<Course> courses = courseRepository.findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+        List<Course> courses = courseRepository.findTop6ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
 
         return courses.stream()
                 .map(course -> {
@@ -362,8 +362,7 @@ public class CourseService {
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
                 .email(user.getEmail())
-                .firstName(user.getUsername())
-                .lastName(user.getFullname())
+                .fullName(user.getFullname())
                 .avatar(user.getAddress())
                 .role(user.getRole().name())
                 .build();

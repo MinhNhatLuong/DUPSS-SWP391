@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByCreator(User creator);
-    List<Course> findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus status);
+    List<Course> findTop6ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus status);
     
     @Query("SELECT c FROM Course c WHERE c.isActive = true AND " +
            "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
