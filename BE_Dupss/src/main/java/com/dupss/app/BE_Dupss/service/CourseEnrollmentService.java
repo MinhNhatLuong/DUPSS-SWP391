@@ -1,6 +1,5 @@
 package com.dupss.app.BE_Dupss.service;
 
-import com.dupss.app.BE_Dupss.dto.request.CourseEnrollmentRequest;
 import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
@@ -33,7 +32,7 @@ public class CourseEnrollmentService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CourseEnrollmentResponse enrollCourse(CourseEnrollmentRequest request) {
+    public CourseEnrollmentResponse enrollCourse(Long courseId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
@@ -45,8 +44,8 @@ public class CourseEnrollmentService {
             throw new AccessDeniedException("Only MEMBER can enroll in courses");
         }
         
-        Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + request.getCourseId()));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
         
         // Check if course is active
         if (!course.isActive()) {

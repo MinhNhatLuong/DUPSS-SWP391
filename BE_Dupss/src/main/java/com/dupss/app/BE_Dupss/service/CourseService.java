@@ -2,6 +2,7 @@ package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseModuleRequest;
+import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
 import com.dupss.app.BE_Dupss.dto.response.CourseHomeResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
@@ -100,24 +101,7 @@ public class CourseService {
         
         return mapToCourseResponse(savedCourse, modules, false);
     }
-    
-    public Page<CourseResponse> searchCourses(String keyword, Pageable pageable) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        User currentUser = userRepository.findByUsername(username).orElse(null);
-        
-        Page<Course> courses = courseRepository.searchCourses(keyword, pageable);
-        
-        return courses.map(course -> {
-            List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
-            boolean isEnrolled = false;
-            if (currentUser != null) {
-                isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
-            }
-            return mapToCourseResponse(course, modules, isEnrolled);
-        });
-    }
+
 
     public List<CourseHomeResponse> getLastestCourses() {
         List<Course> courses = courseRepository.findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
@@ -180,9 +164,16 @@ public class CourseService {
         
         List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
         
-        boolean isEnrolled = false;
-        if (currentUser != null) {
-            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+//        boolean isEnrolled = false;
+//        if (currentUser != null) {
+//            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+//        }
+
+        boolean isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+        boolean isOwner = course.getCreator() != null && course.getCreator().equals(currentUser.getId());
+
+        if (!isEnrolled && !isOwner) {
+            throw new AccessDeniedException("You are not authorized to view this course.");
         }
         
         return mapToCourseResponse(course, modules, isEnrolled);
