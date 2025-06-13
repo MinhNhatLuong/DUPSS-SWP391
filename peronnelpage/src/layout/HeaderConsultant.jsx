@@ -17,6 +17,7 @@ import {
   Dashboard as DashboardIcon,
   CalendarMonth as CalendarMonthIcon,
   Assignment as AssignmentIcon,
+  History as HistoryIcon,
   AccountCircle,
   Logout,
   Settings,
@@ -44,6 +45,7 @@ const HeaderConsultant = ({ userName }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/consultant/dashboard' },
     { text: 'Lịch làm việc', icon: <CalendarMonthIcon />, path: '/consultant/schedule' },
     { text: 'Booking Requests', icon: <AssignmentIcon />, path: '/consultant/requests' },
+    { text: 'Lịch sử', icon: <HistoryIcon />, path: '/consultant/history' },
   ];
 
   return (
