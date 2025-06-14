@@ -10,6 +10,8 @@ import java.time.LocalDate;
 @Setter
 @Builder
 public class UserDetailResponse {
+
+
     private String username;
     private String email;
     private String phone;
@@ -17,5 +19,6 @@ public class UserDetailResponse {
     private LocalDate yob;
     private String avatar;
     private String address;
+
     private String role;
 }

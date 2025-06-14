@@ -3,16 +3,29 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
+
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
+
 import com.dupss.app.BE_Dupss.service.AuthenticationService;
 import com.dupss.app.BE_Dupss.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,9 +68,11 @@ public class AuthenticationController {
         return userInfo;
     }
 
+
     @PatchMapping(value="/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdateUserResponse> updateUser(@Valid @ModelAttribute UpdateUserRequest request) throws IOException {
         UpdateUserResponse response = userService.updateUserProfile(request);
         return ResponseEntity.ok(response);
     }
+
 }

@@ -1,8 +1,12 @@
 package com.dupss.app.BE_Dupss.controller;
 
+
+
+
 import com.dupss.app.BE_Dupss.dto.request.CreateUserRequest;
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
+
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.service.AdminService;
@@ -41,6 +45,7 @@ public class AdminController {
         return adminService.getUsersByRole("ROLE_CONSULTANT");
     }
 
+
     @PostMapping("/users")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<CreateUserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
@@ -56,6 +61,7 @@ public class AdminController {
         }
     }
 
+
     @PatchMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
@@ -69,6 +75,8 @@ public class AdminController {
         }
     }
 
+
+
     @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
@@ -81,4 +89,5 @@ public class AdminController {
             );
         }
     }
+
 }

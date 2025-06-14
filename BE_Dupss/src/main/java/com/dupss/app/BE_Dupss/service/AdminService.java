@@ -1,7 +1,11 @@
 package com.dupss.app.BE_Dupss.service;
 
+
+
 import com.dupss.app.BE_Dupss.dto.request.CreateUserRequest;
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
+
+
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
@@ -101,6 +105,7 @@ public class AdminService {
     }
 
     @Transactional
+
     public UpdateUserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
@@ -133,7 +138,11 @@ public class AdminService {
         log.info("Admin updated user: {}", updatedUser.getUsername());
 
         return UpdateUserResponse.builder()
+
+                .id(updatedUser.getId())
+
                 .username(updatedUser.getUsername())
+
                 .fullname(updatedUser.getFullname())
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
@@ -151,6 +160,7 @@ public class AdminService {
         userRepository.delete(user);
         log.info("Admin deleted user: {} with ID: {}", user.getUsername(), userId);
     }
+
 
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
