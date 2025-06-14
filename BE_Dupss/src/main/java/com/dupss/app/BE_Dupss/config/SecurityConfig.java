@@ -41,7 +41,10 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+
+
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
@@ -78,6 +81,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -110,6 +114,26 @@ public class SecurityConfig {
                 )
             );
         
+
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/api/public/**").permitAll()
+//                        .requestMatchers(
+//                                "/swagger-ui/**",
+//                                "/v3/api-docs/**",
+//                                "/swagger-ui.html")
+//                        .permitAll()
+//                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+//                        .requestMatchers("/api/manager/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+//                        .anyRequest().authenticated())
+//                .oauth2ResourceServer(oauth2 -> oauth2
+//                        .jwt(jwt -> jwt
+//                                .decoder(jwtDecoder)
+//                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+
+
         return http.build();
     }
 }

@@ -1,6 +1,9 @@
 package com.dupss.app.BE_Dupss.entity;
 
 import jakarta.persistence.*;
+
+import jakarta.validation.constraints.NotBlank;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,23 +11,26 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "topics")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Topic {
 
+@Data
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "name", nullable = false, unique = true)
+    @NotBlank(message = "Topic name cannot be blank")
     private String name;
-
-    @Column(name = "description")
     private String description;
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL)
+    private List<Blog> blogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Appointment> appointments = new ArrayList<>();
-} 
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL)
+    private List<Course> courses = new ArrayList<>();
+
+    public Topic(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+}

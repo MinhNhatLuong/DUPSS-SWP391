@@ -1,7 +1,12 @@
 package com.dupss.app.BE_Dupss.service;
 
 
+
+import com.dupss.app.BE_Dupss.dto.request.CreateUserRequest;
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
+
+
+import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
@@ -61,6 +66,46 @@ public class AdminService {
     }
 
     @Transactional
+    public CreateUserResponse createUser(CreateUserRequest request) {
+        // Check if username already exists
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Username đã tồn tại");
+        }
+
+        // Check if email already exists
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .fullname(request.getFullname())
+                .gender(request.getGender())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .address(request.getAddress())
+                .role(request.getRole())
+                .enabled(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        log.info("Admin created user: {}", savedUser.getUsername());
+
+        return CreateUserResponse.builder()
+                .id(savedUser.getId())
+                .username(savedUser.getUsername())
+                .fullname(savedUser.getFullname())
+                .email(savedUser.getEmail())
+                .phone(savedUser.getPhone())
+                .address(savedUser.getAddress())
+                .role(savedUser.getRole())
+                .message("Tạo người dùng thành công")
+                .build();
+    }
+
+    @Transactional
+
     public UpdateUserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
@@ -93,7 +138,11 @@ public class AdminService {
         log.info("Admin updated user: {}", updatedUser.getUsername());
 
         return UpdateUserResponse.builder()
+
                 .id(updatedUser.getId())
+
+                .username(updatedUser.getUsername())
+
                 .fullname(updatedUser.getFullname())
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
@@ -113,12 +162,10 @@ public class AdminService {
     }
 
 
-
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
                 .email(user.getEmail())
-                .firstName(user.getUsername())
-                .lastName(user.getFullname())
+                .fullName(user.getFullname())
                 .avatar(user.getAddress())
                 .role(user.getRole().name())
                 .build();

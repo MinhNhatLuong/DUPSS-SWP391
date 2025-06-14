@@ -1,0 +1,15 @@
+/* Responsive styles for the form */
+@media (max-width: 600px) {
+  .MuiFormControl-root {
+    width: 100%;
+  }
+  
+  .MuiButton-root {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .MuiBox-root {
+    flex-direction: column;
+  }
+} 

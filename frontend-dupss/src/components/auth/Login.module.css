@@ -1,0 +1,22 @@
+/* Login Page Styles */
+.loginSection {
+  padding: 60px 0;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 300px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive styles */
+@media (max-width: 767px) {
+  .loginSection {
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .loginSection {
+    padding: 30px 15px;
+  }
+} 
