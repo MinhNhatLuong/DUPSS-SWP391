@@ -26,6 +26,10 @@ public class Topic {
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL)
     private List<Course> courses = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "creator_id")
+    private User creator;
+
     public Topic(String name, String description) {
         this.name = name;
         this.description = description;
