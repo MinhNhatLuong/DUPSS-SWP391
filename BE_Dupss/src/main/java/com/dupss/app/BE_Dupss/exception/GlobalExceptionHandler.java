@@ -21,24 +21,9 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
-        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-        List<String> errors = fieldErrors.stream().map(FieldError::getDefaultMessage).toList();
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(new Date())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(errors.size() > 1 ? String.valueOf(errors): errors.getFirst())
-                .path(request.getRequestURI())
-                .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
+        log.error("RuntimeException: {}", ex.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -48,17 +33,46 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
-    
+
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
+        log.error("BadCredentialsException: {}", ex.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(new Date())
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message("Invalid email or password")
+                .message("Tên đăng nhập hoặc mật khẩu không chính xác")
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.error("MethodArgumentNotValidException: {}", ex.getMessage());
+        BindingResult bindingResult = ex.getBindingResult();
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+
+        // Tạo map chứa tên trường và thông báo lỗi
+        Map<String, String> errorsMap = new HashMap<>();
+        fieldErrors.forEach(error -> {
+            errorsMap.put(error.getField(), error.getDefaultMessage());
+        });
+
+        // Tạo thông báo lỗi từ danh sách lỗi
+        List<String> errors = fieldErrors.stream().map(FieldError::getDefaultMessage).toList();
+        String errorMessage = errors.size() > 1 ? String.join(", ", errors) : errors.getFirst();
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(errorMessage)
+                .path(request.getRequestURI())
+                .build();
+        
+        // Thêm chi tiết lỗi vào response
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 } 
