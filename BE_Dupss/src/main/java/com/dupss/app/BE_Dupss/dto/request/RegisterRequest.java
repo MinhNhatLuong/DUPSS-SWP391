@@ -2,11 +2,14 @@ package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.validation.PasswordMatch;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -41,7 +44,5 @@ public class RegisterRequest {
     private String phone;
 
     private String address;
-
-    private ERole role = ERole.ROLE_MEMBER; // Default role is MEMBER
 
 }
