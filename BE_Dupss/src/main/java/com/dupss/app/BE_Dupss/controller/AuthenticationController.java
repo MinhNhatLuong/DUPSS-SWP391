@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.controller;
 
 
+import com.dupss.app.BE_Dupss.dto.request.AccessTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
 
@@ -56,9 +57,9 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<UserDetailResponse> getCurrentUser() {
-        UserDetailResponse userInfo = userService.getCurrentUserInfo();
+    @PostMapping("/me")
+    public ResponseEntity<UserDetailResponse> getCurrentUser(@RequestBody AccessTokenRequest accessToken) {
+        UserDetailResponse userInfo = userService.getCurrentUserInfo(accessToken);
         return ResponseEntity.ok(userInfo);
     }
 

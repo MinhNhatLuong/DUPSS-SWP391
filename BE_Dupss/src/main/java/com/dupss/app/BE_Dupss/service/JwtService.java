@@ -10,8 +10,11 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 
+import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -100,6 +103,20 @@ public class JwtService {
             return false;
         }
         return signedJWT.verify(new MACVerifier(secretKey.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    public String getUsernameFromToken(String token) {
+        try {
+            JWSObject jwsObject = JWSObject.parse(token);
+            Map<String, Object> payload = jwsObject.getPayload().toJSONObject();
+            String username = (String) payload.get("sub");
+            if (username == null) {
+                throw new RuntimeException("Username not found in token");
+            }
+            return username;
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid token", e);
+        }
     }
 
 }
