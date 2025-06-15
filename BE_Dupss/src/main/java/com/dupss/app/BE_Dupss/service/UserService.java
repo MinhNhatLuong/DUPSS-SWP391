@@ -367,7 +367,7 @@ public class UserService implements CommandLineRunner {
                 .toList();
     }
 
-    @PreAuthorize("isAuthenticated()")
+//    @PreAuthorize("isAuthenticated()")
     public UserDetailResponse getCurrentUserInfo(AccessTokenRequest accessToken) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String username = authentication.getName();
