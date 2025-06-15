@@ -74,8 +74,26 @@ public class EmailServiceImpl implements EmailService {
             // Không throw exception để không ảnh hưởng đến luồng chính
         }
     }
+
+    //send mail welcome
+    public void sendWelcomeEmail(String toEmail, String userName) throws MessagingException, UnsupportedEncodingException {
+        Context context = new Context();
+        context.setVariable("userName", userName);
+
+        String htmlContent = templateEngine.process("email/welcome-email", context); // "welcome-email.html" trong templates
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+
+        helper.setFrom(fromEmail, "DUPSS Support");
+        helper.setTo(toEmail);
+        helper.setSubject("Chào mừng bạn đến với DUPSS");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
     
-    private void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
+    public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

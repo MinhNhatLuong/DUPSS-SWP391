@@ -238,6 +238,7 @@ import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
+import com.dupss.app.BE_Dupss.service.impl.EmailServiceImpl;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -270,7 +271,7 @@ public class UserService implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MailService mailService;
+    private final EmailServiceImpl mailService;
     private final CloudinaryService cloudinaryService;
 
 //    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
@@ -323,7 +324,7 @@ public class UserService implements CommandLineRunner {
         userRepository.save(user);
 
         try {
-            mailService.sendEmail("Welcome", "Chào mừng bạn đã đến với Phần mềm hỗ trợ phòng ngừa sử dụng ma túy", user.getEmail());
+            mailService.sendWelcomeEmail(user.getEmail(), user.getFullname());
         } catch (MessagingException | UnsupportedEncodingException e) {
             log.error("SendEmail failed with email: {}", user.getEmail());
             throw new RuntimeException(e);

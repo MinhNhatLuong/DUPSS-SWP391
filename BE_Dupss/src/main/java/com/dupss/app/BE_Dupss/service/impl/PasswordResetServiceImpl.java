@@ -9,7 +9,6 @@ import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
 import com.dupss.app.BE_Dupss.respository.PasswordResetOtpRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
-import com.dupss.app.BE_Dupss.service.MailService;
 import com.dupss.app.BE_Dupss.service.PasswordResetService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetOtpRepository otpRepository;
-    private final MailService mailService;
+    private final EmailServiceImpl mailService;
     private final TemplateEngine templateEngine;
     private final PasswordEncoder passwordEncoder;
     
