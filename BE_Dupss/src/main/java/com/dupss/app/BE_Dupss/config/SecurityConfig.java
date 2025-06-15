@@ -35,6 +35,37 @@ public class SecurityConfig {
 
     private final JwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsService;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    
+    // Danh sách các đường dẫn công khai (WHITE LIST)
+    private static final String[] WHITE_LIST = {
+        // Auth endpoints
+        "/api/auth/**",
+        "/api/public/**",
+        // Swagger endpoints
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/swagger-ui.html",
+        // Appointment endpoints cho guest
+        "/api/appointments",
+        "/api/appointments/guest",
+        "/api/appointments/*/cancel/guest",
+        // Slot endpoints
+        "/api/slots/available",
+        // Topic và consultant endpoints
+        "/api/topics",
+        "/api/consultants",
+        "/api/consultants/topic/**"
+    };
+    
+    // Các đường dẫn API chỉ dành cho ADMIN
+    private static final String[] ADMIN_ENDPOINTS = {
+        "/api/admin/**"
+    };
+    // Các đường dẫn API dành cho ADMIN và MANAGER
+    private static final String[] MANAGER_ENDPOINTS = {
+        "/api/manager/**"
+    };
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -70,7 +101,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
@@ -83,31 +114,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/public/**").permitAll()
-                    .requestMatchers(
-                            "/swagger-ui/**",
-                            "/v3/api-docs/**",
-                            "/swagger-ui.html"
-                    ).permitAll()
-                    // Cho phép API đặt lịch và xem/hủy lịch của guest không cần xác thực
-                    .requestMatchers("/api/appointments").permitAll()
-                    .requestMatchers("/api/appointments/guest").permitAll()
-                    .requestMatchers("/api/appointments/*/cancel/guest").permitAll()
-                    // Cho phép xem slot thời gian khả dụng không cần xác thực
-                    .requestMatchers("/api/slots/available").permitAll()
-                    // Cho phép lấy danh sách topics và consultants không cần xác thực
-                    .requestMatchers("/api/topics").permitAll()
-                    .requestMatchers("/api/consultants").permitAll()
-                    .requestMatchers("/api/consultants/topic/**").permitAll()
-                    .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                    .requestMatchers("/api/manager/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                auth.requestMatchers(WHITE_LIST).permitAll()
+                    .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                     .anyRequest().authenticated()
+            )
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint)
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
@@ -115,26 +132,6 @@ public class SecurityConfig {
                     .jwtAuthenticationConverter(jwtAuthenticationConverter())
                 )
             );
-        
-
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/public/**").permitAll()
-//                        .requestMatchers(
-//                                "/swagger-ui/**",
-//                                "/v3/api-docs/**",
-//                                "/swagger-ui.html")
-//                        .permitAll()
-//                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-//                        .requestMatchers("/api/manager/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-//                        .anyRequest().authenticated())
-//                .oauth2ResourceServer(oauth2 -> oauth2
-//                        .jwt(jwt -> jwt
-//                                .decoder(jwtDecoder)
-//                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
-
 
         return http.build();
     }

@@ -11,7 +11,9 @@ import {
   Divider, 
   InputAdornment, 
   IconButton,
-  Grid
+  Grid,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -22,9 +24,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -37,6 +41,11 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   useEffect(() => {
     document.title = "Đăng Ký - DUPSS";
@@ -50,11 +59,63 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleCloseAlert = () => {
+    setAlert({
+      ...alert,
+      open: false
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Register attempt with:', formData);
-    // In a real implementation, you would send this data to your API
+    
+    try {
+      // Format birthDate to MM/DD/YYYY format for the API if it exists
+      const yobFormat = formData.birthDate ? 
+        new Date(formData.birthDate).toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric'
+        }) : '';
+        
+      const payload = {
+        username: formData.username,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        fullname: formData.fullName, // Note: API expects fullname not fullName
+        email: formData.email,
+        phone: formData.phone,
+        yob: yobFormat // API expects yob not birthDate
+      };
+      
+      const response = await axios.post(
+        'http://localhost:8080/api/auth/register',
+        payload
+      );
+      
+      if (response.status === 201) {
+        setAlert({
+          open: true,
+          message: 'Đăng ký thành công!',
+          severity: 'success'
+        });
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.confirmPassword || 
+                          error.response?.data?.message ||
+                          'Đã có lỗi xảy ra khi đăng ký!';
+                          
+      setAlert({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -83,6 +144,20 @@ const Register = () => {
       display: 'flex',
       alignItems: 'center'
     }}>
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={alert.severity} 
+          sx={{ width: '100%' }}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
       <Card sx={{
         maxWidth: '1000px',
         width: '100%',
@@ -273,7 +348,7 @@ const Register = () => {
 
             <Box sx={{ marginBottom: '20px' }}>
               <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 500, color: '#555' }}>
-                Số điện thoại
+                Số điện thoại <span style={{ color: '#e74c3c' }}>*</span>
               </Typography>
               <TextField
                 fullWidth
@@ -281,6 +356,7 @@ const Register = () => {
                 placeholder="Nhập số điện thoại của bạn"
                 value={formData.phone}
                 onChange={handleChange}
+                required
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -401,13 +477,13 @@ const Register = () => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: '15px', justifyContent: 'center', marginBottom: '25px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '25px', width: '100%' }}>
               <Button
                 variant="outlined"
                 startIcon={<GoogleIcon />}
                 onClick={handleGoogleRegister}
                 sx={{
-                  flex: 1,
+                  width: '100%',
                   padding: '10px',
                   borderColor: '#ddd',
                   color: '#DB4437',
@@ -419,24 +495,6 @@ const Register = () => {
                 }}
               >
                 Google
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<FacebookIcon />}
-                onClick={handleFacebookRegister}
-                sx={{
-                  flex: 1,
-                  padding: '10px',
-                  borderColor: '#ddd',
-                  color: '#4267B2',
-                  '&:hover': {
-                    backgroundColor: '#f0f2f7',
-                    borderColor: '#4267B2'
-                  },
-                  textTransform: 'none'
-                }}
-              >
-                Facebook
               </Button>
             </Box>
 
