@@ -30,6 +30,9 @@ public class RegisterRequest {
 
     private String gender;
 
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate yob;
+
     @NotEmpty(message = "Email cannot be empty")
     @Email(message = "Email should be valid")
     private String email;
