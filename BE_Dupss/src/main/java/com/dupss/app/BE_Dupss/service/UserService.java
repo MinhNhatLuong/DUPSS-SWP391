@@ -365,6 +365,25 @@ public class UserService implements CommandLineRunner {
                 .toList();
     }
 
+    @PreAuthorize("isAuthenticated()")
+    public UserDetailResponse getCurrentUserInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .map(user -> UserDetailResponse.builder()
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .gender(user.getGender())
+                        .yob(user.getYob())
+                        .avatar(user.getAvatar())
+                        .address(user.getAddress())
+                        .role(user.getRole().name())
+                        .build())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public UpdateUserResponse updateUserProfile(UpdateUserRequest request) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();

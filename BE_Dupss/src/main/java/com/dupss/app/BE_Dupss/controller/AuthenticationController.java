@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 
+import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.service.AuthenticationService;
 import com.dupss.app.BE_Dupss.service.UserService;
 import jakarta.validation.Valid;
@@ -56,16 +57,10 @@ public class AuthenticationController {
     }
     
     @GetMapping("/me")
-    public Map<String, Object> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("username", authentication.getName());
-        userInfo.put("authorities", authentication.getAuthorities());
-        userInfo.put("authenticated", authentication.isAuthenticated());
-        userInfo.put("principal", authentication.getPrincipal());
-        return userInfo;
+    public ResponseEntity<UserDetailResponse> getCurrentUser() {
+        UserDetailResponse userInfo = userService.getCurrentUserInfo();
+        return ResponseEntity.ok(userInfo);
     }
-
 
     @PatchMapping(value="/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdateUserResponse> updateUser(@Valid @ModelAttribute UpdateUserRequest request) throws IOException {
