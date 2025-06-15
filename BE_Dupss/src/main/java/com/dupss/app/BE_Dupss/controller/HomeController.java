@@ -33,12 +33,14 @@ public class HomeController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String targetAudience,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        int pageIndex = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(direction, sortBy));
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<CourseHomeResponse> coursePage;
         if (targetAudience != null && !targetAudience.isEmpty()) {
@@ -80,7 +82,7 @@ public class HomeController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String tags,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 

@@ -314,11 +314,13 @@ public class UserService implements CommandLineRunner {
                 .username(request.getUsername())
                 .fullname(request.getFullname())
                 .gender(request.getGender())
+                .yob(request.getYob())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(ERole.ROLE_MEMBER)
+                .enabled(true)
                 .build();
 
         userRepository.save(user);
@@ -357,7 +359,7 @@ public class UserService implements CommandLineRunner {
                 .map(user -> UserDetailResponse.builder()
                         .email(user.getEmail())
                         .fullName(user.getFullname())
-                        .avatar(user.getAddress())
+                        .avatar(user.getAvatar())
                         .role(user.getRole().name())
                         .build())
                 .toList();

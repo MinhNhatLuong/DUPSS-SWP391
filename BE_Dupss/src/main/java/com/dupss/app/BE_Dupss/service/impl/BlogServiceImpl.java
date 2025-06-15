@@ -158,7 +158,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     public List<BlogHomeResponse> getLatestBlogs() {
-        return blogRepository.findTop6ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
+        return blogRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
                 .stream()
                 .map(blog -> {
                     BlogHomeResponse res = new BlogHomeResponse();

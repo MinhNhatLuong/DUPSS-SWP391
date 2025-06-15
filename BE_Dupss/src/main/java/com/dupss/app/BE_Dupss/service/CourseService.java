@@ -104,7 +104,7 @@ public class CourseService {
 
 
     public List<CourseHomeResponse> getLastestCourses() {
-        List<Course> courses = courseRepository.findTop6ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+        List<Course> courses = courseRepository.findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
 
         return courses.stream()
                 .map(course -> {
