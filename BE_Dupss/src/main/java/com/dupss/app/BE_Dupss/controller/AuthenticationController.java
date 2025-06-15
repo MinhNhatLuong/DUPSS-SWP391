@@ -3,10 +3,12 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.AccessTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
+import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
 
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
+import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 
@@ -33,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +51,12 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authenticationService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) throws ParseException {
+        RefreshTokenResponse response = authenticationService.refreshToken(request);
         return ResponseEntity.ok(response);
     }
 
