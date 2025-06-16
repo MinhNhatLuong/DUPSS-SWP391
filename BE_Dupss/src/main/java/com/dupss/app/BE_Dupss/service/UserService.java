@@ -308,9 +308,15 @@ public class UserService implements CommandLineRunner {
 
     public RegisterResponse createUser(RegisterRequest request) {
         Optional<User> byEmail = userRepository.findByEmail(request.getEmail());
+        Optional<User> byUsername = userRepository.findByUsername(request.getUsername());
         if(byEmail.isPresent()) {
             throw new RuntimeException("Email existed");
         }
+        if (byUsername.isPresent()) {
+            throw new RuntimeException("Username existed");
+        }
+
+        String imgUser = "https://freesvg.org/img/abstract-user-flat-3.png";
 
         User user = User.builder()
                 .username(request.getUsername())
@@ -318,6 +324,7 @@ public class UserService implements CommandLineRunner {
                 .gender(request.getGender())
                 .yob(request.getYob())
                 .email(request.getEmail())
+                .avatar(imgUser)
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .password(passwordEncoder.encode(request.getPassword()))

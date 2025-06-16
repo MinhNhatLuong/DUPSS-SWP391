@@ -16,6 +16,7 @@ import com.dupss.app.BE_Dupss.service.CloudinaryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -153,8 +154,18 @@ public class BlogServiceImpl implements BlogService {
 
     private String generateSummary(String content) {
         if (content == null) return "";
+
+        // Dùng Jsoup để loại bỏ tất cả tag và decode entity
+        String plainText = Jsoup.parse(content).text();
+
         int maxLength = 150;
-        return content.length() > maxLength ? content.substring(0, maxLength) + "..." : content;
+        if (plainText.length() <= maxLength) {
+            return plainText;
+        }
+
+        int end = plainText.lastIndexOf(" ", maxLength);
+        if (end == -1) end = maxLength;
+        return plainText.substring(0, end) + "...";
     }
 
     public List<BlogHomeResponse> getLatestBlogs() {
