@@ -39,48 +39,30 @@ public class AppointmentServiceImpl implements AppointmentService {
         Consultant consultant = null;
         Slot matchedSlot = null;
         
-        if (requestDto.getConsultantId() != null) {
-            // Nếu có chỉ định consultant
-            consultant = consultantRepository.findById(requestDto.getConsultantId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + requestDto.getConsultantId()));
+        // Tìm consultant phù hợp
+        List<Consultant> availableConsultants = consultantRepository.findByEnabledTrue();
+        
+        if (availableConsultants.isEmpty()) {
+            throw new ResourceNotFoundException("Không có tư vấn viên nào đang hoạt động");
+        }
+        
+        // Duyệt từng consultant để tìm slot phù hợp
+        for (Consultant c : availableConsultants) {
+            Optional<Slot> optionalSlot = slotRepository.findAvailableSlotByConsultantAndDateTime(
+                    c.getId(),
+                    requestDto.getAppointmentDate(),
+                    requestDto.getAppointmentTime());
             
-            // Kiểm tra xem consultant có đang hoạt động không
-            if (!consultant.isEnabled()) {
-                throw new IllegalArgumentException("Tư vấn viên này hiện không hoạt động");
+            if (optionalSlot.isPresent()) {
+                consultant = c;
+                matchedSlot = optionalSlot.get();
+                break;
             }
-
-            // Kiểm tra slot phù hợp
-            matchedSlot = slotRepository.findAvailableSlotByConsultantAndDateTime(
-                            consultant.getId(),
-                            requestDto.getAppointmentDate(),
-                            requestDto.getAppointmentTime())
-                    .orElseThrow(() -> new ResourceNotFoundException("Tư vấn viên không có lịch trống tại thời điểm này"));
-        } else {
-            // Nếu không chỉ định consultant, tìm consultant phù hợp
-            List<Consultant> availableConsultants = consultantRepository.findByEnabledTrue();
-            
-            if (availableConsultants.isEmpty()) {
-                throw new ResourceNotFoundException("Không có tư vấn viên nào đang hoạt động");
-            }
-            
-            // Duyệt từng consultant để tìm slot phù hợp
-            for (Consultant c : availableConsultants) {
-                Optional<Slot> optionalSlot = slotRepository.findAvailableSlotByConsultantAndDateTime(
-                        c.getId(),
-                        requestDto.getAppointmentDate(),
-                        requestDto.getAppointmentTime());
-                
-                if (optionalSlot.isPresent()) {
-                    consultant = c;
-                    matchedSlot = optionalSlot.get();
-                    break;
-                }
-            }
-            
-            // Nếu duyệt xong vẫn không tìm thấy slot phù hợp
-            if (matchedSlot == null) {
-                throw new ResourceNotFoundException("Không có tư vấn viên nào rảnh vào thời điểm này");
-            }
+        }
+        
+        // Nếu duyệt xong vẫn không tìm thấy slot phù hợp
+        if (matchedSlot == null) {
+            throw new ResourceNotFoundException("Không có tư vấn viên nào rảnh vào thời điểm này");
         }
 
         // Khởi tạo đối tượng Appointment

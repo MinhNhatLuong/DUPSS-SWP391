@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -15,153 +15,93 @@ import {
   Box,
   Typography,
   Chip,
-  TextField,
-  IconButton,
-  Button,
+  Alert,
+  CircularProgress,
+  Skeleton,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-
-const fakeBookings = [
-  {
-    id: '1',
-    name: 'Nguyen Van A',
-    email: 'a.nguyen@gmail.com',
-    phone: '0912345678',
-    date: '2024-06-01',
-    topic: 'Phòng ngừa sử dụng ma túy',
-    status: 'done',
-    note: 'Tư vấn thành công',
-  },
-  {
-    id: '2',
-    name: 'Tran Thi B',
-    email: 'b.tran@gmail.com',
-    phone: '0987654321',
-    date: '2024-06-02',
-    topic: 'Điều trị nghiện ma túy',
-    status: 'confirmed',
-    note: '',
-  },
-  {
-    id: '3',
-    name: 'Le Van C',
-    email: 'c.le@gmail.com',
-    phone: '',
-    date: '2024-06-03',
-    topic: 'Hỗ trợ người thân',
-    status: 'canceled',
-    note: 'Người dùng hủy',
-  },
-  {
-    id: '4',
-    name: 'Pham Thi D',
-    email: 'd.pham@gmail.com',
-    phone: '0909090909',
-    date: '2024-06-04',
-    topic: 'Giáo dục cộng đồng',
-    status: 'done',
-    note: '',
-  },
-  {
-    id: '5',
-    name: 'Hoang Van E',
-    email: 'e.hoang@gmail.com',
-    phone: '',
-    date: '2024-06-05',
-    topic: 'Phòng ngừa sử dụng ma túy',
-    status: 'confirmed',
-    note: '',
-  },
-  {
-    id: '6',
-    name: 'Do Thi F',
-    email: 'f.do@gmail.com',
-    phone: '0933333333',
-    date: '2024-06-06',
-    topic: 'Điều trị nghiện ma túy',
-    status: 'done',
-    note: 'Cần theo dõi thêm',
-  },
-  {
-    id: '7',
-    name: 'Nguyen Van G',
-    email: 'g.nguyen@gmail.com',
-    phone: '',
-    date: '2024-06-07',
-    topic: 'Hỗ trợ người thân',
-    status: 'canceled',
-    note: 'Consultant hủy',
-  },
-  {
-    id: '8',
-    name: 'Tran Thi H',
-    email: 'h.tran@gmail.com',
-    phone: '0977777777',
-    date: '2024-06-08',
-    topic: 'Giáo dục cộng đồng',
-    status: 'done',
-    note: '',
-  },
-  {
-    id: '9',
-    name: 'Le Van I',
-    email: 'i.le@gmail.com',
-    phone: '0922222222',
-    date: '2024-06-09',
-    topic: 'Phòng ngừa sử dụng ma túy',
-    status: 'confirmed',
-    note: '',
-  },
-  {
-    id: '10',
-    name: 'Pham Thi K',
-    email: 'k.pham@gmail.com',
-    phone: '',
-    date: '2024-06-10',
-    topic: 'Điều trị nghiện ma túy',
-    status: 'done',
-    note: 'Đến trễ',
-  },
-];
+import axios from 'axios';
+import { getUserInfo } from '../../utils/auth';
 
 const statusMap = {
   all: 'Tất cả',
-  confirmed: 'Đã xác nhận',
-  done: 'Đã hoàn thành',
-  canceled: 'Đã hủy',
+  CONFIRMED: 'Đã xác nhận',
+  COMPLETED: 'Đã hoàn thành',
+  CANCELLED: 'Đã hủy',
 };
 
 const columns = [
-  { id: 'name', label: 'Họ tên', sortable: true },
+  { id: 'customerName', label: 'Họ tên', sortable: true },
   { id: 'email', label: 'Email', sortable: true },
-  { id: 'phone', label: 'Số điện thoại', sortable: true },
-  { id: 'date', label: 'Ngày tư vấn', sortable: true },
-  { id: 'topic', label: 'Chủ đề tư vấn', sortable: true },
+  { id: 'phoneNumber', label: 'Số điện thoại', sortable: true },
+  { id: 'appointmentDate', label: 'Ngày tư vấn', sortable: true },
+  { id: 'topicName', label: 'Chủ đề tư vấn', sortable: true },
   { id: 'status', label: 'Trạng thái', sortable: true },
 ];
 
 function sortRows(rows, orderBy, order) {
   if (!orderBy) return rows;
   return [...rows].sort((a, b) => {
-    if (orderBy === 'date') {
+    if (orderBy === 'appointmentDate') {
       return order === 'asc'
-        ? new Date(a.date) - new Date(b.date)
-        : new Date(b.date) - new Date(a.date);
+        ? new Date(a.appointmentDate) - new Date(b.appointmentDate)
+        : new Date(b.appointmentDate) - new Date(a.appointmentDate);
     }
     if (order === 'asc') {
-      return (a[orderBy] || '').localeCompare(b[orderBy] || '');
+      return (a[orderBy] || '').toString().localeCompare((b[orderBy] || '').toString());
     }
-    return (b[orderBy] || '').localeCompare(a[orderBy] || '');
+    return (b[orderBy] || '').toString().localeCompare((a[orderBy] || '').toString());
   });
 }
 
+const TableRowSkeleton = () => (
+  <TableRow>
+    {columns.map((column, index) => (
+      <TableCell key={index}>
+        <Skeleton animation="wave" />
+      </TableCell>
+    ))}
+  </TableRow>
+);
+
 export default function History() {
-  const [rows, setRows] = useState(fakeBookings);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
-  const [orderBy, setOrderBy] = useState('date');
+  const [orderBy, setOrderBy] = useState('appointmentDate');
   const [order, setOrder] = useState('desc');
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      setLoading(true);
+      try {
+        const userInfo = getUserInfo();
+        if (!userInfo || !userInfo.id) {
+          throw new Error('Không tìm thấy thông tin người dùng');
+        }
+
+        const response = await axios.get(`http://localhost:8080/api/appointments/consultant/${userInfo.id}/history`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        
+        setAppointments(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching appointment history:', err);
+        setError(
+          err.response?.data?.message || 
+          err.message || 
+          'Đã xảy ra lỗi khi tải lịch sử cuộc hẹn'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
 
   const handleSort = (col) => {
     if (orderBy === col) {
@@ -172,81 +112,137 @@ export default function History() {
     }
   };
 
-  const filteredRows = rows.filter(row => filter === 'all' ? true : row.status === filter);
+  const filteredRows = appointments.filter(row => filter === 'all' ? true : row.status === filter);
   const sortedRows = sortRows(filteredRows, orderBy, order);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'done': return 'success';
-      case 'confirmed': return 'info';
-      case 'canceled': return 'error';
+      case 'COMPLETED': return 'success';
+      case 'CONFIRMED': return 'info';
+      case 'CANCELLED': return 'error';
       default: return 'default';
     }
   };
+
+  const formatTime = (timeObj) => {
+    if (!timeObj) return '';
+    const { hour, minute } = timeObj;
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  };
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Lịch sử tư vấn
+        </Typography>
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Lịch sử tư vấn
       </Typography>
-      <FormControl sx={{ mb: 3, minWidth: 200 }}>
-        <InputLabel>Lọc theo trạng thái</InputLabel>
-        <Select
-          value={filter}
-          label="Lọc theo trạng thái"
-          onChange={e => setFilter(e.target.value)}
-        >
-          {Object.entries(statusMap).map(([key, label]) => (
-            <MenuItem key={key} value={key}>{label}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map(col => (
-                <TableCell
-                  key={col.id}
-                  sortDirection={orderBy === col.id ? order : false}
-                >
-                  {col.sortable ? (
-                    <TableSortLabel
-                      active={orderBy === col.id}
-                      direction={orderBy === col.id ? order : 'asc'}
-                      onClick={() => handleSort(col.id)}
-                    >
-                      {col.label}
-                    </TableSortLabel>
-                  ) : col.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  Không có dữ liệu
-                </TableCell>
-              </TableRow>
-            ) : (
-              sortedRows.map(row => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>{row.phone || '-'}</TableCell>
-                  <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{row.topic}</TableCell>
-                  <TableCell>
-                    <Chip label={statusMap[row.status] || row.status} color={getStatusColor(row.status)} size="small" />
-                  </TableCell>
+
+      {loading ? (
+        <Box sx={{ mt: 3 }}>
+          <Skeleton animation="wave" height={60} width={200} sx={{ mb: 2 }} />
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {columns.map(col => (
+                    <TableCell key={col.id}>
+                      <Skeleton animation="wave" />
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableHead>
+              <TableBody>
+                {[...Array(5)].map((_, index) => (
+                  <TableRowSkeleton key={index} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      ) : appointments.length === 0 ? (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          Lịch sử cuộc hẹn của bạn đang không có gì!
+        </Alert>
+      ) : (
+        <>
+          <FormControl sx={{ mb: 3, minWidth: 200 }}>
+            <InputLabel>Lọc theo trạng thái</InputLabel>
+            <Select
+              value={filter}
+              label="Lọc theo trạng thái"
+              onChange={e => setFilter(e.target.value)}
+            >
+              {Object.entries(statusMap).map(([key, label]) => (
+                <MenuItem key={key} value={key}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {columns.map(col => (
+                    <TableCell
+                      key={col.id}
+                      sortDirection={orderBy === col.id ? order : false}
+                    >
+                      {col.sortable ? (
+                        <TableSortLabel
+                          active={orderBy === col.id}
+                          direction={orderBy === col.id ? order : 'asc'}
+                          onClick={() => handleSort(col.id)}
+                        >
+                          {col.label}
+                        </TableSortLabel>
+                      ) : col.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} align="center">
+                      Không có dữ liệu phù hợp với bộ lọc hiện tại
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedRows.map(row => (
+                    <TableRow key={row.id}>
+                      <TableCell>{row.customerName}</TableCell>
+                      <TableCell>{row.email || '-'}</TableCell>
+                      <TableCell>{row.phoneNumber || '-'}</TableCell>
+                      <TableCell>
+                        {new Date(row.appointmentDate).toLocaleDateString()} {formatTime(row.appointmentTime)}
+                      </TableCell>
+                      <TableCell>{row.topicName}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={statusMap[row.status] || row.status} 
+                          color={getStatusColor(row.status)} 
+                          size="small" 
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
     </Box>
   );
 } 

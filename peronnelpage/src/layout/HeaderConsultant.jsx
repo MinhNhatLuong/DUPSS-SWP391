@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import NotificationService from '../services/NotificationService';
 import dayjs from 'dayjs';
+import { logout, getUserInfo } from '../utils/auth';
 
 const HeaderConsultant = ({ userName }) => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const HeaderConsultant = ({ userName }) => {
   const [notifications, setNotifications] = useState([]);
   const open = Boolean(anchorEl);
   const notifOpen = Boolean(notifAnchorEl);
+  const userInfo = getUserInfo();
 
   useEffect(() => {
     const unsub = NotificationService.subscribe((notification) => {
@@ -74,7 +76,9 @@ const HeaderConsultant = ({ userName }) => {
   };
 
   const handleLogout = () => {
-    navigate('/login');
+    logout(() => {
+      navigate('/login');
+    });
   };
 
   const menuItems = [
@@ -93,6 +97,14 @@ const HeaderConsultant = ({ userName }) => {
       default:
         return <NotificationsIcon color="action" />;
     }
+  };
+
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
+  const getAvatarText = () => {
+    if (userName) {
+      return userName.charAt(0).toUpperCase();
+    }
+    return 'C';
   };
 
   return (
@@ -136,7 +148,7 @@ const HeaderConsultant = ({ userName }) => {
           </IconButton>
 
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName}
+            {userName || 'Consultant'}
           </Typography>
           <IconButton
             onClick={handleClick}
@@ -146,7 +158,15 @@ const HeaderConsultant = ({ userName }) => {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>C</Avatar>
+            {userInfo?.avatar ? (
+              <Avatar 
+                sx={{ width: 32, height: 32 }} 
+                src={userInfo.avatar}
+                alt={userName || 'Consultant'}
+              />
+            ) : (
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#8e24aa' }}>{getAvatarText()}</Avatar>
+            )}
           </IconButton>
         </Box>
 

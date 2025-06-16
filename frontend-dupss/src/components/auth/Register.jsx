@@ -46,6 +46,7 @@ const Register = () => {
     message: '',
     severity: 'success'
   });
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     document.title = "Đăng Ký - DUPSS";
@@ -66,15 +67,22 @@ const Register = () => {
     });
   };
 
+  const handleCloseProcessing = () => {
+    setProcessing(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Show processing alert
+    setProcessing(true);
+    
     try {
-      // Format birthDate to MM/DD/YYYY format for the API if it exists
+      // Format birthDate to DD/MM/YYYY format for the API if it exists
       const yobFormat = formData.birthDate ? 
-        new Date(formData.birthDate).toLocaleDateString('en-US', {
-          month: '2-digit',
+        new Date(formData.birthDate).toLocaleDateString('en-GB', {
           day: '2-digit',
+          month: '2-digit',
           year: 'numeric'
         }) : '';
         
@@ -94,6 +102,9 @@ const Register = () => {
       );
       
       if (response.status === 201) {
+        // Hide processing alert
+        setProcessing(false);
+        
         setAlert({
           open: true,
           message: 'Đăng ký thành công!',
@@ -106,6 +117,9 @@ const Register = () => {
         }, 1500);
       }
     } catch (error) {
+      // Hide processing alert
+      setProcessing(false);
+      
       const errorMessage = error.response?.data?.confirmPassword || 
                           error.response?.data?.message ||
                           'Đã có lỗi xảy ra khi đăng ký!';
@@ -158,6 +172,20 @@ const Register = () => {
           {alert.message}
         </Alert>
       </Snackbar>
+      
+      <Snackbar
+        open={processing}
+        onClose={handleCloseProcessing}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          severity="warning" 
+          sx={{ width: '100%' }}
+        >
+          Đang xử lý
+        </Alert>
+      </Snackbar>
+      
       <Card sx={{
         maxWidth: '1000px',
         width: '100%',

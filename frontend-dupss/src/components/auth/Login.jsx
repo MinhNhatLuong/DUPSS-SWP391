@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Card, 
   TextField, 
   Button, 
   Typography, 
-  Checkbox, 
-  FormControlLabel, 
   Link, 
-  Divider, 
   InputAdornment, 
   IconButton
 } from '@mui/material';
@@ -19,23 +17,86 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import { Link as RouterLink } from 'react-router-dom';
+import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "Đăng Nhập - DUPSS";
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login form submission
-    console.log('Login attempt with:', { username, password, rememberMe });
-    // In a real implementation, you would send this data to your API
+    
+    if (!username || !password) {
+      showErrorAlert('Vui lòng nhập đầy đủ thông tin đăng nhập');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Call login API
+      const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      // Handle response
+      if (loginResponse.status === 400 || loginResponse.status === 401 || loginResponse.status === 403) {
+        showErrorAlert('Username hoặc Mật khẩu sai!');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!loginResponse.ok) {
+        throw new Error(`Login failed with status: ${loginResponse.status}`);
+      }
+
+      const loginData = await loginResponse.json();
+      
+      // Save tokens
+      localStorage.setItem('accessToken', loginData.accessToken);
+      localStorage.setItem('refreshToken', loginData.refreshToken);
+
+      // Get user information
+      const meResponse = await fetch('http://localhost:8080/api/auth/me', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accessToken: loginData.accessToken }),
+      });
+
+      if (!meResponse.ok) {
+        throw new Error(`Failed to fetch user profile: ${meResponse.status}`);
+      }
+
+      showSuccessAlert('Đăng nhập thành công!');
+      
+      // Navigate to home page and refresh to update UI
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Login error:', error);
+      // Check if the error is related to network or other technical issues
+      if (error.name === 'TypeError' || error.name === 'NetworkError') {
+        showErrorAlert('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.');
+      } else {
+        // For any other errors, assume it's related to credentials
+        showErrorAlert('Username hoặc Mật khẩu sai!');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -163,29 +224,9 @@ const Login = () => {
 
             <Box sx={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
+              justifyContent: 'flex-end', 
               marginBottom: '20px'
             }}>
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={rememberMe} 
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    sx={{
-                      color: '#0056b3',
-                      '&.Mui-checked': {
-                        color: '#0056b3',
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Typography variant="body2">
-                    Ghi nhớ đăng nhập
-                  </Typography>
-                }
-              />
               <Link component={RouterLink} to="/forgot-password" variant="body2" sx={{ color: '#0056b3', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
                 Quên mật khẩu?
               </Link>
@@ -195,6 +236,7 @@ const Login = () => {
               fullWidth 
               variant="contained"
               type="submit"
+              disabled={isLoading}
               sx={{
                 padding: '12px',
                 backgroundColor: '#0056b3',
@@ -206,7 +248,7 @@ const Login = () => {
                 fontWeight: 500
               }}
             >
-              Đăng nhập
+              {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
 
             <Box sx={{
