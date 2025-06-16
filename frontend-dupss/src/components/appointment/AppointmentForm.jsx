@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Box, 
   Paper, 
@@ -7,7 +7,9 @@ import {
   MenuItem,
   Typography,
   Grid,
-  InputAdornment
+  InputAdornment,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { 
   Person as PersonIcon,
@@ -17,6 +19,7 @@ import {
   AccessTime as AccessTimeIcon,
   Category as CategoryIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 import './AppointmentForm.css';
 
 const AppointmentForm = () => {
@@ -26,10 +29,88 @@ const AppointmentForm = () => {
     email: '',
     appointmentDate: '',
     appointmentTime: '',
-    topic: ''
+    topicId: ''
   });
 
   const [errors, setErrors] = useState({});
+  const [topics, setTopics] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  useEffect(() => {
+    // Fetch topics when component mounts
+    fetchTopics();
+    // Check authentication status
+    checkAuthStatus();
+  }, []);
+
+  const fetchTopics = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/topics');
+      setTopics(response.data);
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+    }
+  };
+
+  const checkAuthStatus = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return;
+
+    try {
+      // Check authentication status with POST method
+      const response = await axios.post('http://localhost:8080/api/auth/me', {
+        accessToken
+      });
+      
+      if (response.status === 200) {
+        // Prefill form with user data
+        const userData = response.data;
+        setUserId(userData.id); // Store user ID
+        setFormData(prev => ({
+          ...prev,
+          fullName: userData.fullName || '',
+          email: userData.email || '',
+          phoneNumber: userData.phone || ''
+        }));
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        // Token expired, try refreshing
+        tryRefreshToken();
+      } else {
+        console.error('Error checking auth status:', error);
+      }
+    }
+  };
+
+  const tryRefreshToken = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return;
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/refresh-token', {
+        accessToken
+      });
+      
+      if (response.data && response.data.accessToken) {
+        // Save new tokens
+        localStorage.setItem('accessToken', response.data.accessToken);
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
+        
+        // Retry auth check
+        checkAuthStatus();
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,23 +154,55 @@ const AppointmentForm = () => {
     }
     
     // Validate topic
-    if (!formData.topic) {
-      newErrors.topic = 'Chủ đề tư vấn là bắt buộc';
+    if (!formData.topicId) {
+      newErrors.topicId = 'Chủ đề tư vấn là bắt buộc';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const formatDateForApi = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Replace with your actual API endpoint
-      console.log('Form submitted:', formData);
-      // Implementation for API call would go here
-      alert('Đặt lịch hẹn thành công!');
-      handleReset();
+      try {
+        // Format the data for API
+        const appointmentData = {
+          customerName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          email: formData.email,
+          appointmentDate: formatDateForApi(formData.appointmentDate),
+          appointmentTime: formData.appointmentTime,
+          topicId: parseInt(formData.topicId),
+          userId: userId // Include userId (will be null if not logged in)
+        };
+
+        // Submit the appointment
+        const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+        
+        // Handle success
+        setAlert({
+          open: true,
+          message: 'Đăng ký cuộc hẹn thành công',
+          severity: 'success'
+        });
+        handleReset();
+      } catch (error) {
+        // Handle error
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi đặt lịch hẹn';
+        setAlert({
+          open: true,
+          message: errorMessage,
+          severity: 'error'
+        });
+      }
     }
   };
 
@@ -100,9 +213,16 @@ const AppointmentForm = () => {
       email: '',
       appointmentDate: '',
       appointmentTime: '',
-      topic: ''
+      topicId: ''
     });
     setErrors({});
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({
+      ...alert,
+      open: false
+    });
   };
 
   return (
@@ -210,6 +330,9 @@ const AppointmentForm = () => {
               onChange={handleChange}
               error={!!errors.appointmentTime}
               helperText={errors.appointmentTime}
+              inputProps={{
+                step: 60 // Step is in seconds, 60 = 1 minute (removes seconds)
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -229,13 +352,13 @@ const AppointmentForm = () => {
             select
             fullWidth
             required
-            id="topic"
-            name="topic"
+            id="topicId"
+            name="topicId"
             label="Chủ đề tư vấn"
-            value={formData.topic}
+            value={formData.topicId}
             onChange={handleChange}
-            error={!!errors.topic}
-            helperText={errors.topic || ''}
+            error={!!errors.topicId}
+            helperText={errors.topicId || ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -245,11 +368,11 @@ const AppointmentForm = () => {
             }}
           >
             <MenuItem value="">-- Chọn chủ đề --</MenuItem>
-            <MenuItem value="prevention">Phòng ngừa sử dụng ma túy</MenuItem>
-            <MenuItem value="treatment">Điều trị nghiện ma túy</MenuItem>
-            <MenuItem value="support">Hỗ trợ người thân</MenuItem>
-            <MenuItem value="education">Giáo dục cộng đồng</MenuItem>
-            <MenuItem value="other">Khác</MenuItem>
+            {topics.map((topic) => (
+              <MenuItem key={topic.id} value={topic.id}>
+                {topic.topicName}
+              </MenuItem>
+            ))}
           </TextField>
         </Box>
         
@@ -289,8 +412,36 @@ const AppointmentForm = () => {
           </Button>
         </Box>
       </Box>
+
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiPaper-root': { 
+            width: '320px',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }
+        }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={alert.severity}
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: 500,
+            padding: '12px 16px'
+          }}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };
 
-export default AppointmentForm; 
+export default AppointmentForm;
