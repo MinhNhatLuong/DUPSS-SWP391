@@ -15,7 +15,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
 import { Link as RouterLink } from 'react-router-dom';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
@@ -106,11 +105,6 @@ const Login = () => {
   const handleGoogleLogin = () => {
     console.log('Google login clicked');
     // Placeholder for Google login functionality
-  };
-
-  const handleFacebookLogin = () => {
-    console.log('Facebook login clicked');
-    // Placeholder for Facebook login functionality
   };
 
   return (
@@ -287,8 +281,6 @@ const Login = () => {
             </Box>
 
             <Box sx={{ 
-              display: 'flex', 
-              gap: '15px',
               marginBottom: '25px'
             }}>
               <Button 
@@ -299,6 +291,7 @@ const Login = () => {
                 sx={{
                   color: '#DB4437',
                   borderColor: '#ddd',
+                  padding: '10px',
                   '&:hover': {
                     backgroundColor: '#fef0ef',
                     borderColor: '#DB4437',
@@ -307,23 +300,6 @@ const Login = () => {
                 }}
               >
                 Google
-              </Button>
-              <Button 
-                fullWidth 
-                variant="outlined"
-                onClick={handleFacebookLogin}
-                startIcon={<FacebookIcon />}
-                sx={{
-                  color: '#4267B2',
-                  borderColor: '#ddd',
-                  '&:hover': {
-                    backgroundColor: '#f0f2f7',
-                    borderColor: '#4267B2',
-                  },
-                  textTransform: 'none',
-                }}
-              >
-                Facebook
               </Button>
             </Box>
 
