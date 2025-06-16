@@ -15,10 +15,10 @@ const BlogDetail = () => {
   const [contentVisible, setContentVisible] = useState(false);
 
   const fetchBlogData = async (blogId) => {
-    // 先设置内容不可见，但不立即显示加载状态
+    // Set content invisible first, but don't show loading state immediately
     setContentVisible(false);
     
-    // 延迟一小段时间再设置加载状态，避免闪烁
+    // Delay setting the loading state to avoid flickering
     const loadingTimer = setTimeout(() => {
       if (!contentVisible) {
         setLoading(true);
@@ -49,11 +49,11 @@ const BlogDetail = () => {
         topic: article.topic
       })));
       
-      // 取消加载状态定时器
+      // Cancel the loading timer
       clearTimeout(loadingTimer);
       setLoading(false);
       
-      // 短暂延迟后显示内容，创建平滑过渡
+      // Show content after a short delay for smooth transition
       setTimeout(() => {
         setContentVisible(true);
       }, 100);
@@ -71,7 +71,7 @@ const BlogDetail = () => {
     
     fetchBlogData(id);
     
-    // 清理函数
+    // Cleanup function
     return () => {
       setContentVisible(false);
     };
