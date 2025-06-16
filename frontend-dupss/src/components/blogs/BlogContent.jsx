@@ -1,4 +1,4 @@
-import { Box, Link, Chip, Stack } from '@mui/material';
+import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 const ContentWrapper = styled(Box)(({ theme }) => ({
@@ -52,98 +52,11 @@ const ContentWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const BlogContent = ({ content }) => {
-  // Tags for this blog post
-  const tags = ['Giáo dục', 'Phòng chống ma túy', 'Trường học', 'Thanh thiếu niên'];
-
   return (
     <Box sx={{ mb: 5 }}>
       <ContentWrapper dangerouslySetInnerHTML={{ __html: content }} />
-      
-      <Box sx={{ 
-        mt: 5, 
-        pt: 2, 
-        borderTop: '1px solid #eee',
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: { xs: 'flex-start', sm: 'center' },
-        gap: 2
-      }}>
-        <Box component="span" fontWeight="600" mr={1}>
-          Tags:
-        </Box>
-        <Stack direction="row" spacing={1} flexWrap="wrap">
-          {tags.map((tag, index) => (
-            <Chip
-              key={index}
-              label={tag}
-              component={Link}
-              href="#"
-              clickable
-              sx={{ 
-                bgcolor: '#f0f7ff', 
-                color: '#0056b3',
-                '&:hover': {
-                  bgcolor: '#0056b3',
-                  color: 'white'
-                }
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
-      
-      <Box sx={{ 
-        mt: 2, 
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: { xs: 'flex-start', sm: 'center' },
-        gap: 2
-      }}>
-        <Box component="span" fontWeight="600" mr={1}>
-          Chia sẻ:
-        </Box>
-        <Stack direction="row" spacing={1}>
-          {['facebook', 'twitter', 'linkedin', 'email'].map((platform, index) => (
-            <Link
-              key={index}
-              href="#"
-              sx={{
-                display: 'inline-flex',
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                bgcolor: getShareColor(platform),
-                transition: 'transform 0.3s',
-                '&:hover': {
-                  transform: 'translateY(-3px)'
-                }
-              }}
-            >
-              <i className={`fab fa-${platform === 'email' ? 'envelope' : platform}`}></i>
-            </Link>
-          ))}
-        </Stack>
-      </Box>
     </Box>
   );
-};
-
-const getShareColor = (platform) => {
-  switch (platform) {
-    case 'facebook':
-      return '#3b5998';
-    case 'twitter':
-      return '#1da1f2';
-    case 'linkedin':
-      return '#0077b5';
-    case 'email':
-      return '#ea4335';
-    default:
-      return '#333';
-  }
 };
 
 export default BlogContent; 

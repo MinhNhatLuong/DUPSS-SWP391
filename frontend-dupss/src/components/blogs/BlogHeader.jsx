@@ -62,9 +62,6 @@ const BlogHeader = ({ title, tag, date, author, thumbnail }) => {
           src={thumbnail} 
           alt={title} 
         />
-        <ImageCaption variant="caption">
-          Học sinh tham gia chương trình giáo dục phòng chống ma túy tại trường THPT Nguyễn Du
-        </ImageCaption>
       </Paper>
     </Box>
   );
