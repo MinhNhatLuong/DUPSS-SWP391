@@ -393,6 +393,7 @@ public class UserService implements CommandLineRunner {
         String username = jwtService.getUsernameFromToken(token);
         return userRepository.findByUsername(username)
                 .map(user -> UserDetailResponse.builder()
+                        .id(user.getId())
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .phone(user.getPhone())
