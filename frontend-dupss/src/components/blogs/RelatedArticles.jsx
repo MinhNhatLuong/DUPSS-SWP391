@@ -72,6 +72,23 @@ const GridWrapper = styled(Box)({
   }
 });
 
+const DateText = styled(Typography)({
+  fontSize: '0.8rem',
+  color: '#666',
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  height: '24px',
+  padding: '0 4px',
+});
+
+const MetaInfoRow = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  marginBottom: '8px',
+});
+
 const RelatedArticles = ({ articles }) => {
   return (
     <Box sx={{ mt: 6, mb: 3 }}>
@@ -99,7 +116,10 @@ const RelatedArticles = ({ articles }) => {
               />
             </ArticleImage>
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
-              <ArticleChip label={article.topic} size="small" />
+              <MetaInfoRow>
+                <ArticleChip label={article.topic} size="small" />
+                <DateText>{article.createdAt}</DateText>
+              </MetaInfoRow>
               
               <Typography 
                 variant="h6" 

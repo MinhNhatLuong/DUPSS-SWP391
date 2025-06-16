@@ -74,6 +74,23 @@ const GridWrapper = styled(Box)({
   }
 });
 
+const DateText = styled(Typography)({
+  fontSize: '0.8rem',
+  color: '#666',
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  height: '24px',
+  padding: '0 4px',
+});
+
+const MetaInfoRow = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  marginBottom: '8px',
+});
+
 const LatestNews = () => {
   const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +156,10 @@ const LatestNews = () => {
                   flexDirection: 'column', 
                   p: 2.5
                 }}>
-                  <ArticleChip label={news.topic} size="small" />
+                  <MetaInfoRow>
+                    <ArticleChip label={news.topic} size="small" />
+                    <DateText>{news.createdAt}</DateText>
+                  </MetaInfoRow>
                   
                   <Typography 
                     variant="h6" 

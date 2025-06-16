@@ -97,6 +97,13 @@ const BlogsList = () => {
       } finally {
         setLoading(false);
         setInitialLoad(false);
+        
+        // After data loading is complete, scroll to top if not initial loading
+        if (!initialLoad) {
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 100); // Short delay to ensure DOM has been updated
+        }
       }
     };
 
