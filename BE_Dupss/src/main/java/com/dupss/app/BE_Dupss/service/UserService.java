@@ -228,6 +228,7 @@
 //
 package com.dupss.app.BE_Dupss.service;
 
+import com.dupss.app.BE_Dupss.dto.request.AccessTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
@@ -273,6 +274,7 @@ public class UserService implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final EmailServiceImpl mailService;
     private final CloudinaryService cloudinaryService;
+    private final JwtService jwtService;
 
 //    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
 //                       MailService mailService, CloudinaryService cloudinaryService) {
@@ -363,6 +365,38 @@ public class UserService implements CommandLineRunner {
                         .role(user.getRole().name())
                         .build())
                 .toList();
+    }
+
+//    @PreAuthorize("isAuthenticated()")
+    public UserDetailResponse getCurrentUserInfo(AccessTokenRequest accessToken) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String username = authentication.getName();
+        String token = accessToken.getAccessToken();
+
+        // Kiểm tra token hợp lệ
+        if (token == null || token.trim().isEmpty()) {
+            throw new RuntimeException("Access token is missing");
+        }
+
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+//         Giải mã token để lấy username
+        String username = jwtService.getUsernameFromToken(token);
+        return userRepository.findByUsername(username)
+                .map(user -> UserDetailResponse.builder()
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .gender(user.getGender())
+                        .yob(user.getYob())
+                        .avatar(user.getAvatar())
+                        .address(user.getAddress())
+                        .role(user.getRole().name())
+                        .build())
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public UpdateUserResponse updateUserProfile(UpdateUserRequest request) throws IOException {
