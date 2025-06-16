@@ -32,7 +32,7 @@ const PointsOfInterest = () => {
   return (
     <section className="points-of-interest">
       <div className="section-container">
-        <h2 className="section-title">DUPSS Points of Interest</h2>
+        <h2 className="section-title">Các nội dung đáng chú ý của DUPSS</h2>
         <div className="poi-grid">
           {pointsData.map(point => (
             <div className="poi-card" key={point.id}>
