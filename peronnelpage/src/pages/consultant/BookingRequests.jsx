@@ -90,12 +90,16 @@ export default function BookingRequests() {
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [dialog, setDialog] = useState({ open: false, appt: null });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   
   // Phân trang
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const requestsPerPage = 12;
+  
+  // Dialog xác nhận hủy
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null });
 
   useEffect(() => {
     fetchRequests();
@@ -179,23 +183,40 @@ export default function BookingRequests() {
   };
 
   const handleDeny = async () => {
+    // Mở dialog xác nhận hủy
+    setConfirmDialog({ 
+      open: true, 
+      appointmentId: selected.id 
+    });
+  };
+  
+  // Xử lý hủy yêu cầu sau khi xác nhận
+  const handleConfirmDeny = async () => {
     try {
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      await axios.patch(`http://localhost:8080/api/appointments/${selected.id}/status`, {
-        status: 'CANCELLED',
-        consultantId: userInfo.id
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // Sử dụng API mới để hủy cuộc hẹn
+      if (selected.guest) {
+        await axios.post(`http://localhost:8080/api/appointments/${confirmDialog.appointmentId}/cancel/guest`, {
+          email: selected.email
+        }, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+      } else {
+        await axios.post(`http://localhost:8080/api/appointments/${confirmDialog.appointmentId}/cancel/user/${userInfo.id}`, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+      }
 
       // Cập nhật danh sách yêu cầu
-      setRequests(prev => prev.filter(r => r.id !== selected.id));
+      setRequests(prev => prev.filter(r => r.id !== confirmDialog.appointmentId));
       
       // Hiển thị thông báo từ chối
       setSnackbar({ 
@@ -204,7 +225,9 @@ export default function BookingRequests() {
         severity: 'error' 
       });
       
-      setOpen(false);
+      // Đóng các dialog
+      setConfirmDialog({ open: false, appointmentId: null });
+      setDialog({ open: false, appt: null });
     } catch (err) {
       console.error('Error denying request:', err);
       setSnackbar({ 
@@ -212,6 +235,7 @@ export default function BookingRequests() {
         message: 'Không thể từ chối yêu cầu: ' + (err.response?.data?.message || err.message), 
         severity: 'error' 
       });
+      setConfirmDialog({ open: false, appointmentId: null });
     }
   };
 
@@ -377,6 +401,30 @@ export default function BookingRequests() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      
+      {/* Dialog xác nhận hủy yêu cầu */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, appointmentId: null })}
+        aria-labelledby="confirm-dialog-title"
+      >
+        <DialogTitle id="confirm-dialog-title">
+          Xác nhận từ chối yêu cầu
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Bạn có chắc chắn muốn từ chối yêu cầu tư vấn này không?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, appointmentId: null })} color="primary">
+            Hủy bỏ
+          </Button>
+          <Button onClick={handleConfirmDeny} color="error" variant="contained">
+            Từ chối yêu cầu
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 
