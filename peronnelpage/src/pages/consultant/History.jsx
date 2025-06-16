@@ -172,11 +172,9 @@ export default function History() {
           </TableContainer>
         </Box>
       ) : appointments.length === 0 ? (
-        <Box sx={{ mt: 3, textAlign: 'center', p: 5 }}>
-          <Typography variant="h6" color="text.secondary">
-            Lịch sử cuộc hẹn của bạn đang không có gì!
-          </Typography>
-        </Box>
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          Lịch sử cuộc hẹn của bạn đang không có gì!
+        </Alert>
       ) : (
         <>
           <FormControl sx={{ mb: 3, minWidth: 200 }}>
