@@ -42,7 +42,7 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // 调用登录API
+      // Call login API
       const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: {
@@ -51,9 +51,9 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      // 处理响应
-      if (loginResponse.status === 400) {
-        showErrorAlert('Username hoặc Password sai!');
+      // Handle response
+      if (loginResponse.status === 400 || loginResponse.status === 401 || loginResponse.status === 403) {
+        showErrorAlert('Username hoặc Mật khẩu sai!');
         setIsLoading(false);
         return;
       }
@@ -64,11 +64,11 @@ const Login = () => {
 
       const loginData = await loginResponse.json();
       
-      // 保存token
+      // Save tokens
       localStorage.setItem('accessToken', loginData.accessToken);
       localStorage.setItem('refreshToken', loginData.refreshToken);
 
-      // 获取用户信息
+      // Get user information
       const meResponse = await fetch('http://localhost:8080/api/auth/me', {
         method: 'POST',
         headers: {
@@ -83,11 +83,17 @@ const Login = () => {
 
       showSuccessAlert('Đăng nhập thành công!');
       
-      // 跳转到首页
-      navigate('/');
+      // Navigate to home page and refresh to update UI
+      window.location.href = '/';
     } catch (error) {
       console.error('Login error:', error);
-      showErrorAlert('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.');
+      // Check if the error is related to network or other technical issues
+      if (error.name === 'TypeError' || error.name === 'NetworkError') {
+        showErrorAlert('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.');
+      } else {
+        // For any other errors, assume it's related to credentials
+        showErrorAlert('Username hoặc Mật khẩu sai!');
+      }
     } finally {
       setIsLoading(false);
     }

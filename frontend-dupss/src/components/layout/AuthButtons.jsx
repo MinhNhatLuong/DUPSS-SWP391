@@ -3,6 +3,24 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Box, Avatar, Typography, Menu, MenuItem, Button } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { styled } from '@mui/material/styles';
+
+// 创建自定义MenuItem组件，覆盖默认样式
+const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
+  backgroundColor: 'transparent !important',
+  '&:hover': {
+    backgroundColor: 'rgba(0,0,0,0.04) !important',
+  },
+  '&.Mui-selected': {
+    backgroundColor: 'transparent !important',
+    '&:hover': {
+      backgroundColor: 'rgba(0,0,0,0.04) !important',
+    }
+  },
+  '&.Mui-focusVisible': {
+    backgroundColor: 'transparent !important',
+  }
+}));
 
 const AuthButtons = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -107,24 +125,42 @@ const AuthButtons = () => {
           <RouterLink to="/register" className="register-btn">Đăng ký</RouterLink>
         </div>
       ) : (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          minWidth: '220px',
+          justifyContent: 'flex-end' 
+        }}>
           <Box 
             onClick={handleMenuOpen}
             sx={{ 
               display: 'flex', 
               alignItems: 'center', 
               cursor: 'pointer',
-              padding: '5px 10px',
+              padding: '6px 15px',
               borderRadius: '4px',
-              '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' }
+              border: '1px solid #dddddd',
+              backgroundColor: '#ffffff',
+              '&:hover': { backgroundColor: 'rgba(0,0,0,0.02)' }
             }}
           >
             <Avatar 
               src={userData?.avatar} 
               alt={userData?.fullName || 'User'} 
-              sx={{ width: 32, height: 32, mr: 1 }}
+              sx={{ 
+                width: 36, 
+                height: 36, 
+                mr: 1.5
+              }}
             />
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 500,
+                color: '#333333',
+                fontSize: '1rem'
+              }}
+            >
               {userData?.fullName || userData?.username || 'User'}
             </Typography>
           </Box>
@@ -140,15 +176,23 @@ const AuthButtons = () => {
               vertical: 'top',
               horizontal: 'right',
             }}
+            PaperProps={{
+              sx: {
+                '& .MuiList-root': {
+                  paddingTop: 0,
+                  paddingBottom: 0
+                }
+              },
+            }}
           >
-            <MenuItem onClick={handleProfileClick}>
+            <StyledMenuItem onClick={handleProfileClick} disableRipple selected={false}>
               <PersonIcon fontSize="small" sx={{ mr: 1 }} />
               Hồ sơ
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={handleLogout} disableRipple selected={false}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
               Đăng xuất
-            </MenuItem>
+            </StyledMenuItem>
           </Menu>
         </Box>
       )}
