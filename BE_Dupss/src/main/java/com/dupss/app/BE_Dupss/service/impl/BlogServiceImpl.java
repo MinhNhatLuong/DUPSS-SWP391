@@ -176,10 +176,10 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Page<BlogHomeResponse> searchBlogs(String keyword, String tags, Pageable pageable) {
-        log.info("Searching blogs with keyword: {}, tags: {}", keyword, tags);
+    public Page<BlogHomeResponse> searchBlogs(String keyword, Long topic, Pageable pageable) {
+        log.info("Searching blogs with keyword: {}, tags: {}", keyword, topic);
 
-        Page<Blog> blogPage = blogRepository.search(keyword, tags, pageable);
+        Page<Blog> blogPage = blogRepository.search(keyword, topic, pageable);
 
         List<BlogHomeResponse> blogResponses = blogPage.getContent().stream()
                 .map(blog -> {

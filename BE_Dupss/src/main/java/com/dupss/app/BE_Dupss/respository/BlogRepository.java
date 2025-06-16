@@ -21,7 +21,6 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
             "WHERE b.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED " +
             "AND (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR b.content LIKE CONCAT('%', :keyword, '%')) " +
-            "OR b.topic.name LIKE LOWER(CONCAT('%', :keyword, '%'))" +
-            "AND (:tags IS NULL OR :tags = '' OR LOWER(b.tags) LIKE LOWER(CONCAT('%', :tags, '%')))")
-    Page<Blog> search(@Param("keyword") String keyword, @Param("tags") String tags, Pageable pageable);
+            "AND (:topic IS NULL OR b.topic.id = :topic)")
+    Page<Blog> search(@Param("keyword") String keyword, @Param("topic") Long topic, Pageable pageable);
 }

@@ -33,12 +33,12 @@ public class HomeController {
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) String targetAudience,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         int pageIndex = page > 0 ? page - 1 : 0;
+        int size = 6;
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(direction, sortBy));
 //        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
@@ -80,18 +80,18 @@ public class HomeController {
     @GetMapping("/blogs")
     public ResponseEntity<Map<String, Object>> searchBlogs(
             @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) Long topic,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
-        log.info("Searching blogs with keyword: {}, tags: {}", keyword, tags);
+        log.info("Searching blogs with keyword: {}, tags: {}", keyword, topic);
 
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         int pageIndex = page > 0 ? page - 1 : 0;
+        int size = 6; // Default page size
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(direction, sortBy));
-        Page<BlogHomeResponse> blogPage = blogService.searchBlogs(keyword, tags, pageable);
+        Page<BlogHomeResponse> blogPage = blogService.searchBlogs(keyword, topic, pageable);
 
         Map<String, Object> response = new HashMap<>();
         response.put("blogs", blogPage.getContent());

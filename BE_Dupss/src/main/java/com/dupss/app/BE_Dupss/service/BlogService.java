@@ -16,5 +16,5 @@ public interface BlogService {
     BlogResponse getBlogById(Long id);
     List<BlogResponse> getCreatedBlogs();
     List<BlogHomeResponse> getLatestBlogs();
-    Page<BlogHomeResponse> searchBlogs(String keyword, String tags, Pageable pageable);
+    Page<BlogHomeResponse> searchBlogs(String keyword, Long topic, Pageable pageable);
 }
