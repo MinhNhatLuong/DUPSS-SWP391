@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HeaderManager from './layout/HeaderManager';
 import HeaderAdmin from './layout/Header';
@@ -13,9 +13,70 @@ import Schedule from './pages/consultant/Schedule';
 import BookingRequests from './pages/consultant/BookingRequests';
 import ConsultantProfile from './pages/consultant/Profile';
 import History from './pages/consultant/History';
+import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
+// Protected route component
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isAuthenticated()) {
+        setAuthorized(false);
+        setLoading(false);
+        return;
+      }
+      
+      // Verify token and refresh if needed
+      const tokenValid = await checkAndRefreshToken();
+      
+      if (!tokenValid) {
+        setAuthorized(false);
+        setLoading(false);
+        return;
+      }
+      
+      // Check role if required
+      if (requiredRole) {
+        const userInfo = getUserInfo();
+        if (userInfo && userInfo.role) {
+          // Check if user has the required role
+          const hasRole = userInfo.role.includes(requiredRole) || 
+                          userInfo.role === requiredRole.replace('ROLE_', '').toLowerCase();
+          setAuthorized(hasRole);
+        } else {
+          setAuthorized(false);
+        }
+      } else {
+        setAuthorized(true);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkAuth();
+  }, [requiredRole]);
+  
+  if (loading) {
+    return <div>Đang tải...</div>;
+  }
+  
+  return authorized ? children : <Navigate to="/login" replace />;
+};
+
 function App() {
+  const [userInfo, setUserInfo] = useState(null);
+  
+  useEffect(() => {
+    // Load user info from localStorage
+    const info = getUserInfo();
+    if (info) {
+      setUserInfo(info);
+    }
+  }, []);
+  
   return (
     <Router>
       <div className="app">
@@ -27,14 +88,17 @@ function App() {
           <Route
             path="/admin/*"
             element={
-              <>
-                <HeaderAdmin userName="Admin" />
-                <main className="content">
-                  <Routes>
-                    <Route path="dashboard" element={<AdminPage />} />
-                  </Routes>
-                </main>
-              </>
+              <ProtectedRoute requiredRole="ROLE_ADMIN">
+                <>
+                  <HeaderAdmin userName={userInfo?.fullName || 'Admin'} />
+                  <main className="content">
+                    <Routes>
+                      <Route path="dashboard" element={<AdminPage />} />
+                      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                    </Routes>
+                  </main>
+                </>
+              </ProtectedRoute>
             }
           />
 
@@ -42,16 +106,19 @@ function App() {
           <Route
             path="/manager/*"
             element={
-              <>
-                <HeaderManager userName="Manager" />
-                <main className="content">
-                  <Routes>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="consultants" element={<ConsultantManagement />} />
-                    <Route path="content-review" element={<ContentReview />} />
-                  </Routes>
-                </main>
-              </>
+              <ProtectedRoute requiredRole="ROLE_MANAGER">
+                <>
+                  <HeaderManager userName={userInfo?.fullName || 'Manager'} />
+                  <main className="content">
+                    <Routes>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="consultants" element={<ConsultantManagement />} />
+                      <Route path="content-review" element={<ContentReview />} />
+                      <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
+                    </Routes>
+                  </main>
+                </>
+              </ProtectedRoute>
             }
           />
 
@@ -59,23 +126,27 @@ function App() {
           <Route
             path="/consultant/*"
             element={
-              <>
-                <HeaderConsultant userName="Consultant" />
-                <main className="content">
-                  <Routes>
-                    <Route path="dashboard" element={<ConsultantDashboard />} />
-                    <Route path="schedule" element={<Schedule />} />
-                    <Route path="requests" element={<BookingRequests />} />
-                    <Route path="profile" element={<ConsultantProfile />} />
-                    <Route path="history" element={<History />} />
-                  </Routes>
-                </main>
-              </>
+              <ProtectedRoute requiredRole="ROLE_CONSULTANT">
+                <>
+                  <HeaderConsultant userName={userInfo?.fullName || 'Consultant'} />
+                  <main className="content">
+                    <Routes>
+                      <Route path="dashboard" element={<ConsultantDashboard />} />
+                      <Route path="schedule" element={<Schedule />} />
+                      <Route path="requests" element={<BookingRequests />} />
+                      <Route path="profile" element={<ConsultantProfile />} />
+                      <Route path="history" element={<History />} />
+                      <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
+                    </Routes>
+                  </main>
+                </>
+              </ProtectedRoute>
             }
           />
 
           {/* Default Route: chuyển hướng về /login nếu không khớp */}
           <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </Router>
