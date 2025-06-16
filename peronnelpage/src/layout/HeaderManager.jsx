@@ -21,12 +21,13 @@ import {
   Logout,
   Settings,
 } from '@mui/icons-material';
-import { logout } from '../utils/auth';
+import { logout, getUserInfo } from '../utils/auth';
 
 const HeaderManager = ({ userName }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const userInfo = getUserInfo();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -48,6 +49,14 @@ const HeaderManager = ({ userName }) => {
     { text: 'Consultants', icon: <PeopleIcon />, path: '/manager/consultants' },
     { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
   ];
+
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  const getAvatarText = () => {
+    if (userName) {
+      return userName.charAt(0).toUpperCase();
+    }
+    return 'M';
+  };
 
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
@@ -86,7 +95,15 @@ const HeaderManager = ({ userName }) => {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+            {userInfo?.avatar ? (
+              <Avatar 
+                sx={{ width: 32, height: 32 }} 
+                src={userInfo.avatar}
+                alt={userName}
+              />
+            ) : (
+              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+            )}
           </IconButton>
         </Box>
 

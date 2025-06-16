@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -19,16 +19,57 @@ import {
   Person,
   Lock,
 } from '@mui/icons-material';
+import { getAccessToken, setUserInfo, checkAndRefreshToken } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+
+  // Kiểm tra đăng nhập khi load trang
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getAccessToken();
+      if (token) {
+        try {
+          const response = await axios.post('http://localhost:8080/api/auth/me', {
+            accessToken: token
+          });
+          
+          // Lưu thông tin người dùng
+          setUserInfo(response.data);
+          
+          // Nếu token hợp lệ, chuyển hướng người dùng theo role
+          handleRoleNavigation(response.data.role);
+        } catch (err) {
+          if (err.response && err.response.status === 401) {
+            // Token hết hạn, thử refresh
+            const refreshSuccess = await checkAndRefreshToken();
+            if (refreshSuccess) {
+              // Nếu refresh thành công, lấy lại thông tin người dùng
+              try {
+                const userResponse = await axios.post('http://localhost:8080/api/auth/me', {
+                  accessToken: getAccessToken()
+                });
+                setUserInfo(userResponse.data);
+                handleRoleNavigation(userResponse.data.role);
+              } catch (error) {
+                console.error('Error fetching user info after token refresh:', error);
+              }
+            }
+          }
+        }
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +82,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     // Kiểm tra thông tin đăng nhập
@@ -60,38 +102,35 @@ const Login = () => {
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       
-      // Lấy thông tin vai trò từ token
-      const userRole = getUserRoleFromToken(response.data.accessToken);
+      setSuccess('Đăng nhập thành công!');
       
-      // Kiểm tra vai trò và điều hướng
-      if (userRole) {
-        // Xử lý các chuỗi vai trò có định dạng ROLE_XXX
-        if (userRole.includes('ROLE_ADMIN') || userRole === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (userRole.includes('ROLE_MANAGER') || userRole === 'manager') {
-          navigate('/manager/dashboard');
-        } else if (userRole.includes('ROLE_CONSULTANT') || userRole === 'consultant') {
-          navigate('/consultant/dashboard');
-        } else if (userRole.includes('ROLE_MEMBER')) {
-          // Không cho phép member đăng nhập vào hệ thống
-          setError('Bạn không có quyền truy cập vào hệ thống này!');
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        } else {
-          setError('Bạn không có quyền truy cập vào hệ thống này!');
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        }
-      } else {
-        setError('Không tìm thấy thông tin vai trò trong tài khoản!');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+      // Gọi API lấy thông tin người dùng
+      try {
+        const userResponse = await axios.post('http://localhost:8080/api/auth/me', {
+          accessToken: response.data.accessToken
+        });
+        
+        // Lưu thông tin người dùng
+        setUserInfo(userResponse.data);
+        
+        // Xử lý điều hướng dựa trên role
+        setTimeout(() => {
+          handleRoleNavigation(userResponse.data.role);
+        }, 1000);
+        
+      } catch (err) {
+        setError('Không thể lấy thông tin người dùng');
+        console.error('User info error:', err);
       }
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        setError(err.response.data.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
+      if (err.response) {
+        if (err.response.status === 400 || err.response.status === 401) {
+          setError(err.response.data.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
+        } else {
+          setError('Có lỗi xảy ra. Vui lòng thử lại!');
+        }
       } else {
-        setError('Có lỗi xảy ra. Vui lòng thử lại!');
+        setError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau!');
       }
       console.error('Login error:', err);
     } finally {
@@ -99,16 +138,31 @@ const Login = () => {
     }
   };
 
-  // Hàm phân tích token để lấy thông tin vai trò
-  const getUserRoleFromToken = (token) => {
-    try {
-      // Phân tích JWT token để lấy thông tin
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      // Kiểm tra trường role hoặc authorities (tùy vào cấu trúc token)
-      return tokenPayload.role || (tokenPayload.authorities ? tokenPayload.authorities[0] : null);
-    } catch (e) {
-      console.error('Invalid token format', e);
-      return null;
+  // Hàm xử lý điều hướng dựa trên role
+  const handleRoleNavigation = (role) => {
+    if (!role) {
+      setError('Không tìm thấy thông tin vai trò trong tài khoản!');
+      return;
+    }
+    
+    // Xử lý các chuỗi vai trò có định dạng ROLE_XXX
+    if (role.includes('ROLE_ADMIN') || role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (role.includes('ROLE_MANAGER') || role === 'manager') {
+      navigate('/manager/dashboard');
+    } else if (role.includes('ROLE_CONSULTANT') || role === 'consultant') {
+      navigate('/consultant/dashboard');
+    } else if (role.includes('ROLE_MEMBER')) {
+      // Không cho phép member đăng nhập vào hệ thống
+      setError('Bạn không có quyền truy cập vào hệ thống này!');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userInfo');
+    } else {
+      setError('Bạn không có quyền truy cập vào hệ thống này!');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userInfo');
     }
   };
 
@@ -154,6 +208,12 @@ const Login = () => {
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
+            </Alert>
+          )}
+          
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
             </Alert>
           )}
 

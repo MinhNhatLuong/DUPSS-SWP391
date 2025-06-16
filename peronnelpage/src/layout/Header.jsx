@@ -21,12 +21,13 @@ import {
   Logout,
   Settings,
 } from '@mui/icons-material';
-import { logout } from '../utils/auth';
+import { logout, getUserInfo } from '../utils/auth';
 
 const Header = ({ userName }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const userInfo = getUserInfo();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -46,6 +47,14 @@ const Header = ({ userName }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' }
   ];
+
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  const getAvatarText = () => {
+    if (userName) {
+      return userName.charAt(0).toUpperCase();
+    }
+    return 'A';
+  };
 
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
@@ -84,7 +93,15 @@ const Header = ({ userName }) => {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>A</Avatar>
+            {userInfo?.avatar ? (
+              <Avatar 
+                sx={{ width: 32, height: 32 }} 
+                src={userInfo.avatar}
+                alt={userName}
+              />
+            ) : (
+              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+            )}
           </IconButton>
         </Box>
 

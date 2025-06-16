@@ -33,7 +33,7 @@ import {
 } from '@mui/icons-material';
 import NotificationService from '../services/NotificationService';
 import dayjs from 'dayjs';
-import { logout } from '../utils/auth';
+import { logout, getUserInfo } from '../utils/auth';
 
 const HeaderConsultant = ({ userName }) => {
   const navigate = useNavigate();
@@ -42,6 +42,7 @@ const HeaderConsultant = ({ userName }) => {
   const [notifications, setNotifications] = useState([]);
   const open = Boolean(anchorEl);
   const notifOpen = Boolean(notifAnchorEl);
+  const userInfo = getUserInfo();
 
   useEffect(() => {
     const unsub = NotificationService.subscribe((notification) => {
@@ -98,6 +99,14 @@ const HeaderConsultant = ({ userName }) => {
     }
   };
 
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  const getAvatarText = () => {
+    if (userName) {
+      return userName.charAt(0).toUpperCase();
+    }
+    return 'C';
+  };
+
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
       <Toolbar>
@@ -149,7 +158,15 @@ const HeaderConsultant = ({ userName }) => {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>C</Avatar>
+            {userInfo?.avatar ? (
+              <Avatar 
+                sx={{ width: 32, height: 32 }} 
+                src={userInfo.avatar}
+                alt={userName}
+              />
+            ) : (
+              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+            )}
           </IconButton>
         </Box>
 
