@@ -93,13 +93,13 @@ const RelatedArticles = ({ articles }) => {
           <ArticleCard key={article.id}>
             <ArticleImage>
               <StyledCardMedia
-                src={article.thumbnail}
+                src={article.coverImage}
                 alt={article.title}
                 loading="lazy"
               />
             </ArticleImage>
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
-              <ArticleChip label={article.tag} size="small" />
+              <ArticleChip label={article.topic} size="small" />
               
               <Typography 
                 variant="h6" 
@@ -133,7 +133,7 @@ const RelatedArticles = ({ articles }) => {
                   WebkitBoxOrient: 'vertical'
                 }}
               >
-                {article.shortDescription}
+                {article.summary}
               </Typography>
               
               <ReadMoreLink to={`/blogs/${article.id}`}>
