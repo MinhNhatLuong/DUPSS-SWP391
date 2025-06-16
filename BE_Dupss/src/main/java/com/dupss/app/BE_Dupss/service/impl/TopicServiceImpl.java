@@ -63,6 +63,7 @@ public class TopicServiceImpl implements TopicService {
 
         return topics.stream()
                 .map(topic -> new TopicResponse(
+                        topic.getId(),
                         topic.getName(),
                         topic.getDescription(),
                         topic.getCreator().getFullname(),
@@ -76,6 +77,7 @@ public class TopicServiceImpl implements TopicService {
     public List<TopicResponse> getAllTopics() {
         return topicRepository.findAll().stream()
                 .map(topic -> new TopicResponse(
+                        topic.getId(),
                         topic.getName(),
                         topic.getDescription(),
                         topic.getCreator().getFullname(),

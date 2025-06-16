@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class TopicResponse {
+    private Long id;
     private String topicName;
     private String topicDescription;
     private String creatorName;
