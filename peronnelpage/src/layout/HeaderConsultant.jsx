@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import NotificationService from '../services/NotificationService';
 import dayjs from 'dayjs';
+import { logout } from '../utils/auth';
 
 const HeaderConsultant = ({ userName }) => {
   const navigate = useNavigate();
@@ -74,7 +75,9 @@ const HeaderConsultant = ({ userName }) => {
   };
 
   const handleLogout = () => {
-    navigate('/login');
+    logout(() => {
+      navigate('/login');
+    });
   };
 
   const menuItems = [

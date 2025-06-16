@@ -13,11 +13,13 @@ import CourseDetail from './components/courses/CourseDetail';
 import CourseLearning from './components/courses/CourseLearning';
 import SurveysList from './components/surveys/SurveysList';
 import SurveyDetail from './components/surveys/SurveyDetail';
+import AlertNotification from './components/common/AlertNotification';
 import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
+      <AlertNotification />
       <Routes>
         <Route path="/" element={
           <Layout>

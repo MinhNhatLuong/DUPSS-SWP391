@@ -70,11 +70,11 @@ const Register = () => {
     e.preventDefault();
     
     try {
-      // Format birthDate to MM/DD/YYYY format for the API if it exists
+      // Format birthDate to DD/MM/YYYY format for the API if it exists
       const yobFormat = formData.birthDate ? 
-        new Date(formData.birthDate).toLocaleDateString('en-US', {
-          month: '2-digit',
+        new Date(formData.birthDate).toLocaleDateString('en-GB', {
           day: '2-digit',
+          month: '2-digit',
           year: 'numeric'
         }) : '';
         

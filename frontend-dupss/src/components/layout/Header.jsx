@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { TextField, Button, Box, Container, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import AuthButtons from './AuthButtons';
 
 const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -34,22 +34,7 @@ const Header = () => {
           </form>
         </div>
         
-        <div className="user-actions">
-          {!isLoggedIn ? (
-            <div className="auth-buttons">
-              <RouterLink to="/login" className="login-btn">Đăng nhập</RouterLink>
-              <RouterLink to="/register" className="register-btn">Đăng ký</RouterLink>
-            </div>
-          ) : (
-            <div className="user-dropdown">
-              <button className="dropbtn">Tài khoản <i className="fas fa-caret-down"></i></button>
-              <div className="dropdown-content">
-                <RouterLink to="/profile">Hồ sơ</RouterLink>
-                <a href="#" onClick={() => setIsLoggedIn(false)}>Đăng xuất</a>
-              </div>
-            </div>
-          )}
-        </div>
+        <AuthButtons />
       </div>
     </header>
   );

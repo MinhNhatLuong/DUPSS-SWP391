@@ -21,6 +21,7 @@ import {
   Logout,
   Settings,
 } from '@mui/icons-material';
+import { logout } from '../utils/auth';
 
 const Header = ({ userName }) => {
   const navigate = useNavigate();
@@ -36,8 +37,10 @@ const Header = ({ userName }) => {
   };
 
   const handleLogout = () => {
-    // Xử lý logout ở đây (xóa token, clear state, etc.)
-    navigate('/login');
+    // Sử dụng hàm logout từ auth.js và chuyển callback để điều hướng
+    logout(() => {
+      navigate('/login');
+    });
   };
 
   const menuItems = [

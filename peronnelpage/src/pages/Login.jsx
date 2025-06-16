@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   Box,
   Card,
@@ -7,14 +8,9 @@ import {
   TextField,
   Button,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   InputAdornment,
   IconButton,
   Paper,
-  Avatar,
   Alert,
 } from '@mui/material';
 import {
@@ -22,7 +18,6 @@ import {
   VisibilityOff,
   Person,
   Lock,
-  School,
 } from '@mui/icons-material';
 
 const Login = () => {
@@ -33,7 +28,6 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    role: '',
   });
 
   const handleChange = (e) => {
@@ -44,29 +38,78 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     // Kiểm tra thông tin đăng nhập
-    if (!formData.username || !formData.password || !formData.role) {
+    if (!formData.username || !formData.password) {
       setError('Vui lòng điền đầy đủ thông tin!');
       setLoading(false);
       return;
     }
 
-    // Giả lập đăng nhập
-    setTimeout(() => {
-      setLoading(false);
-      if (formData.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (formData.role === 'manager') {
-        navigate('/manager/dashboard');
-      } else if (formData.role === 'consultant') {
-        navigate('/consultant/dashboard');
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
+        username: formData.username,
+        password: formData.password
+      });
+
+      // Lưu token vào local storage
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      
+      // Lấy thông tin vai trò từ token
+      const userRole = getUserRoleFromToken(response.data.accessToken);
+      
+      // Kiểm tra vai trò và điều hướng
+      if (userRole) {
+        // Xử lý các chuỗi vai trò có định dạng ROLE_XXX
+        if (userRole.includes('ROLE_ADMIN') || userRole === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (userRole.includes('ROLE_MANAGER') || userRole === 'manager') {
+          navigate('/manager/dashboard');
+        } else if (userRole.includes('ROLE_CONSULTANT') || userRole === 'consultant') {
+          navigate('/consultant/dashboard');
+        } else if (userRole.includes('ROLE_MEMBER')) {
+          // Không cho phép member đăng nhập vào hệ thống
+          setError('Bạn không có quyền truy cập vào hệ thống này!');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        } else {
+          setError('Bạn không có quyền truy cập vào hệ thống này!');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
+      } else {
+        setError('Không tìm thấy thông tin vai trò trong tài khoản!');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       }
-    }, 1000);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setError(err.response.data.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
+      } else {
+        setError('Có lỗi xảy ra. Vui lòng thử lại!');
+      }
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Hàm phân tích token để lấy thông tin vai trò
+  const getUserRoleFromToken = (token) => {
+    try {
+      // Phân tích JWT token để lấy thông tin
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      // Kiểm tra trường role hoặc authorities (tùy vào cấu trúc token)
+      return tokenPayload.role || (tokenPayload.authorities ? tokenPayload.authorities[0] : null);
+    } catch (e) {
+      console.error('Invalid token format', e);
+      return null;
+    }
   };
 
   return (
@@ -159,20 +202,6 @@ const Login = () => {
                 ),
               }}
             />
-
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel>Vai trò</InputLabel>
-              <Select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                label="Vai trò"
-              >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="manager">Manager</MenuItem>
-                <MenuItem value="consultant">Consultant</MenuItem>
-              </Select>
-            </FormControl>
 
             <Button
               type="submit"
