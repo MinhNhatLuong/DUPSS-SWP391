@@ -55,6 +55,7 @@ public class BlogServiceImpl implements BlogService {
         // Create new blog
         Blog blog = new Blog();
         blog.setTitle(blogRequest.getTitle());
+        blog.setDescription(blogRequest.getDescription());
         blog.setContent(blogRequest.getContent());
         blog.setAuthor(author);
         blog.setStatus(ApprovalStatus.PENDING);
@@ -152,21 +153,6 @@ public class BlogServiceImpl implements BlogService {
                 .collect(Collectors.toList());
     }
 
-    private String generateSummary(String content) {
-        if (content == null) return "";
-
-        // Dùng Jsoup để loại bỏ tất cả tag và decode entity
-        String plainText = Jsoup.parse(content).text();
-
-        int maxLength = 150;
-        if (plainText.length() <= maxLength) {
-            return plainText;
-        }
-
-        int end = plainText.lastIndexOf(" ", maxLength);
-        if (end == -1) end = maxLength;
-        return plainText.substring(0, end) + "...";
-    }
 
     public List<BlogHomeResponse> getLatestBlogs() {
         return blogRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
@@ -181,7 +167,7 @@ public class BlogServiceImpl implements BlogService {
                         res.setCoverImage(blog.getImages().getFirst().getImageUrl());
                     }
 
-                    res.setSummary(generateSummary(blog.getContent()));
+                    res.setSummary(blog.getDescription());
                     res.setCreatedAt(blog.getCreatedAt());
                     res.setTags(blog.getTags());
                     return res;
@@ -202,7 +188,7 @@ public class BlogServiceImpl implements BlogService {
                     dto.setTitle(blog.getTitle());
                     dto.setTags(blog.getTags());
                     dto.setCreatedAt(blog.getCreatedAt());
-                    dto.setSummary(generateSummary(blog.getContent()));
+                    dto.setSummary(blog.getDescription());
 
                     if (blog.getImages() != null && !blog.getImages().isEmpty()) {
                         dto.setCoverImage(blog.getImages().getFirst().getImageUrl());
@@ -219,6 +205,7 @@ public class BlogServiceImpl implements BlogService {
                 .id(blog.getId())
                 .title(blog.getTitle())
                 .topic(blog.getTopic().getName())
+                .description(blog.getDescription())
                 .content(blog.getContent())
                 .imageUrls(imageUrls)
                 .authorName(authorName)

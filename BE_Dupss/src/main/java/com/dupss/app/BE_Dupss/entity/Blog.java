@@ -22,6 +22,7 @@ public class Blog {
     @ManyToOne
     @JoinColumn(name = "topic_id")
     private Topic topic;
+    private String description;
     @Lob
     @Column(columnDefinition = "TEXT")
     private String content;

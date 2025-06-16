@@ -17,6 +17,7 @@ public class BlogResponse {
     private Long id;
     private String title;
     private String topic;
+    private String description;
     private String content;
     private List<String> imageUrls;
     private String authorName;
