@@ -186,6 +186,7 @@ public class BlogServiceImpl implements BlogService {
                     BlogHomeResponse dto = new BlogHomeResponse();
                     dto.setId(blog.getId());
                     dto.setTitle(blog.getTitle());
+                    dto.setTopic(blog.getTopic().getName());
                     dto.setTags(blog.getTags());
                     dto.setCreatedAt(blog.getCreatedAt());
                     dto.setSummary(blog.getDescription());
