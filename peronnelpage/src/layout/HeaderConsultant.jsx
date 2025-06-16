@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -12,12 +12,6 @@ import {
   IconButton,
   ListItemIcon,
   Divider,
-  Badge,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Avatar as MuiAvatar,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -27,35 +21,14 @@ import {
   AccountCircle,
   Logout,
   Settings,
-  Notifications as NotificationsIcon,
-  Event as EventIcon,
-  Assignment as RequestIcon,
 } from '@mui/icons-material';
-import NotificationService from '../services/NotificationService';
-import dayjs from 'dayjs';
 import { logout, getUserInfo } from '../utils/auth';
 
 const HeaderConsultant = ({ userName }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [notifAnchorEl, setNotifAnchorEl] = useState(null);
-  const [notifications, setNotifications] = useState([]);
   const open = Boolean(anchorEl);
-  const notifOpen = Boolean(notifAnchorEl);
   const userInfo = getUserInfo();
-
-  useEffect(() => {
-    const unsub = NotificationService.subscribe((notification) => {
-      setNotifications(prev => [{
-        id: Date.now(),
-        type: notification.type,
-        message: notification.message,
-        description: notification.description,
-        timestamp: new Date(),
-      }, ...prev]);
-    });
-    return unsub;
-  }, []);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -63,16 +36,6 @@ const HeaderConsultant = ({ userName }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleNotifClick = (event) => {
-    setNotifAnchorEl(event.currentTarget);
-  };
-
-  const handleNotifClose = () => {
-    setNotifAnchorEl(null);
-    // Clear notifications when closing the menu
-    setNotifications([]);
   };
 
   const handleLogout = () => {
@@ -87,17 +50,6 @@ const HeaderConsultant = ({ userName }) => {
     { text: 'Booking Requests', icon: <AssignmentIcon />, path: '/consultant/requests' },
     { text: 'Lịch sử', icon: <HistoryIcon />, path: '/consultant/history' },
   ];
-
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'info':
-        return <RequestIcon color="primary" />;
-      case 'warning':
-        return <EventIcon color="warning" />;
-      default:
-        return <NotificationsIcon color="action" />;
-    }
-  };
 
   // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
   const getAvatarText = () => {
@@ -133,20 +85,6 @@ const HeaderConsultant = ({ userName }) => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton
-            color="inherit"
-            onClick={handleNotifClick}
-            sx={{ mr: 1 }}
-          >
-            <Badge
-              badgeContent={notifications.length}
-              color="error"
-              invisible={notifications.length === 0}
-            >
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-
           <Typography variant="body1" sx={{ mr: 1 }}>
             {userName || 'Consultant'}
           </Typography>
@@ -199,46 +137,6 @@ const HeaderConsultant = ({ userName }) => {
             </ListItemIcon>
             Logout
           </MenuItem>
-        </Menu>
-
-        {/* Notifications Menu */}
-        <Menu
-          anchorEl={notifAnchorEl}
-          open={notifOpen}
-          onClose={handleNotifClose}
-          PaperProps={{
-            sx: { width: 360, maxHeight: 400 }
-          }}
-        >
-          <List sx={{ width: '100%', p: 0 }}>
-            {notifications.length > 0 ? (
-              notifications.map((notification) => (
-                <ListItem key={notification.id} alignItems="flex-start">
-                  <ListItemAvatar>
-                    <MuiAvatar sx={{ bgcolor: 'background.paper' }}>
-                      {getNotificationIcon(notification.type)}
-                    </MuiAvatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={notification.message}
-                    secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="text.primary">
-                          {notification.description}
-                        </Typography>
-                        <br />
-                        {dayjs(notification.timestamp).format('HH:mm DD/MM/YYYY')}
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))
-            ) : (
-              <ListItem>
-                <ListItemText primary="Không có thông báo mới" />
-              </ListItem>
-            )}
-          </List>
         </Menu>
       </Toolbar>
     </AppBar>
