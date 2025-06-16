@@ -23,6 +23,7 @@ public class Blog {
     @JoinColumn(name = "topic_id")
     private Topic topic;
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
     @OneToMany(mappedBy = "blogPost", cascade = CascadeType.ALL)
     private List<BlogImage> images = new ArrayList<>();
