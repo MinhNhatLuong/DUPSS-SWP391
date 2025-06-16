@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { getAccessToken, setUserInfo, checkAndRefreshToken } from '../utils/auth';
 
-const Login = () => {
+const Login = ({ updateUserInfo }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +44,8 @@ const Login = () => {
           
           // Lưu thông tin người dùng
           setUserInfo(response.data);
+          // Cập nhật state userInfo ở App component
+          if (updateUserInfo) updateUserInfo();
           
           // Nếu token hợp lệ, chuyển hướng người dùng theo role
           handleRoleNavigation(response.data.role);
@@ -58,6 +60,8 @@ const Login = () => {
                   accessToken: getAccessToken()
                 });
                 setUserInfo(userResponse.data);
+                // Cập nhật state userInfo ở App component
+                if (updateUserInfo) updateUserInfo();
                 handleRoleNavigation(userResponse.data.role);
               } catch (error) {
                 console.error('Error fetching user info after token refresh:', error);
@@ -69,7 +73,7 @@ const Login = () => {
     };
     
     checkAuth();
-  }, [navigate]);
+  }, [navigate, updateUserInfo]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -112,6 +116,8 @@ const Login = () => {
         
         // Lưu thông tin người dùng
         setUserInfo(userResponse.data);
+        // Cập nhật state userInfo ở App component
+        if (updateUserInfo) updateUserInfo();
         
         // Xử lý điều hướng dựa trên role
         setTimeout(() => {

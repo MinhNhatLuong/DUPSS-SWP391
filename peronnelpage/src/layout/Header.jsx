@@ -48,7 +48,7 @@ const Header = ({ userName }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' }
   ];
 
-  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
   const getAvatarText = () => {
     if (userName) {
       return userName.charAt(0).toUpperCase();
@@ -83,7 +83,7 @@ const Header = ({ userName }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName}
+            {userName || 'Admin'}
           </Typography>
           <IconButton
             onClick={handleClick}
@@ -97,10 +97,10 @@ const Header = ({ userName }) => {
               <Avatar 
                 sx={{ width: 32, height: 32 }} 
                 src={userInfo.avatar}
-                alt={userName}
+                alt={userName || 'Admin'}
               />
             ) : (
-              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#1565c0' }}>{getAvatarText()}</Avatar>
             )}
           </IconButton>
         </Box>

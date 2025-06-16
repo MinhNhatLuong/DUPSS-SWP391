@@ -69,12 +69,36 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 function App() {
   const [userInfo, setUserInfo] = useState(null);
   
-  useEffect(() => {
-    // Load user info from localStorage
+  // Hàm để cập nhật thông tin người dùng từ localStorage
+  const updateUserInfo = () => {
     const info = getUserInfo();
     if (info) {
       setUserInfo(info);
     }
+  };
+  
+  useEffect(() => {
+    // Load user info from localStorage khi component được mount
+    updateUserInfo();
+    
+    // Thêm event listener để lắng nghe thay đổi trong localStorage
+    const handleStorageChange = (e) => {
+      if (e.key === 'userInfo') {
+        updateUserInfo();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Kiểm tra userInfo định kỳ (mỗi 5 giây)
+    const interval = setInterval(() => {
+      updateUserInfo();
+    }, 5000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
   
   return (
@@ -82,7 +106,7 @@ function App() {
       <div className="app">
         <Routes>
           {/* Login Route */}
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login updateUserInfo={updateUserInfo} />} />
 
           {/* Admin Routes */}
           <Route

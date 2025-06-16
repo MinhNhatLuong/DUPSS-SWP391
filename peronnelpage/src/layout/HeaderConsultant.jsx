@@ -99,7 +99,7 @@ const HeaderConsultant = ({ userName }) => {
     }
   };
 
-  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
   const getAvatarText = () => {
     if (userName) {
       return userName.charAt(0).toUpperCase();
@@ -148,7 +148,7 @@ const HeaderConsultant = ({ userName }) => {
           </IconButton>
 
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName}
+            {userName || 'Consultant'}
           </Typography>
           <IconButton
             onClick={handleClick}
@@ -162,10 +162,10 @@ const HeaderConsultant = ({ userName }) => {
               <Avatar 
                 sx={{ width: 32, height: 32 }} 
                 src={userInfo.avatar}
-                alt={userName}
+                alt={userName || 'Consultant'}
               />
             ) : (
-              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#8e24aa' }}>{getAvatarText()}</Avatar>
             )}
           </IconButton>
         </Box>

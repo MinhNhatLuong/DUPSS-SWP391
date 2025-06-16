@@ -50,7 +50,7 @@ const HeaderManager = ({ userName }) => {
     { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
   ];
 
-  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar
+  // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
   const getAvatarText = () => {
     if (userName) {
       return userName.charAt(0).toUpperCase();
@@ -85,7 +85,7 @@ const HeaderManager = ({ userName }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName}
+            {userName || 'Manager'}
           </Typography>
           <IconButton
             onClick={handleClick}
@@ -99,10 +99,10 @@ const HeaderManager = ({ userName }) => {
               <Avatar 
                 sx={{ width: 32, height: 32 }} 
                 src={userInfo.avatar}
-                alt={userName}
+                alt={userName || 'Manager'}
               />
             ) : (
-              <Avatar sx={{ width: 32, height: 32 }}>{getAvatarText()}</Avatar>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#ffa000' }}>{getAvatarText()}</Avatar>
             )}
           </IconButton>
         </Box>
