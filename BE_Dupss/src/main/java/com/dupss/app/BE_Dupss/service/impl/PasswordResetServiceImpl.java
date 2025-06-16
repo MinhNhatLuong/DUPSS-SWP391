@@ -36,34 +36,66 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Override
     @Transactional
     public ForgotPasswordResponse sendOtp(ForgotPasswordRequest request) {
-        // Kiểm tra email có tồn tại trong hệ thống không
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với email: " + request.getEmail()));
-        
-        // Tạo mã OTP ngẫu nhiên 4 chữ số
-        String otp = generateOtp();
-        
-        // Lưu OTP vào database
-        PasswordResetOtp passwordResetOtp = PasswordResetOtp.builder()
-                .email(request.getEmail())
-                .otp(otp)
-                .used(false)
-                .build();
-        
-        otpRepository.save(passwordResetOtp);
-        
-        // Gửi email chứa OTP
         try {
-            sendOtpEmail(request.getEmail(), otp);
-            return ForgotPasswordResponse.builder()
-                    .success(true)
-                    .message("Mã OTP đã được gửi đến email của bạn")
+            log.info("Bắt đầu xử lý yêu cầu quên mật khẩu cho email: {}", request.getEmail());
+            
+            // Kiểm tra email có tồn tại trong hệ thống không
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với email: " + request.getEmail()));
+            
+            // Tạo mã OTP ngẫu nhiên 4 chữ số
+            String otp = generateOtp();
+            log.info("Đã tạo mã OTP {} cho email {}", otp, request.getEmail());
+            
+            // Lưu OTP vào database
+            PasswordResetOtp passwordResetOtp = PasswordResetOtp.builder()
+                    .email(request.getEmail())
+                    .otp(otp)
+                    .used(false)
                     .build();
-        } catch (Exception e) {
-            log.error("Lỗi khi gửi email OTP: {}", e.getMessage());
+            
+            PasswordResetOtp savedOtp = otpRepository.save(passwordResetOtp);
+            log.info("Đã lưu mã OTP vào database với ID: {}", savedOtp.getId());
+            
+            // Gửi email chứa OTP
+            try {
+                sendOtpEmail(request.getEmail(), otp);
+                log.info("Đã gửi mã OTP thành công đến email: {}", request.getEmail());
+                
+                return ForgotPasswordResponse.builder()
+                        .success(true)
+                        .message("Mã OTP đã được gửi đến email của bạn")
+                        .build();
+            } catch (MessagingException e) {
+                log.error("Lỗi khi gửi email OTP: {}", e.getMessage(), e);
+                return ForgotPasswordResponse.builder()
+                        .success(false)
+                        .message("Không thể gửi mã OTP qua email, vui lòng kiểm tra lại địa chỉ email hoặc thử lại sau")
+                        .build();
+            } catch (UnsupportedEncodingException e) {
+                log.error("Lỗi mã hóa khi gửi email OTP: {}", e.getMessage(), e);
+                return ForgotPasswordResponse.builder()
+                        .success(false)
+                        .message("Lỗi hệ thống khi gửi mã OTP, vui lòng thử lại sau")
+                        .build();
+            } catch (Exception e) {
+                log.error("Lỗi không xác định khi gửi email OTP: {}", e.getMessage(), e);
+                return ForgotPasswordResponse.builder()
+                        .success(false)
+                        .message("Lỗi hệ thống khi gửi mã OTP, vui lòng thử lại sau")
+                        .build();
+            }
+        } catch (ResourceNotFoundException e) {
+            log.error("Email không tồn tại trong hệ thống: {}", request.getEmail());
             return ForgotPasswordResponse.builder()
                     .success(false)
-                    .message("Không thể gửi mã OTP, vui lòng thử lại sau")
+                    .message("Không tìm thấy tài khoản với email này")
+                    .build();
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi xử lý yêu cầu quên mật khẩu: {}", e.getMessage(), e);
+            return ForgotPasswordResponse.builder()
+                    .success(false)
+                    .message("Lỗi hệ thống, vui lòng thử lại sau")
                     .build();
         }
     }
@@ -114,14 +146,21 @@ public class PasswordResetServiceImpl implements PasswordResetService {
      * Gửi email chứa mã OTP
      */
     private void sendOtpEmail(String email, String otp) throws MessagingException, UnsupportedEncodingException {
-        // Tạo context cho Thymeleaf template
-        Context context = new Context();
-        context.setVariable("otp", otp);
-        
-        // Xử lý template
-        String emailContent = templateEngine.process("email/reset-password-otp", context);
-        
-        // Gửi email
-        mailService.sendEmail("Mã xác nhận đặt lại mật khẩu DUPSS", emailContent, email);
+        try {
+            // Tạo context cho Thymeleaf template
+            Context context = new Context();
+            context.setVariable("otp", otp);
+            
+            // Xử lý template
+            String emailContent = templateEngine.process("email/reset-password-otp", context);
+            
+            // Gửi email - sửa thứ tự tham số cho đúng
+            mailService.sendEmail(email, "Mã xác nhận đặt lại mật khẩu DUPSS", emailContent);
+            
+            log.info("Đã gửi mã OTP {} đến email {}", otp, email);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi email OTP: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 } 

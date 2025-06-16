@@ -95,6 +95,16 @@ public class EmailServiceImpl implements EmailService {
     
     public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         try {
+            log.info("Bắt đầu gửi email đến: {}, với tiêu đề: {}", to, subject);
+            
+            if (to == null || to.trim().isEmpty()) {
+                throw new IllegalArgumentException("Địa chỉ email người nhận không được để trống");
+            }
+            
+            if (content == null || content.trim().isEmpty()) {
+                throw new IllegalArgumentException("Nội dung email không được để trống");
+            }
+            
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
@@ -104,10 +114,15 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(content, true);
             
             mailSender.send(message);
-            log.debug("Email đã được gửi thành công tới: {}", to);
-        } catch (Exception e) {
-            log.error("Lỗi khi gửi email tới {}: {}", to, e.getMessage(), e);
+            log.info("Email đã được gửi thành công đến: {}", to);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("Lỗi khi gửi email đến {}: {}", to, e.getMessage());
+            log.error("Chi tiết lỗi:", e);
             throw e;
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi gửi email đến {}: {}", to, e.getMessage());
+            log.error("Chi tiết lỗi:", e);
+            throw new MessagingException("Không thể gửi email: " + e.getMessage(), e);
         }
     }
     
