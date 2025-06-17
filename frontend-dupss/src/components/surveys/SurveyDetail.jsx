@@ -88,7 +88,18 @@ const SurveyDetail = () => {
   const calculateResult = () => {
     // Tính tổng điểm từ tất cả các câu trả lời
     let totalScore = 0;
+    let maxPossibleScore = 0;
 
+    // Tính tổng điểm và điểm tối đa
+    survey.survey.section.forEach(section => {
+      section.questions.forEach(question => {
+        // Tìm giá trị điểm cao nhất trong các lựa chọn
+        const maxOptionScore = Math.max(...question.options.map(opt => opt.value));
+        maxPossibleScore += maxOptionScore;
+      });
+    });
+
+    // Tính tổng điểm người dùng đã đạt được
     Object.values(answers).forEach(sectionAnswers => {
       Object.values(sectionAnswers).forEach(value => {
         totalScore += value;
@@ -130,7 +141,9 @@ const SurveyDetail = () => {
 
     setResult({
       score: totalScore,
-      message: resultMessage ? resultMessage.message : 'Không thể xác định kết quả'
+      maxScore: maxPossibleScore,
+      message: resultMessage ? resultMessage.message : 'Không thể xác định kết quả',
+      title: survey.title
     });
   };
 
@@ -237,178 +250,6 @@ const SurveyDetail = () => {
       </Paper>
     </Container>
   );
-};
-
-// Dữ liệu giả cho khảo sát CRAFFT
-const getCrafftData = () => {
-  return {
-    title: "CRAFFT Screening Test",
-    survey: {
-      section: [
-        {
-          sectionName: "Phần A - Sàng lọc",
-          questions: [
-            {
-              question: "Trong 12 tháng qua, bạn đã sử dụng rượu bia hay đồ uống có cồn bao nhiêu ngày?",
-              options: [
-                { option: "Không sử dụng", value: 0 },
-                { option: "1-2 ngày", value: 1 },
-                { option: "3-9 ngày", value: 2 },
-                { option: "10 ngày trở lên", value: 3 }
-              ]
-            },
-            {
-              question: "Trong 12 tháng qua, bạn đã sử dụng cần sa (marijuana) bao nhiêu ngày?",
-              options: [
-                { option: "Không sử dụng", value: 0 },
-                { option: "1-2 ngày", value: 1 },
-                { option: "3-9 ngày", value: 2 },
-                { option: "10 ngày trở lên", value: 3 }
-              ]
-            }
-          ]
-        },
-        {
-          sectionName: "Phần B - CRAFFT",
-          questions: [
-            {
-              question: "C - Bạn có từng đi trên một CHIẾC XE do người đã sử dụng rượu bia hoặc ma túy điều khiển không?",
-              options: [
-                { option: "Có", value: 1 },
-                { option: "Không", value: 0 }
-              ]
-            },
-            {
-              question: "R - Bạn có từng sử dụng rượu bia hoặc ma túy để GIẢI TỎA căng thẳng, cảm thấy thoải mái hơn hoặc hòa nhập với mọi người không?",
-              options: [
-                { option: "Có", value: 1 },
-                { option: "Không", value: 0 }
-              ]
-            },
-            {
-              question: "A - Bạn có từng sử dụng rượu bia hoặc ma túy khi MỘT MÌNH không?",
-              options: [
-                { option: "Có", value: 1 },
-                { option: "Không", value: 0 }
-              ]
-            },
-            {
-              question: "F - Bạn có từng QUÊN những việc đã làm khi sử dụng rượu bia hoặc ma túy không?",
-              options: [
-                { option: "Có", value: 1 },
-                { option: "Không", value: 0 }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    conditions: [
-      {
-        operator: "=",
-        value: 0,
-        message: "Không có dấu hiệu lạm dụng chất gây nghiện."
-      },
-      {
-        operator: "<=",
-        value: 1,
-        message: "Nguy cơ thấp. Tiếp tục duy trì lối sống lành mạnh."
-      },
-      {
-        operator: ">",
-        value: 1,
-        message: "Có dấu hiệu nguy cơ. Cần được tư vấn thêm từ chuyên gia y tế."
-      },
-      {
-        operator: ">=",
-        value: 4,
-        message: "Nguy cơ cao về rối loạn sử dụng chất. Cần được đánh giá và can thiệp từ chuyên gia."
-      }
-    ]
-  };
-};
-
-// Dữ liệu giả cho khảo sát ASSIST
-const getAssistData = () => {
-  return {
-    title: "ASSIST Assessment",
-    survey: {
-      section: [
-        {
-          sectionName: "Sử dụng chất gây nghiện",
-          questions: [
-            {
-              question: "Trong 3 tháng qua, bạn có sử dụng đồ uống có cồn với tần suất như thế nào?",
-              options: [
-                { option: "Không bao giờ", value: 0 },
-                { option: "Một hoặc hai lần", value: 2 },
-                { option: "Hàng tháng", value: 3 },
-                { option: "Hàng tuần", value: 4 },
-                { option: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
-              ]
-            },
-            {
-              question: "Trong 3 tháng qua, bạn có sử dụng thuốc lá với tần suất như thế nào?",
-              options: [
-                { option: "Không bao giờ", value: 0 },
-                { option: "Một hoặc hai lần", value: 2 },
-                { option: "Hàng tháng", value: 3 },
-                { option: "Hàng tuần", value: 4 },
-                { option: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
-              ]
-            }
-          ]
-        },
-        {
-          sectionName: "Mức độ rủi ro",
-          questions: [
-            {
-              question: "Mức độ thèm muốn hoặc cảm thấy bắt buộc phải sử dụng rượu hoặc các chất khác của bạn là gì?",
-              options: [
-                { option: "Không bao giờ", value: 0 },
-                { option: "Một hoặc hai lần", value: 3 },
-                { option: "Hàng tháng", value: 4 },
-                { option: "Hàng tuần", value: 5 },
-                { option: "Hàng ngày hoặc gần như hàng ngày", value: 6 }
-              ]
-            },
-            {
-              question: "Việc sử dụng chất gây nghiện đã từng gây ra vấn đề về sức khỏe, xã hội, pháp lý hoặc tài chính cho bạn chưa?",
-              options: [
-                { option: "Không bao giờ", value: 0 },
-                { option: "Một hoặc hai lần", value: 4 },
-                { option: "Hàng tháng", value: 5 },
-                { option: "Hàng tuần", value: 6 },
-                { option: "Hàng ngày hoặc gần như hàng ngày", value: 7 }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    conditions: [
-      {
-        operator: "<=",
-        value: 3,
-        message: "Nguy cơ thấp. Tiếp tục duy trì lối sống lành mạnh."
-      },
-      {
-        operator: "<=",
-        value: 10,
-        message: "Nguy cơ trung bình. Nên cân nhắc giảm mức độ sử dụng."
-      },
-      {
-        operator: "<=",
-        value: 19,
-        message: "Nguy cơ cao. Nên tìm kiếm sự tư vấn từ chuyên gia y tế."
-      },
-      {
-        operator: ">",
-        value: 19,
-        message: "Nguy cơ rất cao. Cần được can thiệp ngay lập tức."
-      }
-    ]
-  };
 };
 
 export default SurveyDetail; 
