@@ -98,13 +98,7 @@ public class SurveyServiceImpl implements SurveyService {
         survey.setConditions(conditionList);
         Survey savedSurvey = surveyRepository.save(survey);
         return SurveyResponse.builder()
-                .id(savedSurvey.getId())
                 .title(savedSurvey.getTitle())
-                .image(savedSurvey.getSurveyImage())
-                .description(savedSurvey.getDescription())
-                .createdAt(savedSurvey.getCreatedAt())
-                .creator(savedSurvey.getCreatedBy().getUsername())
-                .active(savedSurvey.isActive())
                 .sections(savedSurvey.getSections().stream()
                         .map(SurveyResponse.SurveySectionDTO::fromEntity)
                         .collect(Collectors.toList()))
@@ -134,13 +128,7 @@ public class SurveyServiceImpl implements SurveyService {
     Survey survey = surveyRepository.findById(surveyId)
             .orElseThrow(() -> new RuntimeException("Survey not found"));
         return SurveyResponse.builder()
-                .id(survey.getId())
                 .title(survey.getTitle())
-                .image(survey.getSurveyImage())
-                .description(survey.getDescription())
-                .createdAt(survey.getCreatedAt())
-                .creator(survey.getCreatedBy().getUsername())
-                .active(survey.isActive())
                 .sections(survey.getSections().stream()
                         .map(SurveyResponse.SurveySectionDTO::fromEntity)
                         .collect(Collectors.toList()))

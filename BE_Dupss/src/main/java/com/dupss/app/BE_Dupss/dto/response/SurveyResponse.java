@@ -16,13 +16,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Builder
 public class SurveyResponse {
-    private Long id;
     private String title;
-    private String description;
-    private String image;
-    private LocalDateTime createdAt;
-    private String creator;
-    private boolean active;
     //    private List<SurveyQuestionDTO> questions;
     private List<SurveySectionDTO> sections;
     private List<SurveyConditionDTO> conditions;
@@ -54,8 +48,6 @@ public class SurveyResponse {
     public static class SurveyQuestionDTO {
         private Long id;
         private String questionText;
-        private Integer orderNumber;
-        private boolean required;
         private List<SurveyOptionDTO> options;
 
         public static SurveyQuestionDTO fromEntity(SurveyQuestion question) {
@@ -79,7 +71,6 @@ public class SurveyResponse {
     public static class SurveyOptionDTO {
         private Long id;
         private String optionText;
-        private Integer orderNumber;
         private Integer score;
 
         public static SurveyOptionDTO fromEntity(SurveyOption option) {
