@@ -15,19 +15,19 @@ import java.util.List;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByCreator(User creator);
-    List<Course> findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus status);
+    List<Course> findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus status);
     
-    @Query("SELECT c FROM Course c WHERE c.isActive = true AND c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
-           "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Course> searchCourses(@Param("keyword") String keyword, Pageable pageable);
-    
-    @Query("SELECT c FROM Course c WHERE c.isActive = true AND c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
-           "c.targetAudience = :targetAudience AND " +
-           "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Course> searchCoursesByTargetAudience(
-            @Param("keyword") String keyword, 
-            @Param("targetAudience") String targetAudience, 
-            Pageable pageable);
+//    @Query("SELECT c FROM Course c JOIN Topic t on c.topic.id = t.id WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
+//            "(:topic IS NULL OR c.topic.id = :topic) OR " +
+//           "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+//           "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+@Query("SELECT c FROM Course c " +
+        "WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND (" +
+        "(:topic IS NULL OR c.topic.id = :topic) AND (" +
+        "LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+        "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+        "LOWER(c.topic.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+        "))")
+    Page<Course> searchCourses(@Param("keyword") String keyword,@Param("topic") Long topic, Pageable pageable);
+
 } 

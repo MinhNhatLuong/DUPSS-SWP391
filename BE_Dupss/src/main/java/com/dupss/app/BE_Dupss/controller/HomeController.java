@@ -31,7 +31,7 @@ public class HomeController {
     @GetMapping("/courses")
     public ResponseEntity<Map<String, Object>> getAllCourses(
             @RequestParam(defaultValue = "") String keyword,
-            @RequestParam(required = false) String targetAudience,
+            @RequestParam(required = false) Long topicId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
@@ -43,11 +43,8 @@ public class HomeController {
 //        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<CourseHomeResponse> coursePage;
-        if (targetAudience != null && !targetAudience.isEmpty()) {
-            coursePage = courseService.searchCoursesByTargetAudience(keyword, targetAudience, pageable);
-        } else {
-            coursePage = courseService.searchCoursesSummary(keyword, pageable);
-        }
+
+            coursePage = courseService.searchCoursesSummary(keyword, topicId, pageable);
 
         Map<String, Object> response = new HashMap<>();
         response.put("courses", coursePage.getContent());
