@@ -42,8 +42,6 @@ public class SurveyCreateRequest {
         public static class QuestionRequest {
             @NotBlank(message = "Question text is required")
             private String questionText;
-            @NotNull(message = "Order number is required")
-            private Integer orderNumber;
             @Valid
             private List<OptionRequest> options;
         }
@@ -55,9 +53,6 @@ public class SurveyCreateRequest {
         public static class OptionRequest {
             @NotBlank(message = "Option text is required")
             private String optionText;
-
-            @NotNull(message = "Order number is required")
-            private Integer orderNumber;
 
             @NotNull(message = "Score is required")
             private Integer score;

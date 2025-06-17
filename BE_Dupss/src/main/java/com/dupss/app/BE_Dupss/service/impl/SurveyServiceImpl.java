@@ -61,7 +61,6 @@ public class SurveyServiceImpl implements SurveyService {
             for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
                 SurveyQuestion question = new SurveyQuestion();
                 question.setQuestionText(questionReq.getQuestionText());
-                question.setOrderNumber(questionReq.getOrderNumber());
                 question.setSection(section);
 
                 List<SurveyOption> optionList = new ArrayList<>();
@@ -69,7 +68,6 @@ public class SurveyServiceImpl implements SurveyService {
                     for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
                         SurveyOption option = new SurveyOption();
                         option.setOptionText(optionReq.getOptionText());
-                        option.setOrderNumber(optionReq.getOrderNumber());
                         option.setScore(optionReq.getScore() != null ? optionReq.getScore() : 0);
                         option.setQuestion(question);
                         optionList.add(option);

@@ -19,9 +19,6 @@ public class SurveyQuestion {
     @Column(nullable = false, length = 1000)
     private String questionText;
 
-    @Column(nullable = false)
-    private Integer orderNumber;
-
 //    @Column(nullable = false)
 //    private boolean required;
 

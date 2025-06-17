@@ -40,7 +40,6 @@ public class SurveyResponse {
                     .sectionName(section.getSectionName())
                     .questions(
                             section.getQuestions().stream()
-                                    .sorted(Comparator.comparing(SurveyQuestion::getOrderNumber))
                                     .map(SurveyQuestionDTO::fromEntity)
                                     .collect(Collectors.toList())
                     )
@@ -63,11 +62,9 @@ public class SurveyResponse {
             return SurveyQuestionDTO.builder()
                     .id(question.getId())
                     .questionText(question.getQuestionText())
-                    .orderNumber(question.getOrderNumber())
 //                    .required(question.isRequired())
                     .options(
                             question.getOptions().stream()
-                                    .sorted(Comparator.comparing(SurveyOption::getOrderNumber))
                                     .map(SurveyOptionDTO::fromEntity)
                                     .collect(Collectors.toList())
                     )
@@ -89,7 +86,6 @@ public class SurveyResponse {
             return SurveyOptionDTO.builder()
                     .id(option.getId())
                     .optionText(option.getOptionText())
-                    .orderNumber(option.getOrderNumber())
                     .score(option.getScore())
                     .build();
         }

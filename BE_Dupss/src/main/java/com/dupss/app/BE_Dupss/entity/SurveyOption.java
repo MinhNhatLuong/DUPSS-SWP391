@@ -24,9 +24,6 @@ public class SurveyOption {
     @Column(nullable = false)
     private int score;
 
-    @Column(nullable = false)
-    private Integer orderNumber;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
     private SurveyQuestion question;
