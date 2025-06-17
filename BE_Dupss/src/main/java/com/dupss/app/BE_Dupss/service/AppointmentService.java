@@ -38,9 +38,14 @@ public interface AppointmentService {
     List<AppointmentResponseDto> getAppointmentsByConsultantId(Long consultantId);
     
     /**
-     * Cập nhật trạng thái cuộc hẹn
+     * Cập nhật trạng thái cuộc hẹn (cần cung cấp consultantId)
      */
     AppointmentResponseDto updateAppointmentStatus(Long id, String status, Long consultantId);
+    
+    /**
+     * Cập nhật trạng thái cuộc hẹn (lấy consultantId từ người dùng đăng nhập)
+     */
+    AppointmentResponseDto updateAppointmentStatus(Long id, String status);
     
     /**
      * User hủy cuộc hẹn

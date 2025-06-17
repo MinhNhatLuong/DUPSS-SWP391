@@ -8,6 +8,8 @@ import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import com.dupss.app.BE_Dupss.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -169,6 +171,29 @@ public class AppointmentServiceImpl implements AppointmentService {
         emailService.sendAppointmentStatusUpdate(updatedAppointment, previousStatus);
 
         return mapToResponseDto(updatedAppointment);
+    }
+
+    @Override
+    public AppointmentResponseDto updateAppointmentStatus(Long id, String status) {
+        // Lấy thông tin người dùng đang đăng nhập
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("Người dùng chưa đăng nhập");
+        }
+        
+        // Lấy thông tin người dùng từ context
+        User currentUser = (User) authentication.getPrincipal();
+        
+        // Kiểm tra xem người dùng có phải là consultant không
+        if (!(currentUser instanceof Consultant)) {
+            throw new IllegalArgumentException("Chỉ tư vấn viên mới có quyền cập nhật trạng thái cuộc hẹn");
+        }
+        
+        // Lấy consultant ID từ người dùng đăng nhập
+        Long consultantId = currentUser.getId();
+        
+        // Gọi phương thức cập nhật với consultantId
+        return updateAppointmentStatus(id, status, consultantId);
     }
 
     @Override
