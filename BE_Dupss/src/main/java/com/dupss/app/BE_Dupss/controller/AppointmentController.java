@@ -97,9 +97,8 @@ public class AppointmentController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestParam String status,
-            @RequestParam Long consultantId) {
-        AppointmentResponseDto updatedAppointment = appointmentService.updateAppointmentStatus(id, status, consultantId);
+            @RequestParam String status) {
+        AppointmentResponseDto updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
         return ResponseEntity.ok(updatedAppointment);
     }
     

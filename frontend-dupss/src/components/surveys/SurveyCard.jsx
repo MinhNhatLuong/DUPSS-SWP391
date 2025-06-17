@@ -6,7 +6,7 @@ const SurveyCard = ({ survey }) => {
   const navigate = useNavigate();
 
   const handleStartSurvey = () => {
-    navigate(`/surveys/${survey.id}`);
+    navigate(`/surveys/${survey.surveyId}`);
   };
 
   return (
