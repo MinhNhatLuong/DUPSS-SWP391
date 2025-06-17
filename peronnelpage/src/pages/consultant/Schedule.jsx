@@ -31,7 +31,7 @@ const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6']; // Chỉ thứ 2 đến thứ 
 const statusColor = {
   CONFIRMED: 'info',
   COMPLETED: 'success',
-  CANCELLED: 'error',
+  CANCELED: 'error',
   PENDING: 'default',
   ongoing: 'warning',
 };
@@ -39,7 +39,7 @@ const statusColor = {
 const statusLabel = {
   CONFIRMED: 'Đã xác nhận',
   COMPLETED: 'Đã hoàn thành',
-  CANCELLED: 'Đã hủy',
+  CANCELED: 'Đã hủy',
   PENDING: 'Chờ xác nhận',
   ongoing: 'Đang diễn ra',
 };
@@ -72,7 +72,8 @@ export default function Schedule() {
     open: false, 
     appointmentId: null, 
     action: null, // 'complete' hoặc 'cancel'
-    appointmentData: null 
+    appointmentData: null,
+    loading: false
   });
   
   const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.clone().add(i, 'day'));
@@ -91,12 +92,12 @@ export default function Schedule() {
   
   // Kiểm tra và tự động hủy các cuộc hẹn quá 24 giờ
   useEffect(() => {
-    const checkExpiredAppointments = () => {
+    const checkExpiredAppointments = async () => {
       const now = dayjs();
       
       // Kiểm tra từng cuộc hẹn
-      appointments.forEach(appt => {
-        if (appt.status !== 'CONFIRMED') return;
+      for (const appt of appointments) {
+        if (appt.status !== 'CONFIRMED') continue;
         
         // Chuyển đổi ngày và giờ hẹn sang đối tượng dayjs
         const appointmentDate = dayjs(appt.appointmentDate, 'DD/MM/YYYY');
@@ -118,17 +119,50 @@ export default function Schedule() {
         
         // Nếu đã qua 24 giờ kể từ thời điểm hẹn và vẫn ở trạng thái CONFIRMED
         if (timeDiff >= 24) {
-          // Tự động hủy cuộc hẹn
-          updateAppointmentStatus(appt.id, 'CANCELLED');
+          try {
+            const userInfo = getUserInfo();
+            if (!userInfo || !userInfo.id) {
+              console.error('Không tìm thấy thông tin người dùng');
+              continue;
+            }
+            
+            // Tự động hủy cuộc hẹn dựa vào loại người dùng
+            if (appt.guest) {
+              // Sử dụng API hủy cho guest
+              await axios.post(`/api/appointments/${appt.id}/cancel/guest?email=${encodeURIComponent(appt.email)}`, {}, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+              });
+            } else {
+              // Sử dụng API hủy cho user
+              await axios.post(`/api/appointments/${appt.id}/cancel/user/${userInfo.id}`, {}, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+              });
+            }
+            
+            // Cập nhật danh sách lịch hẹn
+            setAppointments(prev => 
+              prev.map(item => item.id === appt.id ? { ...item, status: 'CANCELED' } : item)
+            );
+            
+            console.log(`Tự động hủy cuộc hẹn ID ${appt.id} sau 24 giờ`);
+          } catch (error) {
+            console.error(`Lỗi khi tự động hủy cuộc hẹn ID ${appt.id}:`, error);
+          }
         }
-      });
+      }
     };
     
     // Kiểm tra mỗi giờ
     const timer = setInterval(checkExpiredAppointments, 3600000); // 1 giờ
     
     // Kiểm tra ngay khi danh sách cuộc hẹn thay đổi
-    checkExpiredAppointments();
+    if (appointments.length > 0) {
+      checkExpiredAppointments();
+    }
     
     return () => clearInterval(timer);
   }, [appointments]);
@@ -204,7 +238,7 @@ export default function Schedule() {
       const startDate = weekStart.format('YYYY-MM-DD');
       const endDate = weekStart.clone().add(4, 'day').format('YYYY-MM-DD');
 
-      const response = await axios.get(`http://localhost:8080/api/appointments/consultant/${userInfo.id}`, {
+      const response = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
         params: {
           startDate,
           endDate
@@ -251,10 +285,11 @@ export default function Schedule() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      await axios.patch(`http://localhost:8080/api/appointments/${id}/status`, {
-        status,
-        consultantId: userInfo.id
-      }, {
+      console.log(`Đang cập nhật trạng thái cuộc hẹn ${id} thành ${status}`);
+      console.log('Thông tin người dùng:', userInfo);
+      console.log('Gửi request đến:', `/api/appointments/${id}/status`);
+      
+      await axios.patch(`/api/appointments/${id}/status?status=${status}&consultantId=${userInfo.id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -277,6 +312,7 @@ export default function Schedule() {
       setDialog({ open: false, appt: null });
     } catch (err) {
       console.error('Error updating appointment status:', err);
+      console.error('Error details:', err.response?.data || 'No response data');
       setSnackbar({ 
         open: true, 
         message: 'Không thể cập nhật trạng thái: ' + (err.response?.data?.message || err.message), 
@@ -358,9 +394,25 @@ export default function Schedule() {
 
   // Kiểm tra xem có thể hiển thị nút hoàn thành/hủy bỏ không
   const canShowActionButtons = (appt) => {
-    if (appt.status !== 'CONFIRMED') return false;
+    // Chỉ hiển thị nút cho các cuộc hẹn ở trạng thái CONFIRMED hoặc PENDING
+    if (appt.status !== 'CONFIRMED' && appt.status !== 'PENDING') return false;
     
-    const appointmentDate = dayjs(appt.appointmentDate);
+    console.log('Kiểm tra hiển thị nút cho cuộc hẹn:', appt);
+    console.log('Trạng thái cuộc hẹn:', appt.status);
+    console.log('Thời gian hiện tại:', dayjs().format('DD/MM/YYYY HH:mm'));
+    
+    // Xử lý ngày tháng
+    let appointmentDate;
+    if (typeof appt.appointmentDate === 'string' && appt.appointmentDate.includes('/')) {
+      // Định dạng DD/MM/YYYY
+      const [day, month, year] = appt.appointmentDate.split('/');
+      appointmentDate = dayjs(`${year}-${month}-${day}`);
+    } else {
+      // Định dạng khác
+      appointmentDate = dayjs(appt.appointmentDate);
+    }
+    
+    console.log('Ngày hẹn (đã parse):', appointmentDate.format('DD/MM/YYYY'));
     
     // Handle different time formats
     let appointmentHour = 0;
@@ -377,11 +429,22 @@ export default function Schedule() {
       appointmentMinute = appt.appointmentTime.minute || 0;
     }
     
-    const startTime = appointmentDate.hour(appointmentHour).minute(appointmentMinute);
-    const now = dayjs();
+    // Tạo đối tượng dayjs đầy đủ với ngày và giờ
+    const appointmentDateTime = appointmentDate
+      .hour(appointmentHour)
+      .minute(appointmentMinute)
+      .second(0);
     
-    // Hiển thị nút sau khi buổi tư vấn bắt đầu 10 phút
-    return now.isAfter(startTime.add(10, 'minute'));
+    console.log('Thời gian hẹn đầy đủ:', appointmentDateTime.format('DD/MM/YYYY HH:mm'));
+    
+    const now = dayjs();
+    const isAfterOrSame = now.isAfter(appointmentDateTime) || 
+                          now.format('YYYY-MM-DD HH:mm') === appointmentDateTime.format('YYYY-MM-DD HH:mm');
+    
+    console.log('Đã đến hoặc qua giờ hẹn?', isAfterOrSame);
+    
+    // Hiển thị nút khi thời gian hiện tại đã đến hoặc vượt qua thời gian bắt đầu buổi tư vấn
+    return isAfterOrSame;
   };
 
   // Tạo link Google Meet (giả)
@@ -412,70 +475,97 @@ export default function Schedule() {
   // Xử lý sau khi xác nhận
   const handleConfirmAction = async () => {
     try {
+      // Set loading state
+      setConfirmDialog(prev => ({ ...prev, loading: true }));
+      // Show loading notification
+      setSnackbar({ 
+        open: true, 
+        message: 'Đang xử lý...', 
+        severity: 'warning' 
+      });
+      
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
       const { appointmentId, action, appointmentData } = confirmDialog;
+      console.log(`Xử lý hành động ${action} cho cuộc hẹn ${appointmentId}`);
+      console.log('Dữ liệu cuộc hẹn:', appointmentData);
 
       if (action === 'complete') {
         // Hoàn thành buổi tư vấn
-        await axios.patch(`http://localhost:8080/api/appointments/${appointmentId}/status`, {
-          status: 'COMPLETED',
-          consultantId: userInfo.id
-        }, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
+        console.log('Gửi request hoàn thành cuộc hẹn');
+        try {
+          await axios.patch(`/api/appointments/${appointmentId}/status?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
+          console.log('Hoàn thành cuộc hẹn thành công');
+        } catch (patchError) {
+          console.error('Lỗi khi gọi API hoàn thành:', patchError);
+          console.error('Chi tiết lỗi:', patchError.response?.data || 'Không có dữ liệu phản hồi');
+          throw patchError;
+        }
 
         // Cập nhật danh sách lịch hẹn
         setAppointments(prev => 
           prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'COMPLETED' } : appt)
         );
-        
-        // Hiển thị thông báo
-        setSnackbar({ 
-          open: true, 
-          message: 'Buổi tư vấn đã được đánh dấu hoàn thành!', 
-          severity: 'success' 
-        });
       } else if (action === 'cancel') {
-        // Hủy buổi tư vấn
-        await axios.patch(`http://localhost:8080/api/appointments/${appointmentId}/status`, {
-          status: 'CANCELLED',
-          consultantId: userInfo.id
-        }, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        // Hủy buổi tư vấn dựa vào loại người dùng (guest hoặc user)
+        console.log('Gửi request hủy cuộc hẹn');
+        try {
+          if (appointmentData.guest) {
+            // Sử dụng API hủy cho guest
+            console.log('Hủy cuộc hẹn cho khách (guest)');
+            await axios.post(`/api/appointments/${appointmentId}/cancel/guest?email=${encodeURIComponent(appointmentData.email)}`, {}, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+          } else {
+            // Sử dụng API hủy cho user
+            console.log('Hủy cuộc hẹn cho người dùng (user)');
+            await axios.post(`/api/appointments/${appointmentId}/cancel/user/${userInfo.id}`, {}, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
           }
-        });
+          console.log('Hủy cuộc hẹn thành công');
+        } catch (cancelError) {
+          console.error('Lỗi khi gọi API hủy:', cancelError);
+          console.error('Chi tiết lỗi:', cancelError.response?.data || 'Không có dữ liệu phản hồi');
+          throw cancelError;
+        }
 
         // Cập nhật danh sách lịch hẹn
         setAppointments(prev => 
-          prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'CANCELLED' } : appt)
+          prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'CANCELED' } : appt)
         );
-        
-        // Hiển thị thông báo
-        setSnackbar({ 
-          open: true, 
-          message: 'Buổi tư vấn đã được hủy bỏ!', 
-          severity: 'error' 
-        });
       }
       
+      // Hiển thị thông báo thành công
+      setSnackbar({ 
+        open: true, 
+        message: 'Dữ liệu đã được cập nhật thành công!', 
+        severity: 'success' 
+      });
+      
       // Đóng dialog
-      setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null });
+      setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false });
       setDialog({ open: false, appt: null });
     } catch (err) {
       console.error('Error updating appointment status:', err);
+      console.error('Error stack:', err.stack);
       setSnackbar({ 
         open: true, 
         message: 'Không thể cập nhật trạng thái: ' + (err.response?.data?.message || err.message), 
         severity: 'error' 
       });
-      setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null });
+      setConfirmDialog(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -554,7 +644,7 @@ export default function Schedule() {
                                   bgcolor: '#e3f2fd',
                                   border: `2px solid ${status === 'COMPLETED' ? '#388e3c' : 
                                                       status === 'ongoing' ? '#ffa726' : 
-                                                      status === 'CANCELLED' ? '#d32f2f' : '#42a5f5'}`,
+                                                      status === 'CANCELED' ? '#d32f2f' : '#42a5f5'}`,
                                   color: '#222',
                                   borderRadius: 2,
                                   px: 1,
@@ -697,7 +787,7 @@ export default function Schedule() {
       {/* Dialog xác nhận hành động */}
       <Dialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null })}
+        onClose={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false })}
         aria-labelledby="confirm-dialog-title"
       >
         <DialogTitle id="confirm-dialog-title">
@@ -712,8 +802,9 @@ export default function Schedule() {
         </DialogContent>
         <DialogActions>
           <Button 
-            onClick={() => setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null })} 
+            onClick={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false })} 
             color="primary"
+            disabled={confirmDialog.loading}
           >
             Không
           </Button>
@@ -721,8 +812,12 @@ export default function Schedule() {
             onClick={handleConfirmAction} 
             color={confirmDialog.action === 'complete' ? 'success' : 'error'} 
             variant="contained"
+            disabled={confirmDialog.loading}
+            startIcon={confirmDialog.loading ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {confirmDialog.action === 'complete' ? 'Hoàn thành' : 'Hủy bỏ'}
+            {confirmDialog.loading 
+              ? 'Đang xử lý...' 
+              : (confirmDialog.action === 'complete' ? 'Hoàn thành' : 'Hủy bỏ')}
           </Button>
         </DialogActions>
       </Dialog>
