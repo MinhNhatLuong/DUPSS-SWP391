@@ -57,6 +57,20 @@ const getCrafftData = () => {
                 { option: "Có", value: 1 },
                 { option: "Không", value: 0 }
               ]
+            },
+            {
+              question: "F - Người thân, bạn bè hay người khác có từng GÓP Ý hoặc LO LẮNG về việc bạn sử dụng rượu bia hoặc ma túy không?",
+              options: [
+                { option: "Có", value: 1 },
+                { option: "Không", value: 0 }
+              ]
+            },
+            {
+              question: "T - Bạn có từng gặp RẮC RỐI vì đã sử dụng rượu bia hoặc ma túy không?",
+              options: [
+                { option: "Có", value: 1 },
+                { option: "Không", value: 0 }
+              ]
             }
           ]
         }

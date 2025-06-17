@@ -5,6 +5,7 @@ import HomePage from './components/homepage/HomePage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
+import Profile from './components/auth/Profile';
 import AboutUs from './components/about/AboutUs';
 import Appointment from './components/appointment/Appointment';
 import BlogDetail from './components/blogs/BlogDetail';
@@ -40,6 +41,11 @@ function App() {
         <Route path="/forgot-password" element={
           <Layout>
             <ForgotPassword />
+          </Layout>
+        } />
+        <Route path="/profile" element={
+          <Layout>
+            <Profile />
           </Layout>
         } />
         <Route path="/about-us" element={
