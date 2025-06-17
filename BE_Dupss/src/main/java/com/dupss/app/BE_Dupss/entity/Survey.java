@@ -34,9 +34,7 @@ public class Survey {
 
     @Column(length = 255)
     private String surveyImage;
-
-    @Column(length = 50)
-    private String surveyType;
+    
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", nullable = false)
