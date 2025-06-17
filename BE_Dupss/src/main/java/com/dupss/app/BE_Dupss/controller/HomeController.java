@@ -1,11 +1,10 @@
 package com.dupss.app.BE_Dupss.controller;
 
-import com.dupss.app.BE_Dupss.dto.response.BlogHomeResponse;
-import com.dupss.app.BE_Dupss.dto.response.BlogResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseHomeResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
+import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
+import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.service.BlogService;
 import com.dupss.app.BE_Dupss.service.CourseService;
+import com.dupss.app.BE_Dupss.service.SurveyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +26,7 @@ public class HomeController {
 
     private final CourseService courseService;
     private final BlogService blogService;
+    private final SurveyService surveyService;
 
     @GetMapping("/courses")
     public ResponseEntity<Map<String, Object>> getAllCourses(
@@ -100,6 +100,18 @@ public class HomeController {
         response.put("totalPages", blogPage.getTotalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/surveys/lastest")
+    public ResponseEntity<List<SurveySummaryResponse>> getLastestSurveys() {
+    List<SurveySummaryResponse> latestSurveys = surveyService.getSurveySummary();
+        return ResponseEntity.ok(latestSurveys);
+    }
+
+    @GetMapping("/survey/{id}")
+    public ResponseEntity<SurveyResponse> getSurveyDetail(@PathVariable Long id) {
+        SurveyResponse surveyDetails = surveyService.getSurveyDetails(id);
+        return ResponseEntity.ok(surveyDetails);
     }
 
 }
