@@ -35,6 +35,7 @@ const AppointmentForm = () => {
   const [errors, setErrors] = useState({});
   const [topics, setTopics] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [alert, setAlert] = useState({
     open: false,
     message: '',
@@ -173,6 +174,9 @@ const AppointmentForm = () => {
     
     if (validateForm()) {
       try {
+        // Show processing alert
+        setIsProcessing(true);
+        
         // Format the data for API
         const appointmentData = {
           customerName: formData.fullName,
@@ -187,6 +191,9 @@ const AppointmentForm = () => {
         // Submit the appointment
         const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
         
+        // Hide processing alert
+        setIsProcessing(false);
+        
         // Handle success
         setAlert({
           open: true,
@@ -195,6 +202,9 @@ const AppointmentForm = () => {
         });
         handleReset();
       } catch (error) {
+        // Hide processing alert
+        setIsProcessing(false);
+        
         // Handle error
         const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi đặt lịch hẹn';
         setAlert({
@@ -413,6 +423,7 @@ const AppointmentForm = () => {
         </Box>
       </Box>
 
+      {/* Success/Error notification */}
       <Snackbar 
         open={alert.open} 
         autoHideDuration={6000} 
@@ -438,6 +449,34 @@ const AppointmentForm = () => {
           }}
         >
           {alert.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Processing notification */}
+      <Snackbar 
+        open={isProcessing} 
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiPaper-root': { 
+            width: '320px',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }
+        }}
+      >
+        <Alert 
+          severity="warning"
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: 500,
+            padding: '12px 16px',
+            backgroundColor: '#f0ad4e',
+            color: '#ffffff'
+          }}
+        >
+          Đang xử lý...
         </Alert>
       </Snackbar>
     </Paper>

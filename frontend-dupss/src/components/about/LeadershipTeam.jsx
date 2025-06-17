@@ -4,19 +4,19 @@ const LeadershipTeam = () => {
   // Leadership team data
   const leadershipTeam = [
     {
-      image: 'https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg',
+      image: 'https://res.cloudinary.com/dpunnm4ns/image/upload/v1750125121/474442296_1340811473939573_1541216496532365417_n_i7hj3h.jpg',
       name: 'Nguyễn Thành Đạt',
       title: 'Giám đốc điều hành',
       bio: 'Tiến sĩ Y học với hơn 20 năm kinh nghiệm trong lĩnh vực nghiên cứu về ma túy và các chất gây nghiện.'
     },
     {
-      image: 'https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg',
+      image: 'https://res.cloudinary.com/dpunnm4ns/image/upload/v1750125120/476314747_1385229409130567_8947152286196030311_n_v7y1kj.jpg',
       name: 'Lương Gia Lâm',
       title: 'Giám đốc chương trình',
       bio: 'Chuyên gia giáo dục với gần 15 năm kinh nghiệm phát triển chương trình giáo dục phòng chống ma túy.'
     },
     {
-      image: 'https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg',
+      image: 'https://res.cloudinary.com/dpunnm4ns/image/upload/v1742027595/YelpCamp/llndorjmir6t8ggggmt2.jpg',
       name: 'Nguyễn Tấn Dũng',
       title: 'Nô lệ toàn thời gian',
       bio: 'Chuyên gia truyền thông với kinh nghiệm phong phú trong các chiến dịch nâng cao nhận thức cộng đồng.'
