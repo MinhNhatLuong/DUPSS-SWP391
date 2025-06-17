@@ -23,7 +23,7 @@ public class Survey {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 1000)
+    @Column(length = 10000)
     private String description;
 
     @Column(nullable = false)
@@ -34,7 +34,7 @@ public class Survey {
 
     @Column(length = 255)
     private String surveyImage;
-    
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", nullable = false)
