@@ -163,11 +163,27 @@ const Register = () => {
         autoHideDuration={6000}
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiPaper-root': { 
+            width: '320px',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }
+        }}
       >
         <Alert 
           onClose={handleCloseAlert} 
           severity={alert.severity} 
-          sx={{ width: '100%' }}
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: 500,
+            padding: '12px 16px',
+            backgroundColor: alert.severity === 'success' ? '#4caf50' : 
+                              alert.severity === 'error' ? '#f44336' : '#f0ad4e',
+            color: '#ffffff'
+          }}
         >
           {alert.message}
         </Alert>
@@ -177,12 +193,27 @@ const Register = () => {
         open={processing}
         onClose={handleCloseProcessing}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiPaper-root': { 
+            width: '320px',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }
+        }}
       >
         <Alert 
-          severity="warning" 
-          sx={{ width: '100%' }}
+          severity="warning"
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: 500,
+            padding: '12px 16px',
+            backgroundColor: '#f0ad4e',
+            color: '#ffffff'
+          }}
         >
-          Đang xử lý
+          Đang xử lý...
         </Alert>
       </Snackbar>
       
