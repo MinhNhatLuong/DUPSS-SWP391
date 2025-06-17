@@ -30,6 +30,26 @@ const AuthButtons = () => {
 
   useEffect(() => {
     checkAuthStatus();
+
+    // Lắng nghe sự kiện cập nhật thông tin người dùng từ trang Profile
+    const handleProfileUpdate = (event) => {
+      // Nếu userData đã tồn tại, chỉ cập nhật các thông tin được truyền từ sự kiện
+      if (userData) {
+        setUserData(prevData => ({
+          ...prevData,
+          fullName: event.detail.fullName || prevData.fullName,
+          avatar: event.detail.avatar || prevData.avatar
+        }));
+      }
+    };
+
+    // Đăng ký lắng nghe sự kiện
+    document.addEventListener('user-profile-updated', handleProfileUpdate);
+
+    // Hủy đăng ký khi component unmount
+    return () => {
+      document.removeEventListener('user-profile-updated', handleProfileUpdate);
+    };
   }, []);
 
   const checkAuthStatus = async () => {
