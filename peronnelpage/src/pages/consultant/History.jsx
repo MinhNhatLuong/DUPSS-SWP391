@@ -26,7 +26,7 @@ const statusMap = {
   all: 'Tất cả',
   CONFIRMED: 'Đã xác nhận',
   COMPLETED: 'Đã hoàn thành',
-  CANCELLED: 'Đã hủy',
+  CANCELED: 'Đã hủy',
 };
 
 const columns = [
@@ -38,13 +38,27 @@ const columns = [
   { id: 'status', label: 'Trạng thái', sortable: true },
 ];
 
+// Helper to parse date in both formats
+const parseDateString = (dateStr) => {
+  if (!dateStr) return new Date();
+  
+  // Check if format is DD/MM/YYYY
+  if (dateStr.includes('/')) {
+    const [day, month, year] = dateStr.split('/');
+    return new Date(`${year}-${month}-${day}`);
+  }
+  
+  // Otherwise assume ISO format
+  return new Date(dateStr);
+};
+
 function sortRows(rows, orderBy, order) {
   if (!orderBy) return rows;
   return [...rows].sort((a, b) => {
     if (orderBy === 'appointmentDate') {
-      return order === 'asc'
-        ? new Date(a.appointmentDate) - new Date(b.appointmentDate)
-        : new Date(b.appointmentDate) - new Date(a.appointmentDate);
+      const dateA = parseDateString(a.appointmentDate);
+      const dateB = parseDateString(b.appointmentDate);
+      return order === 'asc' ? dateA - dateB : dateB - dateA;
     }
     if (order === 'asc') {
       return (a[orderBy] || '').toString().localeCompare((b[orderBy] || '').toString());
@@ -86,6 +100,7 @@ export default function History() {
           }
         });
         
+        console.log('API response:', response.data);
         setAppointments(response.data);
         setError(null);
       } catch (err) {
@@ -119,15 +134,25 @@ export default function History() {
     switch (status) {
       case 'COMPLETED': return 'success';
       case 'CONFIRMED': return 'info';
-      case 'CANCELLED': return 'error';
+      case 'CANCELED': return 'error';
       default: return 'default';
     }
   };
 
   const formatTime = (timeObj) => {
     if (!timeObj) return '';
+    if (typeof timeObj === 'string') return timeObj;
     const { hour, minute } = timeObj;
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    // If already in DD/MM/YYYY format, return as is
+    if (dateStr.includes('/')) return dateStr;
+    // Otherwise format it
+    const date = new Date(dateStr);
+    return date.toLocaleDateString();
   };
 
   if (error) {
@@ -225,7 +250,7 @@ export default function History() {
                       <TableCell>{row.email || '-'}</TableCell>
                       <TableCell>{row.phoneNumber || '-'}</TableCell>
                       <TableCell>
-                        {new Date(row.appointmentDate).toLocaleDateString()} {formatTime(row.appointmentTime)}
+                        {formatDate(row.appointmentDate)} {formatTime(row.appointmentTime)}
                       </TableCell>
                       <TableCell>{row.topicName}</TableCell>
                       <TableCell>
