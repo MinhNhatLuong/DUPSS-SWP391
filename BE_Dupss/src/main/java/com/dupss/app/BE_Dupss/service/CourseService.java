@@ -103,11 +103,22 @@ public class CourseService {
 
 
     public List<CourseHomeResponse> getLastestCourses() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+
         List<Course> courses = courseRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+
 
         return courses.stream()
                 .map(course -> {
                     List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+                    boolean isEnrolled = false;
+                    if (currentUser != null) {
+                        isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+                    }
                     return CourseHomeResponse.builder()
                             .id(course.getId())
                             .title(course.getTitle())
@@ -115,6 +126,9 @@ public class CourseService {
                             .summary(course.getDescription())
                             .createdAt(course.getCreatedAt())
                             .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
+                            .creatorName(course.getCreator().getFullname())
+                            .duration(course.getDuration())
+                            .isEnrolled(isEnrolled)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -318,6 +332,8 @@ public class CourseService {
         dto.setCoverImage(course.getCoverImage());
         dto.setCreatedAt(course.getCreatedAt());
         dto.setTopicName(course.getTopic() != null ? course.getTopic().getName() : null);
+        dto.setCreatorName(course.getCreator().getFullname());
+        dto.setDuration(course.getDuration());
         dto.setEnrolled(isEnrolled);
         return dto;
     }

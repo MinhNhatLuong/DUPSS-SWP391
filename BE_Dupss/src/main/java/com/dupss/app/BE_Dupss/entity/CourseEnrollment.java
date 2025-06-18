@@ -22,8 +22,9 @@ public class CourseEnrollment {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
-    
-    private boolean completed;
+
+    @Enumerated(EnumType.STRING)
+    private EnrollmentStatus status;
     private Double progress; // Percentage of completion
     private LocalDateTime completionDate;
     private LocalDateTime enrollmentDate;
@@ -31,7 +32,7 @@ public class CourseEnrollment {
     @PrePersist
     protected void onCreate() {
         this.enrollmentDate = LocalDateTime.now();
-        this.completed = false;
+        this.status = EnrollmentStatus.ENROLLED;
         this.progress = 0.0;
     }
 } 

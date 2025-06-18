@@ -18,5 +18,7 @@ public class CourseHomeResponse {
     private String coverImage;
     private LocalDateTime createdAt;
     private String topicName;
+    private String creatorName;
+    private int duration;
     private boolean isEnrolled;
 }

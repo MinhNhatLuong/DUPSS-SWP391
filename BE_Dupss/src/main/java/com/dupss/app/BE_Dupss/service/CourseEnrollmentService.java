@@ -56,7 +56,6 @@ public class CourseEnrollmentService {
         CourseEnrollment enrollment = new CourseEnrollment();
         enrollment.setUser(currentUser);
         enrollment.setCourse(course);
-        enrollment.setCompleted(false);
         enrollment.setProgress(0.0);
         
         CourseEnrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -105,7 +104,7 @@ public class CourseEnrollmentService {
         
         // Mark as completed if progress is 100%
         if (progress >= 100.0) {
-            enrollment.setCompleted(true);
+            enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletionDate(java.time.LocalDateTime.now());
         }
         
@@ -123,7 +122,6 @@ public class CourseEnrollmentService {
                 .user(mapToUserDetailResponse(enrollment.getUser()))
                 .enrollmentDate(enrollment.getEnrollmentDate())
                 .completionDate(enrollment.getCompletionDate())
-                .completed(enrollment.isCompleted())
                 .progress(enrollment.getProgress())
                 .build();
     }
