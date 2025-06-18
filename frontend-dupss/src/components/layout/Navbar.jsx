@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const location = useLocation();
-  const [activePage, setActivePage] = useState(() => {
-    const path = location.pathname;
+  const [activePage, setActivePage] = useState('');
+
+  // 更新活动页面状态的函数
+  const updateActivePage = (path) => {
     if (path === '/') return 'home';
     if (path.startsWith('/courses')) return 'courses';
     if (path.startsWith('/blogs')) return 'blogs';
     if (path.startsWith('/surveys')) return 'surveys';
     if (path.startsWith('/appointment')) return 'appointment';
     if (path.startsWith('/about-us')) return 'about';
+    // 对于登录、注册和个人资料页面，不高亮显示任何导航项
+    if (path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/profile') || path.startsWith('/forgot-password')) return '';
     return '';
-  });
+  };
+
+  // 监听路由变化并更新活动页面
+  useEffect(() => {
+    setActivePage(updateActivePage(location.pathname));
+  }, [location.pathname]);
 
   return (
     <nav className="navbar">
@@ -22,7 +31,6 @@ const Navbar = () => {
             <RouterLink 
               to="/" 
               className={activePage === 'home' ? 'active' : ''}
-              onClick={() => setActivePage('home')}
             >
               Trang chủ
             </RouterLink>
@@ -31,7 +39,6 @@ const Navbar = () => {
             <RouterLink 
               to="/courses" 
               className={activePage === 'courses' ? 'active' : ''}
-              onClick={() => setActivePage('courses')}
             >
               Khóa học
             </RouterLink>
@@ -40,7 +47,6 @@ const Navbar = () => {
             <RouterLink 
               to="/blogs" 
               className={activePage === 'blogs' ? 'active' : ''}
-              onClick={() => setActivePage('blogs')}
             >
               Blogs & Thông tin
             </RouterLink>
@@ -49,7 +55,6 @@ const Navbar = () => {
             <RouterLink 
               to="/surveys" 
               className={activePage === 'surveys' ? 'active' : ''}
-              onClick={() => setActivePage('surveys')}
             >
               Khảo sát
             </RouterLink>
@@ -58,7 +63,6 @@ const Navbar = () => {
             <RouterLink 
               to="/appointment" 
               className={activePage === 'appointment' ? 'active' : ''}
-              onClick={() => setActivePage('appointment')}
             >
               Đặt lịch hẹn
             </RouterLink>
@@ -67,7 +71,6 @@ const Navbar = () => {
             <RouterLink 
               to="/about-us" 
               className={activePage === 'about' ? 'active' : ''}
-              onClick={() => setActivePage('about')}
             >
               Về chúng tôi
             </RouterLink>

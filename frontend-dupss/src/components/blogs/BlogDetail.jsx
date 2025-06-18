@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { Container, Typography, Box, CircularProgress, Fade } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Fade, Divider } from '@mui/material';
 import axios from 'axios';
 import BlogHeader from './BlogHeader';
 import BlogContent from './BlogContent';
@@ -119,6 +119,21 @@ const BlogDetail = () => {
         />
         
         <BlogContent content={blog.blogContent} />
+        
+        <Box sx={{ mt: 6, mb: 4 }}>
+          <Divider sx={{ mb: 2 }} />
+          <Typography 
+            variant="h4" 
+            fontWeight="700" 
+            sx={{ 
+              mb: 2, 
+              color: '#0056b3', 
+              textAlign: 'center'
+            }}
+          >
+            Các bài blog khác
+          </Typography>
+        </Box>
         
         <Box sx={{ mx: -1 }}>
           <RelatedArticles articles={relatedArticles} />
