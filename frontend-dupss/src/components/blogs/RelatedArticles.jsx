@@ -91,79 +91,64 @@ const MetaInfoRow = styled(Box)({
 
 const RelatedArticles = ({ articles }) => {
   return (
-    <Box sx={{ mt: 6, mb: 3 }}>
-      <Typography 
-        variant="h5" 
-        component="h3" 
-        gutterBottom
-        sx={{ 
-          color: '#333', 
-          textAlign: 'center',
-          mb: 3
-        }}
-      >
-        Bài viết liên quan
-      </Typography>
-      
-      <GridWrapper>
-        {articles.map((article) => (
-          <ArticleCard key={article.id}>
-            <ArticleImage>
-              <StyledCardMedia
-                src={article.coverImage}
-                alt={article.title}
-                loading="lazy"
-              />
-            </ArticleImage>
-            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
-              <MetaInfoRow>
-                <ArticleChip label={article.topic} size="small" />
-                <DateText>{article.createdAt}</DateText>
-              </MetaInfoRow>
-              
-              <Typography 
-                variant="h6" 
-                component="h4" 
-                gutterBottom
-                sx={{ 
-                  fontSize: '1rem', 
-                  lineHeight: 1.4,
-                  mb: 1,
-                  fontWeight: 'bold',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical'
-                }}
-              >
-                {article.title}
-              </Typography>
-              
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={{ 
-                  mb: 2, 
-                  flexGrow: 1,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical'
-                }}
-              >
-                {article.summary}
-              </Typography>
-              
-              <ReadMoreLink to={`/blogs/${article.id}`}>
-                Đọc tiếp <ArrowForward fontSize="small" />
-              </ReadMoreLink>
-            </CardContent>
-          </ArticleCard>
-        ))}
-      </GridWrapper>
-    </Box>
+    <GridWrapper>
+      {articles.map((article) => (
+        <ArticleCard key={article.id}>
+          <ArticleImage>
+            <StyledCardMedia
+              src={article.coverImage}
+              alt={article.title}
+              loading="lazy"
+            />
+          </ArticleImage>
+          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
+            <MetaInfoRow>
+              <ArticleChip label={article.topic} size="small" />
+              <DateText>{article.createdAt}</DateText>
+            </MetaInfoRow>
+            
+            <Typography 
+              variant="h6" 
+              component="h4" 
+              gutterBottom
+              sx={{ 
+                fontSize: '1rem', 
+                lineHeight: 1.4,
+                mb: 1,
+                fontWeight: 'bold',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical'
+              }}
+            >
+              {article.title}
+            </Typography>
+            
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                mb: 2, 
+                flexGrow: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical'
+              }}
+            >
+              {article.summary}
+            </Typography>
+            
+            <ReadMoreLink to={`/blogs/${article.id}`}>
+              Đọc tiếp <ArrowForward fontSize="small" />
+            </ReadMoreLink>
+          </CardContent>
+        </ArticleCard>
+      ))}
+    </GridWrapper>
   );
 };
 

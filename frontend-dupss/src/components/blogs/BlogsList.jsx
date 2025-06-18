@@ -210,7 +210,7 @@ const BlogsList = () => {
         
         {blogs.length > 0 ? (
           <>
-            <Box sx={{ mx: -1, opacity: loading ? 0.5 : 1 }}>
+            <Box sx={{ opacity: loading ? 0.5 : 1 }}>
               <RelatedArticles articles={blogs} />
             </Box>
             
