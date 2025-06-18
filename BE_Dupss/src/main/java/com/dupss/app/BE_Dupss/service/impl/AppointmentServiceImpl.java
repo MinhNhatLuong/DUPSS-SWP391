@@ -175,25 +175,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public AppointmentResponseDto updateAppointmentStatus(Long id, String status) {
-        // Lấy thông tin người dùng đang đăng nhập
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException("Người dùng chưa đăng nhập");
-        }
-        
-        // Lấy thông tin người dùng từ context
-        User currentUser = (User) authentication.getPrincipal();
-        
-        // Kiểm tra xem người dùng có phải là consultant không
-        if (!(currentUser instanceof Consultant)) {
-            throw new IllegalArgumentException("Chỉ tư vấn viên mới có quyền cập nhật trạng thái cuộc hẹn");
-        }
-        
-        // Lấy consultant ID từ người dùng đăng nhập
-        Long consultantId = currentUser.getId();
-        
-        // Gọi phương thức cập nhật với consultantId
-        return updateAppointmentStatus(id, status, consultantId);
+        // Phương thức này gây ra lỗi ép kiểu từ JWT sang User
+        // Thay vì cố gắng ép kiểu, chúng ta sẽ ném ngoại lệ và yêu cầu client sử dụng phương thức overload với consultantId
+        throw new IllegalArgumentException("Vui lòng cung cấp consultantId để cập nhật trạng thái cuộc hẹn");
     }
 
     @Override

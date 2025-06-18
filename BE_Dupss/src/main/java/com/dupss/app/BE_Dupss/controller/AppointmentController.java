@@ -93,12 +93,24 @@ public class AppointmentController {
     /**
      * API cập nhật trạng thái cuộc hẹn
      * Chỉ dành cho tư vấn viên, và tư vấn viên chỉ được cập nhật cuộc hẹn của chính họ
+     * Có thể sử dụng với JWT token hoặc cung cấp consultantId trực tiếp
      */
     @PatchMapping("/{id}/status")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestParam String status) {
-        AppointmentResponseDto updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
+            @RequestParam String status,
+            @RequestParam(required = false) Long consultantId) {
+        
+        AppointmentResponseDto updatedAppointment;
+        
+        if (consultantId != null) {
+            // Sử dụng phương thức với consultantId được cung cấp
+            updatedAppointment = appointmentService.updateAppointmentStatus(id, status, consultantId);
+        } else {
+            // Sử dụng phương thức lấy consultantId từ JWT token
+            updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
+        }
+        
         return ResponseEntity.ok(updatedAppointment);
     }
     
