@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +58,6 @@ public class CourseService {
         course.setTitle(request.getTitle());
         course.setTopic(topic);
         course.setDescription(request.getDescription());
-        course.setTargetAudience(request.getTargetAudience());
         course.setContent(request.getContent());
         course.setDuration(request.getDuration());
         course.setCreator(currentUser);
@@ -233,9 +233,9 @@ public class CourseService {
             course.setDescription(request.getDescription());
         }
 
-        if (request.getTargetAudience() != null) {
-            course.setTargetAudience(request.getTargetAudience());
-        }
+//        if (request.getTargetAudience() != null) {
+//            course.setTargetAudience(request.getTargetAudience());
+//        }
 
         if (request.getContent() != null) {
             course.setContent(request.getContent());
@@ -306,12 +306,14 @@ public class CourseService {
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
-                
+        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+        if( isEnrolled) {
+            enrollmentStatus = EnrollmentStatus.IN_PROGRESS;
+        }
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
                 .description(course.getDescription())
-                .targetAudience(course.getTargetAudience())
                 .coverImage(course.getCoverImage())
                 .content(course.getContent())
                 .duration(course.getDuration())
@@ -320,7 +322,7 @@ public class CourseService {
                 .creator(mapToUserDetailResponse(course.getCreator()))
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
-                .isEnrolled(isEnrolled)
+                .enrollmentStatus(enrollmentStatus)
                 .build();
     }
 

@@ -20,9 +20,7 @@ public class CourseCreateRequest {
     private Long topicId;
 
     private String description;
-    
-    @NotBlank(message = "Đối tượng học viên không được để trống")
-    private String targetAudience;
+
     
     private MultipartFile coverImage;
     

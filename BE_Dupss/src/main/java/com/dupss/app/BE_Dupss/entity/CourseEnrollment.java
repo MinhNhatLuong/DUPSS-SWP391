@@ -32,7 +32,7 @@ public class CourseEnrollment {
     @PrePersist
     protected void onCreate() {
         this.enrollmentDate = LocalDateTime.now();
-        this.status = EnrollmentStatus.ENROLLED;
+        this.status = EnrollmentStatus.NOT_ENROLLED;
         this.progress = 0.0;
     }
 } 

@@ -1,7 +1,7 @@
 package com.dupss.app.BE_Dupss.entity;
 
 public enum EnrollmentStatus {
-    ENROLLED,
+    NOT_ENROLLED,
     IN_PROGRESS,
     COMPLETED,
     DROPPED

@@ -132,12 +132,14 @@ public class CourseEnrollmentService {
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
-                
+        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+        if( isEnrolled) {
+            enrollmentStatus = EnrollmentStatus.IN_PROGRESS;
+        }
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
                 .description(course.getDescription())
-                .targetAudience(course.getTargetAudience())
                 .coverImage(course.getCoverImage())
                 .content(course.getContent())
                 .duration(course.getDuration())
@@ -146,7 +148,7 @@ public class CourseEnrollmentService {
                 .creator(mapToUserDetailResponse(course.getCreator()))
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
-                .isEnrolled(isEnrolled)
+                .enrollmentStatus(enrollmentStatus)
                 .build();
     }
     

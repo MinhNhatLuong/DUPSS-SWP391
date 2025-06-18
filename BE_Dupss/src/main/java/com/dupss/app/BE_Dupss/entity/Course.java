@@ -29,9 +29,6 @@ public class Course {
     @Column(length = 1000)
     private String description;
 
-    @Column(nullable = false)
-    private String targetAudience; // Student, Parent, Teacher, etc.
-
     private String coverImage;
     private String content;
     private Integer duration; // Duration in minutes
