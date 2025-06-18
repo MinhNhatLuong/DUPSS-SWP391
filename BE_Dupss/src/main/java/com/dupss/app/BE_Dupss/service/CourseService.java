@@ -60,7 +60,6 @@ public class CourseService {
         course.setTargetAudience(request.getTargetAudience());
         course.setContent(request.getContent());
         course.setDuration(request.getDuration());
-        course.setActive(true);
         course.setCreator(currentUser);
         course.setStatus(ApprovalStatus.PENDING);
 
@@ -104,7 +103,7 @@ public class CourseService {
 
 
     public List<CourseHomeResponse> getLastestCourses() {
-        List<Course> courses = courseRepository.findTop3ByIsActiveTrueAndStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+        List<Course> courses = courseRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
 
         return courses.stream()
                 .map(course -> {
@@ -121,11 +120,11 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
-    public Page<CourseHomeResponse> searchCoursesSummary(String keyword, Pageable pageable) {
+    public Page<CourseHomeResponse> searchCoursesSummary(String keyword, Long topicId, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         User currentUser = userRepository.findByUsername(username).orElse(null);
-        Page<Course> courses = courseRepository.searchCourses(keyword, pageable);
+        Page<Course> courses = courseRepository.searchCourses(keyword, topicId, pageable);
         return courses.map(course -> {
             boolean isEnrolled = false;
             if (currentUser != null) {
@@ -134,24 +133,8 @@ public class CourseService {
             return mapToCourseHomeResponse(course, isEnrolled);
         });
     }
-    
-    public Page<CourseHomeResponse> searchCoursesByTargetAudience(String keyword, String targetAudience, Pageable pageable) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        User currentUser = userRepository.findByUsername(username).orElse(null);
-        
-        Page<Course> courses = courseRepository.searchCoursesByTargetAudience(keyword, targetAudience, pageable);
-        
-        return courses.map(course -> {
-            List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
-            boolean isEnrolled = false;
-            if (currentUser != null) {
-                isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
-            }
-            return mapToCourseHomeResponse(course, isEnrolled);
-        });
-    }
+
+
     
     public CourseResponse getCourseById(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -318,7 +301,6 @@ public class CourseService {
                 .coverImage(course.getCoverImage())
                 .content(course.getContent())
                 .duration(course.getDuration())
-                .isActive(course.isActive())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .creator(mapToUserDetailResponse(course.getCreator()))

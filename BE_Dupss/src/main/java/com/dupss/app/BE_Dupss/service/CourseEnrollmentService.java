@@ -46,11 +46,7 @@ public class CourseEnrollmentService {
         
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
-        
-        // Check if course is active
-        if (!course.isActive()) {
-            throw new RuntimeException("Cannot enroll in inactive course");
-        }
+
         
         // Check if user is already enrolled
         if (enrollmentRepository.existsByUserAndCourse(currentUser, course)) {
@@ -147,7 +143,6 @@ public class CourseEnrollmentService {
                 .coverImage(course.getCoverImage())
                 .content(course.getContent())
                 .duration(course.getDuration())
-                .isActive(course.isActive())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .creator(mapToUserDetailResponse(course.getCreator()))

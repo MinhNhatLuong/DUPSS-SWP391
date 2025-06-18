@@ -35,7 +35,6 @@ public class Course {
     private String coverImage;
     private String content;
     private Integer duration; // Duration in minutes
-    private boolean isActive;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -54,7 +53,6 @@ public class Course {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.isActive = true;
     }
 
     @PreUpdate

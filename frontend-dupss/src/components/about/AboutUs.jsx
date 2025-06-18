@@ -26,7 +26,7 @@ const AboutUs = () => {
         {/* Featured Image */}
         <Box sx={{ mb: 4, position: 'relative' }}>
           <img 
-            src="https://static.scientificamerican.com/sciam/cache/file/BC2412FA-1388-43B7-877759A80E201C16_source.jpg" 
+            src="https://www.baohoabinh.com.vn/Includes/NewsDetail/1_2017/dt_5120171354_IMG_2722%20.jpg" 
             alt="DUPSS Team" 
             style={{ 
               width: '100%', 
