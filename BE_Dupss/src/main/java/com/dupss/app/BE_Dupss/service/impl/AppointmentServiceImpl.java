@@ -289,6 +289,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setConsultantName(appointment.getConsultant().getFullname());
         responseDto.setGuest(appointment.isGuest());
         responseDto.setStatus(appointment.getStatus());
+        
+        // Kiểm tra nếu không phải là guest thì mới có userId
+        if (!appointment.isGuest() && appointment.getUser() != null) {
+            responseDto.setUserId(appointment.getUser().getId());
+        }
+        
         return responseDto;
     }
 }
