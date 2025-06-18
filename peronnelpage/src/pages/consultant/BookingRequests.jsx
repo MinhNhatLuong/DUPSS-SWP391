@@ -10,79 +10,21 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
   Snackbar,
   Alert,
   Skeleton,
   Pagination,
   PaginationItem,
   Stack,
+  CircularProgress,
+  Chip,
 } from '@mui/material';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
 import NotificationService from '../../services/NotificationService';
 
-// // Fake data
-// const initialRequests = [
-//   {
-//     id: 1,
-//     client: 'Nguyen Van A',
-//     topic: 'Phòng ngừa sử dụng ma túy',
-//     time: '2024-07-15 10:00',
-//     email: 'vana@example.com',
-//     phone: '0912345678',
-//     note: 'Muốn hỏi về nguy cơ',
-//     status: 'pending',
-//     duration: 60,
-//   },
-//   {
-//     id: 2,
-//     client: 'Tran Thi B',
-//     topic: 'Điều trị nghiện ma túy',
-//     time: '2024-07-16 14:00',
-//     email: 'thib@example.com',
-//     phone: '0987654321',
-//     note: '',
-//     status: 'pending',
-//     duration: 60,
-//   },
-//   {
-//     id: 3,
-//     client: 'Le Van C',
-//     topic: 'Hỗ trợ người thân',
-//     time: '2024-07-17 09:00',
-//     email: 'levanc@example.com',
-//     phone: '0909090909',
-//     note: 'Cần tư vấn cho người thân',
-//     status: 'pending',
-//     duration: 60,
-//   },
-//   {
-//     id: 4,
-//     client: 'Pham Thi D',
-//     topic: 'Giáo dục cộng đồng',
-//     time: '2024-07-18 16:00',
-//     email: 'phamthid@example.com',
-//     phone: '0933333333',
-//     note: '',
-//     status: 'pending',
-//     duration: 60,
-//   },
-// ];
 
-// Giả lập lịch đã duyệt trong tuần
-const approvedThisWeek = [
-  { id: 10, time: '2024-07-10 14:00', duration: 60 },
-  { id: 11, time: '2024-07-12 09:00', duration: 60 },
-  { id: 12, time: '2024-07-13 15:00', duration: 60 },
-];
 
-function isConflict(newTime, duration, approved) {
-  // Đơn giản: chỉ kiểm tra trùng giờ bắt đầu
-  return approved.some((item) => item.time === newTime);
-}
 
 export default function BookingRequests() {
   const [requests, setRequests] = useState([]);
@@ -99,10 +41,18 @@ export default function BookingRequests() {
   const requestsPerPage = 12;
   
   // Dialog xác nhận hủy
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null, loading: false });
 
   useEffect(() => {
     fetchRequests();
+    
+    // Định kỳ cập nhật dữ liệu (mỗi 1 phút)
+    const intervalId = setInterval(() => {
+      fetchRequests();
+    }, 60000);
+    
+    // Clear interval khi component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchRequests = async () => {
@@ -113,8 +63,7 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Sử dụng API endpoint dành riêng cho consultant
-      const response = await axios.get(`http://localhost:8080/api/appointments/consultant/${userInfo.id}`, {
+      const response = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -152,10 +101,8 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      await axios.patch(`http://localhost:8080/api/appointments/${selected.id}/status`, {
-        status: 'CONFIRMED',
-        consultantId: userInfo.id
-      }, {
+      // Cập nhật status từ PENDING sang CONFIRMED
+      await axios.patch(`/api/appointments/${selected.id}/status?status=CONFIRMED&consultantId=${userInfo.id}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -200,22 +147,39 @@ export default function BookingRequests() {
   // Xử lý hủy yêu cầu sau khi xác nhận
   const handleConfirmDeny = async () => {
     try {
+      // Bật trạng thái loading
+      setConfirmDialog(prev => ({ ...prev, loading: true }));
+      
+      // Hiển thị thông báo đang xử lý
+      setSnackbar({ 
+        open: true, 
+        message: 'Đang xử lý yêu cầu hủy...', 
+        severity: 'warning' 
+      });
+      
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Sử dụng API mới để hủy cuộc hẹn
+      // Sử dụng API để hủy cuộc hẹn tùy theo loại người dùng
       if (selected.guest) {
-        await axios.post(`http://localhost:8080/api/appointments/${confirmDialog.appointmentId}/cancel/guest`, {
-          email: selected.email
-        }, {
+        // Nếu người đặt lịch là khách (guest) không đăng nhập
+        await axios.post(`/api/appointments/${confirmDialog.appointmentId}/cancel/guest?email=${encodeURIComponent(selected.email)}`, {}, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
       } else {
-        await axios.post(`http://localhost:8080/api/appointments/${confirmDialog.appointmentId}/cancel/user/${userInfo.id}`, {}, {
+        // Nếu người đặt lịch là user đã đăng nhập
+        // Lấy userId của người đặt lịch, không phải consultant
+        const userId = selected.userId || selected.user?.id;
+        if (!userId) {
+          console.error('Không tìm thấy userId của người đặt lịch trong yêu cầu:', selected);
+          throw new Error('Không tìm thấy thông tin người đặt lịch');
+        }
+        
+        await axios.post(`/api/appointments/${confirmDialog.appointmentId}/cancel/user/${userId}`, {}, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
@@ -229,11 +193,11 @@ export default function BookingRequests() {
       setSnackbar({ 
         open: true, 
         message: 'Yêu cầu tư vấn đã bị từ chối!', 
-        severity: 'error' 
+        severity: 'info' 
       });
       
       // Đóng các dialog
-      setConfirmDialog({ open: false, appointmentId: null });
+      setConfirmDialog({ open: false, appointmentId: null, loading: false });
       setDialog({ open: false, appt: null });
     } catch (err) {
       console.error('Error denying request:', err);
@@ -242,7 +206,7 @@ export default function BookingRequests() {
         message: 'Không thể từ chối yêu cầu: ' + (err.response?.data?.message || err.message), 
         severity: 'error' 
       });
-      setConfirmDialog({ open: false, appointmentId: null });
+      setConfirmDialog({ open: false, appointmentId: null, loading: false });
     }
   };
 
@@ -341,13 +305,19 @@ export default function BookingRequests() {
 
   // Hiển thị skeleton loading
   const SkeletonItem = () => (
-    <Grid item xs={12} sm={6} md={3}>
-      <Card>
-        <CardContent>
-          <Skeleton animation="wave" height={32} width="80%" />
-          <Skeleton animation="wave" height={24} width="60%" />
-          <Skeleton animation="wave" height={24} width="70%" />
-          <Skeleton animation="wave" height={36} width="50%" sx={{ mt: 1 }} />
+    <Grid item xs={12} sm={6} md={6} lg={3}>
+      <Card sx={{ position: 'relative', pt: 1, height: '100%' }}>
+        <Box sx={{ position: 'absolute', top: 15, left: 15 }}>
+          <Skeleton animation="wave" height={24} width={70} />
+        </Box>
+        <CardContent sx={{ pt: 4 }}>
+          <Skeleton animation="wave" height={32} width="80%" sx={{ mt: 1 }} />
+          <Skeleton animation="wave" height={20} width="60%" sx={{ mb: 2 }} />
+          <Skeleton animation="wave" height={20} width="90%" />
+          <Skeleton animation="wave" height={20} width="90%" sx={{ mb: 2 }} />
+          
+          <Skeleton animation="wave" height={16} width="30%" sx={{ mb: 0.5 }} />
+          <Skeleton animation="wave" height={24} width="50%" sx={{ mb: 2 }} />
         </CardContent>
       </Card>
     </Grid>
@@ -367,10 +337,12 @@ export default function BookingRequests() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Yêu cầu tư vấn
-      </Typography>
+    <Box sx={{ p: 3, backgroundColor: '#f5f7fa', minHeight: 'calc(100vh - 64px)' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" fontWeight="bold" color="text.primary">
+          Yêu cầu tư vấn
+        </Typography>
+      </Box>
 
       {loading ? (
         <Grid container spacing={2}>
@@ -384,39 +356,96 @@ export default function BookingRequests() {
         </Alert>
       ) : (
         <>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip 
+                label={`Tổng: ${requests.length}`} 
+                size="small"
+                sx={{ 
+                  bgcolor: '#e3f2fd', 
+                  color: '#1976d2',
+                  fontWeight: 'medium',
+                  px: 1,
+                  '& .MuiChip-label': { px: 1 }
+                }}
+              />
+            </Box>
+          </Box>
+          
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {paginatedRequests.map((item) => (
               <Grid item xs={12} sm={6} md={6} lg={3} xl={3} key={item.id}>
                 <Card 
+                  onClick={() => handleOpen(item)}
                   sx={{ 
                     height: '100%', 
                     display: 'flex', 
                     flexDirection: 'column',
+                    position: 'relative',
                     transition: 'transform 0.2s, box-shadow 0.2s',
                     '&:hover': {
                       transform: 'translateY(-4px)',
-                      boxShadow: 4
-                    }
+                      boxShadow: 4,
+                      cursor: 'pointer'
+                    },
+                    pt: 1,
+                    overflow: 'visible',
+                    backgroundColor: '#ffffff',
+                    borderRadius: 2
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom noWrap>
-                      {item.topicName}
+                  {/* Status Badge */}
+                  <Box sx={{ position: 'absolute', top: 15, left: 15 }}>
+                    <Chip
+                      label={item.status}
+                      size="small"
+                      sx={{
+                        bgcolor: '#42a5f5', // Blue for PENDING
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '0.7rem',
+                        py: 0.5,
+                        height: 24
+                      }}
+                    />
+                  </Box>
+                  
+                  <CardContent sx={{ flexGrow: 1, p: 2.5, pt: 4 }}>
+                    {/* Title and Date */}
+                    <Typography variant="h6" fontWeight="bold" sx={{ mt: 1, mb: 0 }} noWrap>
+                      {item.topicName || "Chủ đề tư vấn"}
                     </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      Khách: {item.customerName}
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 2 }}>
+                      {formatDateTime(item.appointmentDate, item.appointmentTime)}
                     </Typography>
-                    <Typography color="textSecondary">
-                      Thời gian: {formatDateTime(item.appointmentDate, item.appointmentTime)}
-                    </Typography>
-                    <Button 
-                      variant="outlined" 
-                      sx={{ mt: 2 }} 
-                      onClick={() => handleOpen(item)}
-                      fullWidth
+                    
+                    {/* Description */}
+                    <Typography 
+                      color="text.secondary" 
+                      sx={{ 
+                        mb: 2,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        height: 40
+                      }}
                     >
-                      Xem chi tiết
-                    </Button>
+                      Yêu cầu tư vấn từ khách hàng {item.customerName}
+                    </Typography>
+                    
+                    {/* Labels */}
+                    <Box mt={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, fontWeight: 'bold' }}>
+                        THÔNG TIN
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                        {item.customerName}
+                      </Typography>
+                      
+
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -444,36 +473,66 @@ export default function BookingRequests() {
         </>
       )}
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Chi tiết yêu cầu tư vấn</DialogTitle>
-        <DialogContent>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth PaperProps={{ 
+        sx: { borderRadius: 2 }
+      }}>
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid #e0e0e0', 
+          py: 2,
+          fontWeight: 'bold',
+          bgcolor: '#f5f7fa'
+        }}>
+          Chi tiết yêu cầu tư vấn
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
           {selected && (
-            <List>
-              <ListItem>
-                <ListItemText primary="Họ và tên" secondary={selected.customerName} />
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Email" secondary={selected.email || '-'} />
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Số điện thoại" secondary={selected.phoneNumber || '-'} />
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Chủ đề tư vấn" secondary={selected.topicName} />
-              </ListItem>
-              <ListItem>
-                <ListItemText 
-                  primary="Thời gian tư vấn" 
-                  secondary={formatDateTime(selected.appointmentDate, selected.appointmentTime)} 
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Trạng thái" secondary={selected.status || 'PENDING'} />
-              </ListItem>
-            </List>
+            <>
+                             <Chip
+                 label={selected.status}
+                 size="small"
+                 sx={{
+                   bgcolor: '#42a5f5',
+                   color: 'white',
+                   fontWeight: 'bold',
+                   fontSize: '0.75rem',
+                   height: 24,
+                   mb: 2
+                 }}
+               />
+            
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                {selected.topicName}
+              </Typography>
+            
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                  THỜI GIAN
+                </Typography>
+                <Typography variant="body1">
+                  {formatDateTime(selected.appointmentDate, selected.appointmentTime)}
+                </Typography>
+              </Box>
+            
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                  THÔNG TIN KHÁCH HÀNG
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500', mb: 0.5 }}>
+                  {selected.customerName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selected.email || 'Không có email'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selected.phoneNumber || 'Không có số điện thoại'}
+                </Typography>
+              </Box>
+              
+              
+            </>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e0e0e0' }}>
           <Button variant="contained" color="success" onClick={handleApprove}>
             Chấp thuận
           </Button>
@@ -498,7 +557,7 @@ export default function BookingRequests() {
       {/* Dialog xác nhận hủy yêu cầu */}
       <Dialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, appointmentId: null })}
+        onClose={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, loading: false })}
         aria-labelledby="confirm-dialog-title"
       >
         <DialogTitle id="confirm-dialog-title">
@@ -510,11 +569,23 @@ export default function BookingRequests() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialog({ open: false, appointmentId: null })} color="primary">
+          <Button 
+            onClick={() => setConfirmDialog({ open: false, appointmentId: null, loading: false })} 
+            color="primary"
+            disabled={confirmDialog.loading}
+          >
             Hủy bỏ
           </Button>
-          <Button onClick={handleConfirmDeny} color="error" variant="contained">
-            Từ chối yêu cầu
+          <Button 
+            onClick={handleConfirmDeny} 
+            color="error" 
+            variant="contained"
+            disabled={confirmDialog.loading}
+            startIcon={confirmDialog.loading ? 
+              <CircularProgress size={20} color="inherit" /> : null
+            }
+          >
+            {confirmDialog.loading ? 'Đang xử lý...' : 'Từ chối yêu cầu'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -326,6 +326,9 @@ export default function Schedule() {
     const dateString = day.format('DD/MM/YYYY');
     
     return appointments.find(appt => {
+      // Bỏ qua các cuộc hẹn có trạng thái PENDING
+      if (appt.status === 'PENDING') return false;
+      
       // Parse the appointment time from the database format
       let appointmentHour = null;
       if (typeof appt.appointmentTime === 'string') {
@@ -497,11 +500,24 @@ export default function Schedule() {
         // Hoàn thành buổi tư vấn
         console.log('Gửi request hoàn thành cuộc hẹn');
         try {
-          await axios.patch(`/api/appointments/${appointmentId}/status?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-            }
-          });
+          if (appointmentData.guest) {
+            // Sử dụng API hoàn thành cho guest
+            console.log('Hoàn thành cuộc hẹn cho khách (guest)');
+            await axios.patch(`/api/appointments/${appointmentId}/status/guest?status=COMPLETED&consultantId=${userInfo.id}&email=${encodeURIComponent(appointmentData.email)}`, {}, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+          } else {
+            // Sử dụng API hoàn thành cho user đã đăng ký
+            const userId = appointmentData.userId || appointmentData.user?.id;
+            console.log('Hoàn thành cuộc hẹn cho người dùng (user), userId:', userId);
+            await axios.patch(`/api/appointments/${appointmentId}/status/user/${userId}?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+          }
           console.log('Hoàn thành cuộc hẹn thành công');
         } catch (patchError) {
           console.error('Lỗi khi gọi API hoàn thành:', patchError);
@@ -528,7 +544,7 @@ export default function Schedule() {
           } else {
             // Sử dụng API hủy cho user
             console.log('Hủy cuộc hẹn cho người dùng (user)');
-            await axios.post(`/api/appointments/${appointmentId}/cancel/user/${userInfo.id}`, {}, {
+            await axios.post(`/api/appointments/${appointmentId}/cancel/user/${appointmentData.userId || appointmentData.user?.id}`, {}, {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
               }

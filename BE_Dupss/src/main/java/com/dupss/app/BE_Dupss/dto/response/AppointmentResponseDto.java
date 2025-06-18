@@ -28,4 +28,5 @@ public class AppointmentResponseDto {
     private String consultantName;
     private boolean isGuest;
     private String status;
+    private Long userId;
 } 

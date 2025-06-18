@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Card, CardContent, Button } from '@mui/material';
+import { 
+  Box, Typography, Card, CardContent, Button, Container, Chip, CardMedia, CardActions
+} from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PersonIcon from '@mui/icons-material/Person';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
@@ -10,45 +14,27 @@ const CourseCard = styled(Card)(({ theme }) => ({
   borderRadius: '8px',
   overflow: 'hidden',
   boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-  transition: 'transform 0.3s',
+  transition: 'transform 0.3s, box-shadow 0.3s',
   height: '100%',
-  width: '100%',
   display: 'flex',
   flexDirection: 'column',
   '&:hover': {
-    transform: 'translateY(-5px)',
+    transform: 'translateY(-8px)',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
   }
 }));
 
-const CourseImage = styled('div')({
-  height: '200px',
-  width: '100%',
-  overflow: 'hidden',
-  position: 'relative',
-});
-
-const StyledCardMedia = styled('img')({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  objectPosition: 'center',
-  transition: 'transform 0.3s ease',
-  '&:hover': {
-    transform: 'scale(1.05)',
-  }
-});
-
-const ViewMoreButton = styled(Button)(({ theme }) => ({
-  backgroundColor: '#0056b3',
-  color: 'white',
-  width: '100%',
-  padding: '10px',
-  borderRadius: '4px',
-  fontWeight: 500,
-  textTransform: 'none',
-  '&:hover': {
-    backgroundColor: '#003d82',
-  }
+const LoadingOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  zIndex: 2,
 }));
 
 const ViewAllLink = styled(Link)(({ theme }) => ({
@@ -70,11 +56,11 @@ const ViewAllLink = styled(Link)(({ theme }) => ({
 const GridWrapper = styled(Box)({
   display: 'grid',
   gridTemplateColumns: 'repeat(3, 1fr)',
-  gap: '30px',
-  '@media (max-width: 1024px)': {
+  gap: '24px',
+  '@media (max-width: 900px)': {
     gridTemplateColumns: 'repeat(2, 1fr)',
   },
-  '@media (max-width: 768px)': {
+  '@media (max-width: 600px)': {
     gridTemplateColumns: '1fr',
   }
 });
@@ -86,7 +72,7 @@ const FeaturedCourses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('/api/public/courses/latest');
+        const response = await axios.get('http://localhost:8080/api/public/courses/latest');
         setCoursesData(response.data);
         setLoading(false);
       } catch (error) {
@@ -98,9 +84,14 @@ const FeaturedCourses = () => {
     fetchCourses();
   }, []);
 
+  // Format duration from hours to display string
+  const formatDuration = (hours) => {
+    return `${hours} giờ`;
+  };
+
   return (
     <section className="featured-courses">
-      <Box sx={{ maxWidth: '1200px', mx: 'auto', py: 6, px: { xs: 2, sm: 3, md: 4 } }}>
+      <Container maxWidth="lg" sx={{ py: 6, px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography 
           variant="h4" 
           component="h2" 
@@ -123,82 +114,120 @@ const FeaturedCourses = () => {
           Khóa học nổi bật
         </Typography>
 
-        {loading ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography>Đang tải...</Typography>
-          </Box>
-        ) : (
-          <GridWrapper>
-            {coursesData.map(course => (
-              <CourseCard key={course.id}>
-                <CourseImage>
-                  <StyledCardMedia
-                    src={course.coverImage || 'https://via.placeholder.com/300x200'}
-                    alt={course.title}
-                    loading="lazy"
-                  />
-                </CourseImage>
-                <CardContent sx={{ 
-                  flexGrow: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  p: 2.5
-                }}>
-                  <Typography 
-                    variant="h6" 
-                    component="h3" 
-                    sx={{ 
-                      fontSize: '1.2rem', 
-                      lineHeight: 1.4,
-                      mb: 1.25,
-                      fontWeight: 'bold',
+        <Box sx={{ position: 'relative' }}>
+          {loading ? (
+            <LoadingOverlay>
+              <Typography>Đang tải...</Typography>
+            </LoadingOverlay>
+          ) : (
+            <GridWrapper>
+              {coursesData.map(course => (
+                <CourseCard key={course.id}>
+                  <Box sx={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
+                    <CardMedia
+                      component="img"
+                      image={course.coverImage || 'https://via.placeholder.com/300x200'}
+                      alt={course.title}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.5s',
+                        '&:hover': { transform: 'scale(1.05)' }
+                      }}
+                    />
+                    <Chip
+                      label={course.topicName}
+                      color="primary"
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: 16,
+                        right: 16,
+                        fontWeight: 500
+                      }}
+                    />
+                    <Chip
+                      icon={<AccessTimeIcon />}
+                      label={formatDuration(course.duration)}
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 16,
+                        left: 16,
+                        bgcolor: 'rgba(0, 0, 0, 0.7)',
+                        color: 'white',
+                        '& .MuiChip-icon': {
+                          color: 'white'
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h6" component="h3" sx={{
+                      height: '3.6em',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}
-                  >
-                    {course.title}
-                  </Typography>
-                  
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
-                      mb: 2, 
+                      WebkitBoxOrient: 'vertical',
+                      fontSize: '1rem',
+                      lineHeight: 1.4,
+                      fontWeight: 'bold',
+                    }}>
+                      {course.title}
+                    </Typography>
+
+                    <Box display="flex" justifyContent="space-between" mb={1.5}>
+                      <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
+                        <PersonIcon fontSize="small" sx={{ mr: 0.5 }} />
+                        {course.creatorName}
+                      </Typography>
+                    </Box>
+
+                    <Typography variant="body2" color="text.secondary" sx={{
                       flexGrow: 1,
-                      color: '#666',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       display: '-webkit-box',
                       WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical'
-                    }}
-                  >
-                    {course.summary || 'Không có mô tả'}
-                  </Typography>
-                  
-                  <Box sx={{ mt: 'auto' }}>
-                    <ViewMoreButton 
-                      component={Link} 
-                      to={`/course-detail/${course.id}`}
+                      WebkitBoxOrient: 'vertical',
+                      mb: 2
+                    }}>
+                      {course.summary || 'Không có mô tả'}
+                    </Typography>
+                  </CardContent>
+
+                  <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                    <Button
+                      component={Link}
+                      to={`/courses/${course.id}`}
+                      color="primary"
+                      endIcon={<ArrowForward />}
+                      sx={{ fontWeight: 'bold' }}
                     >
-                      Xem chi tiết
-                    </ViewMoreButton>
-                  </Box>
-                </CardContent>
-              </CourseCard>
-            ))}
-          </GridWrapper>
-        )}
-        
-        <Box sx={{ textAlign: 'center', mt: 5 }}>
-          <ViewAllLink to="/courses">
-            Xem tất cả khóa học
-          </ViewAllLink>
+                      Tham gia
+                    </Button>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                      {new Date(course.createdAt).toLocaleDateString('vi-VN')}
+                    </Typography>
+                  </CardActions>
+                </CourseCard>
+              ))}
+            </GridWrapper>
+          )}
+          
+          <Box sx={{ textAlign: 'center', mt: 5 }}>
+            <ViewAllLink to="/courses">
+              Xem tất cả khóa học
+            </ViewAllLink>
+          </Box>
         </Box>
-      </Box>
+      </Container>
     </section>
   );
 };
