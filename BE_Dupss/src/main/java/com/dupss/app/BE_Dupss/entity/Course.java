@@ -30,6 +30,7 @@ public class Course {
     private String description;
 
     private String coverImage;
+    @Column(length = 10000)
     private String content;
     private Integer duration; // Duration in minutes
 
