@@ -18,7 +18,8 @@ const Contact = () => {
           mb: 3,
           color: '#0056b3',
           borderBottom: '2px solid #e9f5ff',
-          pb: 1
+          pb: 1,
+          fontWeight: 'bold'
         }}
       >
         Liên hệ với chúng tôi

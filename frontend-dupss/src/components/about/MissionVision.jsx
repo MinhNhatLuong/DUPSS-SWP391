@@ -12,7 +12,8 @@ const MissionVision = () => {
             mb: 3,
             color: '#0056b3',
             borderBottom: '2px solid #e9f5ff',
-            pb: 1
+            pb: 1,
+            fontWeight: 'bold'
           }}
         >
           Sứ mệnh của chúng tôi
@@ -35,7 +36,8 @@ const MissionVision = () => {
             mt: 5,
             color: '#0056b3',
             borderBottom: '2px solid #e9f5ff',
-            pb: 1
+            pb: 1,
+            fontWeight: 'bold'
           }}
         >
           Tầm nhìn
