@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.dupss.app.BE_Dupss.entity.EnrollmentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +18,6 @@ public class CourseEnrollmentResponse {
     private UserDetailResponse user;
     private LocalDateTime enrollmentDate;
     private LocalDateTime completionDate;
-    private boolean completed;
+    private EnrollmentStatus status;
     private Double progress;
 } 

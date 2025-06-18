@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import com.dupss.app.BE_Dupss.entity.VideoCourse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -20,7 +21,7 @@ public class CourseModuleRequest {
     
     private String content;
 
-    private List<String> videos;
+    private List<VideoCourse> videos;
     
     private Integer duration;
     

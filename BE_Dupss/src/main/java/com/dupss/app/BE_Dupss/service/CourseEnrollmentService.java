@@ -56,6 +56,7 @@ public class CourseEnrollmentService {
         CourseEnrollment enrollment = new CourseEnrollment();
         enrollment.setUser(currentUser);
         enrollment.setCourse(course);
+        enrollment.setStatus(EnrollmentStatus.IN_PROGRESS);
         enrollment.setProgress(0.0);
         
         CourseEnrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -122,6 +123,7 @@ public class CourseEnrollmentService {
                 .user(mapToUserDetailResponse(enrollment.getUser()))
                 .enrollmentDate(enrollment.getEnrollmentDate())
                 .completionDate(enrollment.getCompletionDate())
+                .status(enrollment.getStatus())
                 .progress(enrollment.getProgress())
                 .build();
     }

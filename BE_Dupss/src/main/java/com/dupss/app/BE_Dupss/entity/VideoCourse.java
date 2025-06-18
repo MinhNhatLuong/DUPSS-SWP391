@@ -14,6 +14,8 @@ public class VideoCourse {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String title;
+
     private String videoUrl;
     @ManyToOne
     @JoinColumn(name = "courseModule_id", nullable = false)

@@ -84,9 +84,10 @@ public class CourseService {
 
                 List<VideoCourse> videos = new ArrayList<>();
                 if (moduleRequest.getVideos() != null) {
-                    for (String url : moduleRequest.getVideos()) {
+                    for (VideoCourse url : moduleRequest.getVideos()) {
                         VideoCourse video = new VideoCourse();
-                        video.setVideoUrl(url);
+                        video.setTitle(url.getTitle());
+                        video.setVideoUrl(url.getVideoUrl());
                         video.setCourseModule(module);
                         videos.add(video);
                     }
@@ -283,9 +284,10 @@ public class CourseService {
 
                 List<VideoCourse> videos = new ArrayList<>();
                 if (moduleRequest.getVideos() != null) {
-                    for (String url : moduleRequest.getVideos()) {
+                    for (VideoCourse url : moduleRequest.getVideos()) {
                         VideoCourse video = new VideoCourse();
-                        video.setVideoUrl(url);
+                        video.setTitle(url.getTitle());
+                        video.setVideoUrl(url.getVideoUrl());
                         video.setCourseModule(module);
                         videos.add(video);
                     }

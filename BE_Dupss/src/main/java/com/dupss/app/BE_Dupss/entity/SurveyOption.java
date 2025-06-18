@@ -28,6 +28,4 @@ public class SurveyOption {
     @JoinColumn(name = "question_id", nullable = false)
     private SurveyQuestion question;
 
-    @ManyToMany(mappedBy = "selectedOptions")
-    private Set<SurveyResult> selectedBy = new HashSet<>();
 }

@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -32,12 +32,7 @@ public class SurveyResult {
     @Column(nullable = false)
     private LocalDateTime submittedAt;
 
-    @ManyToMany
-    @JoinTable(
-            name = "survey_result_options",
-            joinColumns = @JoinColumn(name = "survey_result_id"),
-            inverseJoinColumns = @JoinColumn(name = "option_id")
-    )
-    private Set<SurveyOption> selectedOptions = new HashSet<>();
+    @OneToMany(mappedBy = "surveyResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SurveyResultOption> selectedOptions = new ArrayList<>();
 
 }

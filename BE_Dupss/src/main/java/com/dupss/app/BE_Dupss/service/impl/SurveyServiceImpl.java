@@ -1,8 +1,10 @@
 package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
+import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResponse;
+import com.dupss.app.BE_Dupss.dto.response.SurveyResultResponse;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.CloudinaryService;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +28,7 @@ import java.util.stream.Collectors;
 public class SurveyServiceImpl implements SurveyService {
 
     private final SurveyRepo surveyRepository;
-//    private final SurveyResultRepo surveyResultRepository;
+    private final SurveyResultRepo surveyResultRepository;
     private final SurveyConditionRepo surveyConditionRepository;
     private final SurveyQuestionRepo surveyQuestionRepository;
     private final SurveyOptionRepo surveyOptionRepository;
@@ -136,5 +139,59 @@ public class SurveyServiceImpl implements SurveyService {
                         .map(SurveyResponse.SurveyConditionDTO::fromEntity)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    @Override
+    public SurveyResultResponse submitSurveyResult(SurveyResultRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Survey survey = surveyRepository.findById(request.getSurveyId())
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
+
+
+        List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(request.getSelectedOptionIds());
+        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        String advice = survey.getConditions().stream()
+                .filter(c -> evaluate(totalScore, c))
+                .sorted(Comparator.comparing(SurveyCondition::getValue))
+                .map(SurveyCondition::getMessage)
+                .reduce((a, b) -> b).orElse("Không có lời khuyên phù hợp");
+
+        SurveyResult result = new SurveyResult();
+        result.setUser(user);
+        result.setSurvey(survey);
+        result.setTotalScore(totalScore);
+        result.setSubmittedAt(LocalDateTime.now());
+
+        List<SurveyResultOption> resultOptions = selectedOptions.stream().map(option -> {
+            SurveyResultOption sro = new SurveyResultOption();
+            sro.setSurveyOption(option);
+            sro.setSurveyResult(result);
+            return sro;
+        }).collect(Collectors.toList());
+
+        result.setSelectedOptions(resultOptions);
+
+        surveyResultRepository.save(result);
+
+        return SurveyResultResponse.builder()
+                .totalScore(totalScore)
+                .advice(advice)
+                .build();
+    }
+
+    private boolean evaluate(int score, SurveyCondition condition) {
+        return switch (condition.getOperator()) {
+            case "=" -> score == condition.getValue();
+            case ">" -> score > condition.getValue();
+            case "<" -> score < condition.getValue();
+            case ">=" -> score >= condition.getValue();
+            case "<=" -> score <= condition.getValue();
+            default -> false;
+        };
     }
 }
