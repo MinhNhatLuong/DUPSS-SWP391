@@ -19,16 +19,11 @@ public class CourseModule {
     
     @Column(nullable = false)
     private String title;
-    
-    @Column(length = 1000)
-    private String description;
-    
-    private String content;
+
 
     @OneToMany(mappedBy = "courseModule", cascade = CascadeType.ALL)
     private List<VideoCourse> videos = new ArrayList<>();
-    
-    private Integer duration; // Duration in minutes
+
     
     private Integer orderIndex; // Order in the course
     

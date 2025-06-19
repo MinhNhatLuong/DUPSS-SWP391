@@ -77,8 +77,6 @@ public class CourseService {
             for (CourseModuleRequest moduleRequest : request.getModules()) {
                 CourseModule module = new CourseModule();
                 module.setTitle(moduleRequest.getTitle());
-                module.setContent(moduleRequest.getContent());
-                module.setDuration(moduleRequest.getDuration());
                 module.setOrderIndex(moduleRequest.getOrderIndex());
                 module.setCourse(savedCourse);
 
@@ -277,8 +275,6 @@ public class CourseService {
             for (CourseModuleRequest moduleRequest : request.getModules()) {
                 CourseModule module = new CourseModule();
                 module.setTitle(moduleRequest.getTitle());
-                module.setContent(moduleRequest.getContent());
-                module.setDuration(moduleRequest.getDuration());
                 module.setOrderIndex(moduleRequest.getOrderIndex());
                 module.setCourse(savedCourse);
 
@@ -351,10 +347,7 @@ public class CourseService {
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .description(module.getDescription())
-                .content(module.getContent())
                 .videoUrl(videoUrls)
-                .duration(module.getDuration())
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())

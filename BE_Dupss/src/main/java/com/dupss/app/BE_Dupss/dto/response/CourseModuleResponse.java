@@ -15,11 +15,8 @@ import java.util.List;
 public class CourseModuleResponse {
     private Long id;
     private String title;
-    private String description;
-    private String content;
     private List<String> videoUrl;
     private String documentUrl;
-    private Integer duration;
     private Integer orderIndex;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
