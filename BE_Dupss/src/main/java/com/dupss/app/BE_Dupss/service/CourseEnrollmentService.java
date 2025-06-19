@@ -157,13 +157,9 @@ public class CourseEnrollmentService {
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
-                .description(course.getDescription())
-                .coverImage(course.getCoverImage())
-                .content(course.getContent())
-                .duration(course.getDuration())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
-                .creator(mapToUserDetailResponse(course.getCreator()))
+                .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
@@ -171,15 +167,10 @@ public class CourseEnrollmentService {
     }
     
     private CourseModuleResponse mapToModuleResponse(CourseModule module) {
-        List<String> videoUrls = module.getVideos() != null
-                ? module.getVideos().stream()
-                .map(VideoCourse::getVideoUrl)
-                .collect(Collectors.toList())
-                : new ArrayList<>();
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .videoUrl(videoUrls)
+                .videos(module.getVideos())
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())

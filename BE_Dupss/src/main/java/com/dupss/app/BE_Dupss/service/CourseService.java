@@ -353,13 +353,9 @@ public class CourseService {
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
-                .description(course.getDescription())
-                .coverImage(course.getCoverImage())
-                .content(course.getContent())
-                .duration(course.getDuration())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
-                .creator(mapToUserDetailResponse(course.getCreator()))
+                .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
@@ -381,27 +377,14 @@ public class CourseService {
     }
 
     private CourseModuleResponse mapToModuleResponse(CourseModule module) {
-        List<String> videoUrls = module.getVideos() != null
-                ? module.getVideos().stream()
-                .map(VideoCourse::getVideoUrl)
-                .collect(Collectors.toList())
-                : new ArrayList<>();
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .videoUrl(videoUrls)
+                .videos(module.getVideos())
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())
                 .build();
     }
-    
-    private UserDetailResponse mapToUserDetailResponse(User user) {
-        return UserDetailResponse.builder()
-                .email(user.getEmail())
-                .fullName(user.getFullname())
-                .avatar(user.getAvatar())
-                .role(user.getRole().name())
-                .build();
-    }
+
 } 

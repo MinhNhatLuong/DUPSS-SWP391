@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.dupss.app.BE_Dupss.entity.VideoCourse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ import java.util.List;
 public class CourseModuleResponse {
     private Long id;
     private String title;
-    private List<String> videoUrl;
+    private List<VideoCourse> videos;
     private String documentUrl;
     private Integer orderIndex;
     private LocalDateTime createdAt;
