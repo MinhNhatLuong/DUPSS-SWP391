@@ -22,4 +22,5 @@ public class CourseResponse {
     private List<CourseModuleResponse> modules;
     private Integer enrollmentCount;
     private EnrollmentStatus enrollmentStatus;
+    private double progress;
 } 

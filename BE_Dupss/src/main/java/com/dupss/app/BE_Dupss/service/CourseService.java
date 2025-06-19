@@ -344,10 +344,12 @@ public class CourseService {
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
         EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+        double progress = 0.0;
         if (currentUser != null) {
             Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
             if (enrollmentOpt.isPresent()) {
                 enrollmentStatus = enrollmentOpt.get().getStatus();
+                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
             }
         }
         return CourseResponse.builder()
@@ -359,6 +361,7 @@ public class CourseService {
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
+                .progress(progress)
                 .build();
     }
 
@@ -377,14 +380,20 @@ public class CourseService {
     }
 
     private CourseModuleResponse mapToModuleResponse(CourseModule module) {
+        List<VideoCourseResponse> videoDTOs = module.getVideos().stream()
+                .map(video -> VideoCourseResponse.builder()
+                        .id(video.getId())
+                        .title(video.getTitle())
+                        .videoUrl(video.getVideoUrl())
+                        .build())
+                .collect(Collectors.toList());
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .videos(module.getVideos())
+                .videos(videoDTOs)
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())
                 .build();
     }
-
 } 

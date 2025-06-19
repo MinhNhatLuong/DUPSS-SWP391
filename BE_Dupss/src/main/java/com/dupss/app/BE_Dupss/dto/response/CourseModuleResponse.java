@@ -16,7 +16,7 @@ import java.util.List;
 public class CourseModuleResponse {
     private Long id;
     private String title;
-    private List<VideoCourse> videos;
+    private List<VideoCourseResponse> videos;
     private String documentUrl;
     private Integer orderIndex;
     private LocalDateTime createdAt;

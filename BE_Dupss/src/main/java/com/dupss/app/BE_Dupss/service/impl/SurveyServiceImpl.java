@@ -178,7 +178,34 @@ public class SurveyServiceImpl implements SurveyService {
 
         surveyResultRepository.save(result);
 
+        return mapToSurveyResultResponse(result);
+    }
+
+    @Override
+    public List<SurveyResultResponse> getSubmittedSurveys() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return surveyResultRepository.findByUser(user).stream()
+                .map(this::mapToSurveyResultResponse)
+                .collect(Collectors.toList());
+    }
+
+    private SurveyResultResponse mapToSurveyResultResponse(SurveyResult result) {
+        Survey survey = result.getSurvey();
+        int totalScore = result.getTotalScore();
+
+        String advice = survey.getConditions().stream()
+                .filter(c -> evaluate(totalScore, c))
+                .sorted(Comparator.comparing(SurveyCondition::getValue))
+                .map(SurveyCondition::getMessage)
+                .reduce((a, b) -> b)
+                .orElse("Không có lời khuyên phù hợp");
+
         return SurveyResultResponse.builder()
+                .surveyName(survey.getTitle())
                 .totalScore(totalScore)
                 .advice(advice)
                 .build();

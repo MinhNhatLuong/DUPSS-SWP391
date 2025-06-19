@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class SurveyResultResponse {
-    private String surveyName;
-    private Integer totalScore;
-    private String advice;
+@NoArgsConstructor
+@AllArgsConstructor
+public class VideoCourseResponse {
+    private Long id;
+    private String title;
+    private String videoUrl;
 }
