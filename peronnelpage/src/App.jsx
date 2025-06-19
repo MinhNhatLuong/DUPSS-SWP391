@@ -5,6 +5,7 @@ import HeaderAdmin from './layout/Header';
 import Dashboard from './pages/manager/Dashboard';
 import ConsultantManagement from './pages/manager/ConsultantManagement';
 import ContentReview from './pages/manager/ContentReview';
+import Topic from './pages/manager/Topic';
 import Login from './pages/Login';
 import AdminPage from './pages/admin/AdminPage';
 import HeaderConsultant from './layout/HeaderConsultant';
@@ -138,6 +139,7 @@ function App() {
                       <Route path="dashboard" element={<Dashboard />} />
                       <Route path="consultants" element={<ConsultantManagement />} />
                       <Route path="content-review" element={<ContentReview />} />
+                      <Route path="topics" element={<Topic />} />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
                     </Routes>
                   </main>

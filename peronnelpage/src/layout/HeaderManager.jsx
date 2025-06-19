@@ -20,6 +20,7 @@ import {
   AccountCircle,
   Logout,
   Settings,
+  Topic as TopicIcon,
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
@@ -48,6 +49,7 @@ const HeaderManager = ({ userName }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/manager/dashboard' },
     { text: 'Consultants', icon: <PeopleIcon />, path: '/manager/consultants' },
     { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
+    { text: 'Topics', icon: <TopicIcon />, path: '/manager/topics' },
   ];
 
   // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
