@@ -6,6 +6,7 @@ const SurveyCard = ({ survey }) => {
   const navigate = useNavigate();
 
   const handleStartSurvey = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     navigate(`/surveys/${survey.surveyId}`);
   };
 
@@ -68,7 +69,7 @@ const SurveyCard = ({ survey }) => {
               variant="contained" 
               color="primary" 
               onClick={handleStartSurvey}
-              sx={{ mt: 2 }}
+              sx={{ mt: 2, fontWeight: 'bold' }}
             >
               Làm bài khảo sát
             </Button>

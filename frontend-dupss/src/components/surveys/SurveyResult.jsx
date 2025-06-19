@@ -81,7 +81,10 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
         <Button
           variant="outlined"
-          onClick={onBack}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            onBack();
+          }}
           disabled={submitting}
           size="large"
         >
@@ -90,7 +93,10 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
         <Button
           variant="contained"
           color="primary"
-          onClick={onSubmit}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            onSubmit();
+          }}
           disabled={submitting}
           startIcon={submitting ? <CircularProgress size={20} /> : null}
           size="large"

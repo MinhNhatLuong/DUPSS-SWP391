@@ -73,15 +73,21 @@ const SurveyDetail = () => {
     
     if (activeSection < survey.survey.section.length - 1) {
       setActiveSection(activeSection + 1);
+      // Cuộn lên đầu trang sau khi chuyển section
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       calculateResult();
       setShowResult(true);
+      // Cuộn lên đầu trang sau khi hiển thị kết quả
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrevious = () => {
     if (activeSection > 0) {
       setActiveSection(activeSection - 1);
+      // Cuộn lên đầu trang sau khi quay lại section trước
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -165,6 +171,8 @@ const SurveyDetail = () => {
 
   const handleBackToSurvey = () => {
     setShowResult(false);
+    // Cuộn lên đầu trang khi quay lại khảo sát
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
