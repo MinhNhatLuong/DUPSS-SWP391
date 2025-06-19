@@ -287,7 +287,7 @@ export default function Schedule() {
 
       console.log(`Đang cập nhật trạng thái cuộc hẹn ${id} thành ${status}`);
       console.log('Thông tin người dùng:', userInfo);
-      console.log('Gửi request đến:', `/api/appointments/${id}/status`);
+      console.log('Gửi request đến:', `/api/appointments/${id}/status?status=${status}&consultantId=${userInfo.id}`);
       
       await axios.patch(`/api/appointments/${id}/status?status=${status}&consultantId=${userInfo.id}`, {}, {
         headers: {
@@ -500,24 +500,13 @@ export default function Schedule() {
         // Hoàn thành buổi tư vấn
         console.log('Gửi request hoàn thành cuộc hẹn');
         try {
-          if (appointmentData.guest) {
-            // Sử dụng API hoàn thành cho guest
-            console.log('Hoàn thành cuộc hẹn cho khách (guest)');
-            await axios.patch(`/api/appointments/${appointmentId}/status/guest?status=COMPLETED&consultantId=${userInfo.id}&email=${encodeURIComponent(appointmentData.email)}`, {}, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-              }
-            });
-          } else {
-            // Sử dụng API hoàn thành cho user đã đăng ký
-            const userId = appointmentData.userId || appointmentData.user?.id;
-            console.log('Hoàn thành cuộc hẹn cho người dùng (user), userId:', userId);
-            await axios.patch(`/api/appointments/${appointmentId}/status/user/${userId}?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-              }
-            });
-          }
+          // Sử dụng API mới để cập nhật trạng thái thành COMPLETED
+          console.log('Hoàn thành cuộc hẹn với id:', appointmentId);
+          await axios.patch(`/api/appointments/${appointmentId}/status?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
           console.log('Hoàn thành cuộc hẹn thành công');
         } catch (patchError) {
           console.error('Lỗi khi gọi API hoàn thành:', patchError);

@@ -42,6 +42,8 @@ export default function BookingRequests() {
   
   // Dialog xác nhận hủy
   const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null, loading: false });
+  // Thêm state cho loading nút chấp thuận
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -96,6 +98,16 @@ export default function BookingRequests() {
 
   const handleApprove = async () => {
     try {
+      // Bật trạng thái loading
+      setApproving(true);
+      
+      // Hiển thị thông báo đang xử lý
+      setSnackbar({ 
+        open: true, 
+        message: 'Yêu cầu đang được xử lý...', 
+        severity: 'warning' 
+      });
+      
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
@@ -114,7 +126,7 @@ export default function BookingRequests() {
       // Hiển thị thông báo thành công
       setSnackbar({ 
         open: true, 
-        message: 'Yêu cầu tư vấn đã được chấp thuận!', 
+        message: 'Yêu cầu chấp thuận đã xử lý xong!', 
         severity: 'success' 
       });
       
@@ -125,7 +137,9 @@ export default function BookingRequests() {
         description: `Bạn đã chấp thuận yêu cầu tư vấn của ${selected.customerName}`
       });
       
+      // Đóng dialog và reset trạng thái loading
       setOpen(false);
+      setApproving(false);
     } catch (err) {
       console.error('Error approving request:', err);
       setSnackbar({ 
@@ -133,6 +147,8 @@ export default function BookingRequests() {
         message: 'Không thể chấp thuận yêu cầu: ' + (err.response?.data?.message || err.message), 
         severity: 'error' 
       });
+      // Reset trạng thái loading khi có lỗi
+      setApproving(false);
     }
   };
 
@@ -533,13 +549,19 @@ export default function BookingRequests() {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e0e0e0' }}>
-          <Button variant="contained" color="success" onClick={handleApprove}>
-            Chấp thuận
+          <Button 
+            variant="contained" 
+            color="success" 
+            onClick={handleApprove}
+            disabled={approving}
+            startIcon={approving ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {approving ? 'Đang xử lý...' : 'Chấp thuận'}
           </Button>
-          <Button variant="outlined" color="error" onClick={handleDeny}>
+          <Button variant="outlined" color="error" onClick={handleDeny} disabled={approving}>
             Từ chối
           </Button>
-          <Button onClick={handleClose}>Đóng</Button>
+          <Button onClick={handleClose} disabled={approving}>Đóng</Button>
         </DialogActions>
       </Dialog>
 
