@@ -17,7 +17,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class TopicController {
 
-    private final TopicRepository topicRepository;
+    private final TopicRepo topicRepository;
     private final TopicService topicService;
 
     /**
