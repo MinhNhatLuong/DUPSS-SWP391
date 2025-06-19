@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
 import com.dupss.app.BE_Dupss.entity.EnrollmentStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class CourseEnrollmentResponse {
     private Long id;
     private CourseResponse course;
     private UserDetailResponse user;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime enrollmentDate;
     private LocalDateTime completionDate;
     private EnrollmentStatus status;

@@ -97,7 +97,7 @@ public class CourseService {
             moduleRepository.saveAll(modules);
         }
         
-        return mapToCourseResponse(savedCourse, modules, false);
+        return mapToCourseResponse(savedCourse, modules, currentUser);
     }
 
 
@@ -172,7 +172,7 @@ public class CourseService {
             throw new AccessDeniedException("You are not authorized to view this course.");
         }
         
-        return mapToCourseResponse(course, modules, isEnrolled);
+        return mapToCourseResponse(course, modules, currentUser);
     }
     
     public List<CourseResponse> getCreatedCourses() {
@@ -192,7 +192,7 @@ public class CourseService {
         return courses.stream()
                 .map(course -> {
                     List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
-                    return mapToCourseResponse(course, modules, false);
+                    return mapToCourseResponse(course, modules, currentUser);
                 })
                 .collect(Collectors.toList());
     }
@@ -295,18 +295,21 @@ public class CourseService {
             modules = newModules;
         }
 
-        return mapToCourseResponse(savedCourse, modules, false);
+        return mapToCourseResponse(savedCourse, modules, currentUser);
     }
     
-    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, boolean isEnrolled) {
+    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
                 .map(this::mapToModuleResponse)
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
         EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
-        if( isEnrolled) {
-            enrollmentStatus = EnrollmentStatus.IN_PROGRESS;
+        if (currentUser != null) {
+            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
+            if (enrollmentOpt.isPresent()) {
+                enrollmentStatus = enrollmentOpt.get().getStatus();
+            }
         }
         return CourseResponse.builder()
                 .id(course.getId())
@@ -358,7 +361,7 @@ public class CourseService {
         return UserDetailResponse.builder()
                 .email(user.getEmail())
                 .fullName(user.getFullname())
-                .avatar(user.getAddress())
+                .avatar(user.getAvatar())
                 .role(user.getRole().name())
                 .build();
     }

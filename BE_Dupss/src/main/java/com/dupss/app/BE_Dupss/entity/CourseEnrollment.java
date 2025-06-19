@@ -24,15 +24,10 @@ public class CourseEnrollment {
     private Course course;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private EnrollmentStatus status;
     private Double progress; // Percentage of completion
     private LocalDateTime completionDate;
     private LocalDateTime enrollmentDate;
-    
-    @PrePersist
-    protected void onCreate() {
-        this.enrollmentDate = LocalDateTime.now();
-        this.status = EnrollmentStatus.NOT_ENROLLED;
-        this.progress = 0.0;
-    }
+
 } 

@@ -48,7 +48,7 @@ public class CourseController {
 
     @PostMapping("/{courseId}/enroll")
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
-    public ResponseEntity<?> enrollCourse(@Valid @RequestParam("courseId") Long id) {
+    public ResponseEntity<?> enrollCourse(@Valid @PathVariable("courseId") Long id) {
         try {
             CourseEnrollmentResponse response = enrollmentService.enrollCourse(id);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);

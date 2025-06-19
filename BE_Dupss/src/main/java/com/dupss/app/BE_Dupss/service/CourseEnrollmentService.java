@@ -17,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,6 +59,7 @@ public class CourseEnrollmentService {
         enrollment.setUser(currentUser);
         enrollment.setCourse(course);
         enrollment.setStatus(EnrollmentStatus.IN_PROGRESS);
+        enrollment.setEnrollmentDate(LocalDateTime.now());
         enrollment.setProgress(0.0);
         
         CourseEnrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -163,10 +166,7 @@ public class CourseEnrollmentService {
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .description(module.getDescription())
-                .content(module.getContent())
                 .videoUrl(videoUrls)
-                .duration(module.getDuration())
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())
