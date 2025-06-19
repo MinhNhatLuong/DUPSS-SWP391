@@ -105,6 +105,7 @@ public class TopicServiceImpl implements TopicService {
 
     private TopicResponse mapToResponse(Topic topic, String authorName) {
         return TopicResponse.builder()
+                .id(topic.getId())
                 .topicName(topic.getName())
                 .topicDescription(topic.getDescription())
                 .creatorName(authorName)
