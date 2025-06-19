@@ -3,10 +3,7 @@ package com.dupss.app.BE_Dupss.service;
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseModuleRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
-import com.dupss.app.BE_Dupss.dto.response.CourseHomeResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
-import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
 import lombok.RequiredArgsConstructor;
@@ -51,9 +48,10 @@ public class CourseService {
         }
 
         //check topic
-        Topic topic = topicRepository.findById(request.getTopicId())
-                .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + request.getTopicId()));
-        
+        Topic topic = topicRepository.findByIdAndActive(request.getTopicId(), true);
+        if(topic == null) {
+            throw new RuntimeException("Topic not found with ID: " + request.getTopicId());
+        }
         Course course = new Course();
         course.setTitle(request.getTitle());
         course.setTopic(topic);
@@ -173,6 +171,38 @@ public class CourseService {
         }
         
         return mapToCourseResponse(course, modules, currentUser);
+    }
+
+    public CourseDetailPublicResponse getCoursePublicDetail(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+
+//        boolean isEnrolled = false;
+//        if (currentUser != null) {
+//            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
+//        }
+
+        return CourseDetailPublicResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .content(course.getContent())
+                .coverImage(course.getCoverImage())
+                .createdBy(course.getCreator() != null ? course.getCreator().getFullname() : "Unknown")
+                .videoCount(modules.stream().mapToInt(m -> m.getVideos().size()).sum())
+                .modules(modules.stream()
+                        .map(m -> CourseDetailPublicResponse.ModuleInfo.builder()
+                                .id(m.getId())
+                                .title(m.getTitle())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
     }
     
     public List<CourseResponse> getCreatedCourses() {

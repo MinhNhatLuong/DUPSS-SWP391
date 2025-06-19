@@ -25,7 +25,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final ConsultantRepository consultantRepository;
-    private final TopicRepository topicRepository;
+    private final TopicRepo topicRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final SlotRepository slotRepository;
@@ -34,8 +34,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentResponseDto createAppointment(AppointmentRequestDto requestDto) {
         // Lấy topic theo ID
-        Topic topic = topicRepository.findById(requestDto.getTopicId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chủ đề tư vấn với ID: " + requestDto.getTopicId()));
+        Topic topic = topicRepository.findByIdAndActive(requestDto.getTopicId(), true);
+        if(topic == null) {
+            throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
+        }
 
         // Xử lý consultant
         Consultant consultant = null;

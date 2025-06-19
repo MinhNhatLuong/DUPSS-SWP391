@@ -111,4 +111,10 @@ public class HomeController {
         return ResponseEntity.ok(surveyDetails);
     }
 
+    @GetMapping("/course/{id}")
+    public ResponseEntity<CourseDetailPublicResponse> getCourseDetailPublic(@PathVariable Long id) {
+        CourseDetailPublicResponse response = courseService.getCoursePublicDetail(id);
+        return ResponseEntity.ok().body(response);
+    }
+
 }

@@ -2,7 +2,7 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.response.TopicResponse;
 import com.dupss.app.BE_Dupss.entity.Topic;
-import com.dupss.app.BE_Dupss.respository.TopicRepository;
+import com.dupss.app.BE_Dupss.respository.TopicRepo;
 import com.dupss.app.BE_Dupss.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

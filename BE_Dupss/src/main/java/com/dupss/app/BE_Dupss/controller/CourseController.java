@@ -2,6 +2,7 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.response.CourseDetailPublicResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
@@ -28,7 +29,7 @@ public class CourseController {
     private final CourseEnrollmentService enrollmentService;
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
         return ResponseEntity.ok(courseService.getCourseById(id));
     }

@@ -12,10 +12,10 @@ import java.util.List;
 
 public interface TopicService {
     List<Topic> getAll();
-    Topic getById(Long id);
     TopicResponse create(TopicRequest request);
     TopicResponse update(Long id, TopicRequest request);
     List<TopicResponse> getAllTopics();
     List<TopicResponse> getTopicsCreatedByCurrentUser();
     void delete(Long id);
+    TopicResponse getTopicById(Long id);
 }

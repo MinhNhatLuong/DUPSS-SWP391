@@ -4,6 +4,7 @@ import com.dupss.app.BE_Dupss.dto.request.TopicRequest;
 import com.dupss.app.BE_Dupss.dto.response.TopicResponse;
 import com.dupss.app.BE_Dupss.entity.Topic;
 import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
 import com.dupss.app.BE_Dupss.respository.TopicRepo;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.TopicService;
@@ -26,13 +27,17 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public List<Topic> getAll() {
-        return topicRepository.findAll();
+        return topicRepository.findAllActive();
     }
 
     @Override
-    public Topic getById(Long id) {
-        return topicRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Topic not found with id " + id));
+    public TopicResponse getTopicById(Long id) {
+        Topic topic = topicRepository.findByIdAndActive(id, true);
+        if(topic == null) {
+            throw new ResourceNotFoundException("Topic not found with id: " + id);
+        } else {
+            return mapToResponse(topic, topic.getCreator().getFullname());
+        }
     }
 
     @Override
@@ -59,7 +64,7 @@ public class TopicServiceImpl implements TopicService {
     public List<TopicResponse> getTopicsCreatedByCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        List<Topic> topics = topicRepository.findByCreator_Username(username);
+        List<Topic> topics = topicRepository.findByCreator_UsernameAndActive(username, true);
 
         return topics.stream()
                 .map(topic -> new TopicResponse(
@@ -75,7 +80,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public List<TopicResponse> getAllTopics() {
-        return topicRepository.findAll().stream()
+        return topicRepository.findAllActive().stream()
                 .map(topic -> new TopicResponse(
                         topic.getId(),
                         topic.getName(),
@@ -89,9 +94,12 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicResponse update(Long id, TopicRequest request) {
-        Topic topic = getById(id);
+        Topic topic = topicRepository.findByIdAndActive(id, true);
         if (request.getName() != null && !request.getName().isBlank()) {
             topic.setName(request.getName().trim());
+        }
+        if (request.getDescription() != null && !request.getDescription().isBlank()) {
+            topic.setDescription(request.getDescription().trim());
         }
         Topic savedTopic = topicRepository.save(topic);
         return mapToResponse(savedTopic, topic.getCreator().getFullname());
@@ -99,8 +107,12 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public void delete(Long id) {
-        Topic topic = getById(id);
-        topicRepository.delete(topic);
+        Topic topic = topicRepository.findByIdAndActive(id, true);
+        if (!topic.isActive()) {
+            throw new IllegalArgumentException("Topic is already inactive");
+        }
+        topic.setActive(false);
+        topicRepository.save(topic);
     }
 
     private TopicResponse mapToResponse(Topic topic, String authorName) {

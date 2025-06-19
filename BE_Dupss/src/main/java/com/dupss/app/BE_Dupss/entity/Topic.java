@@ -36,6 +36,8 @@ public class Topic {
     @JoinColumn(name = "creator_id")
     private User creator;
 
+    private boolean active;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

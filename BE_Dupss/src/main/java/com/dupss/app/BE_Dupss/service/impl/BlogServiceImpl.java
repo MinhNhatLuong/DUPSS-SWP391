@@ -60,8 +60,10 @@ public class BlogServiceImpl implements BlogService {
         blog.setStatus(ApprovalStatus.PENDING);
         blog.setTags(blogRequest.getTags());
 
-        Topic topic = topicRepository.findById(blogRequest.getTopicId())
-                .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + blogRequest.getTopicId()));
+        Topic topic = topicRepository.findByIdAndActive(blogRequest.getTopicId(), true);
+        if(topic == null) {
+            throw new EntityNotFoundException("Topic không được tìm thấy với id: " + blogRequest.getTopicId());
+        }
 
         blog.setTopic(topic);
         // Save blog to get ID
