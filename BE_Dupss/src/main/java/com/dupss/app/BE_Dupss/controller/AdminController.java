@@ -29,8 +29,9 @@ public class AdminController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public List<UserDetailResponse> getAllUsers() {
-        return adminService.getAllUsers();
+    public ResponseEntity<List<UserDetailResponse>> getAllUsers() {
+        List<UserDetailResponse> users = adminService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/staff")

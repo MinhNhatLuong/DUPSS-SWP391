@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +31,8 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
 
     public List<UserDetailResponse> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::mapToUserDetailResponse)
-                .toList();
+        List<User> users = userRepository.findAllByEnabled(true);
+        return users.stream().map(this::mapToUserDetailResponse).collect(Collectors.toList());
     }
 
     public List<UserDetailResponse> getUsersByRole(String roleName) {
@@ -164,9 +163,15 @@ public class AdminService {
 
     private UserDetailResponse mapToUserDetailResponse(User user) {
         return UserDetailResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
                 .email(user.getEmail())
                 .fullName(user.getFullname())
-                .avatar(user.getAddress())
+                .yob(user.getYob())
+                .gender(user.getGender())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .avatar(user.getAvatar())
                 .role(user.getRole().name())
                 .build();
     }
