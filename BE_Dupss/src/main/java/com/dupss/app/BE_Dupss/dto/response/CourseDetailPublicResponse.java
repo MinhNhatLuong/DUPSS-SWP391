@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.dupss.app.BE_Dupss.entity.EnrollmentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +18,10 @@ public class CourseDetailPublicResponse {
     private String content;
     private String coverImage;
     private int videoCount; // số lượng video
-    private String durationLabel;
+    private int duration;
     private String createdBy;
-
+    private long totalEnrolled;
+    private EnrollmentStatus status;
     private List<ModuleInfo> modules; // Không chứa video
 
     @Data

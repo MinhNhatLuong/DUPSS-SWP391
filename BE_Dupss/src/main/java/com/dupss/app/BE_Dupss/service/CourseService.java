@@ -182,20 +182,28 @@ public class CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
 
-        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+        Optional<CourseEnrollment> enrollmentOpt =
+                enrollmentRepository.findByUserAndCourse(currentUser, course);
 
-//        boolean isEnrolled = false;
-//        if (currentUser != null) {
-//            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
-//        }
+        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+
+        if (enrollmentOpt.isPresent()) {
+            enrollmentStatus = enrollmentOpt.get().getStatus();
+        }
+
+        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+        long enrollmentCount = enrollmentRepository.countByCourse(course);
 
         return CourseDetailPublicResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
                 .content(course.getContent())
                 .coverImage(course.getCoverImage())
+                .duration(course.getDuration())
                 .createdBy(course.getCreator() != null ? course.getCreator().getFullname() : "Unknown")
                 .videoCount(modules.stream().mapToInt(m -> m.getVideos().size()).sum())
+                .totalEnrolled(enrollmentCount)
+                .status(enrollmentStatus)
                 .modules(modules.stream()
                         .map(m -> CourseDetailPublicResponse.ModuleInfo.builder()
                                 .id(m.getId())
