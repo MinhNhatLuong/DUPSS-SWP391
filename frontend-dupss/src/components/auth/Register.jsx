@@ -233,7 +233,7 @@ const Register = () => {
           padding: '40px'
         }}>
           <Box sx={{ textAlign: 'center', marginBottom: '30px' }}>
-            <Typography variant="h4" component="h1" sx={{ marginBottom: '10px', color: '#333' }}>
+            <Typography variant="h4" component="h1" sx={{ marginBottom: '10px', color: '#0056b3', fontWeight: 600 }}>
               Đăng ký tài khoản
             </Typography>
             <Typography variant="body1" sx={{ color: '#666' }}>

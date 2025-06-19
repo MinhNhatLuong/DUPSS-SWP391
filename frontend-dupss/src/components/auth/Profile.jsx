@@ -308,7 +308,7 @@ const Profile = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 5, mb: 5 }}>
       <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ mb: 4, color: '#0056b3', fontWeight: 600 }}>
           Thông tin tài khoản
         </Typography>
         

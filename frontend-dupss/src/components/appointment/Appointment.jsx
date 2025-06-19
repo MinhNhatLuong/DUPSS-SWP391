@@ -16,7 +16,7 @@ const Appointment = () => {
     <Container maxWidth="lg" className="appointment-container">
       {/* Header */}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom>
+        <Typography variant="h3" component="h1" gutterBottom sx={{fontWeight: 600, color: '#0056b3'}}>
           Đặt Lịch Hẹn Tư Vấn
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">

@@ -47,8 +47,8 @@ const SurveysList = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 5, mb: 8, px: { xs: 1, sm: 2, md: 3 } }}>
+      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4, fontWeight: 600, color: '#0056b3' }}>
         Các bài khảo sát đánh giá rủi ro
       </Typography>
       

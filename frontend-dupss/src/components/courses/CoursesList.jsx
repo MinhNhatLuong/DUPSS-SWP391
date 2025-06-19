@@ -183,7 +183,8 @@ function CoursesList() {
         sx={{
           mb: 4,
           textAlign: 'center',
-          fontWeight: 600
+          fontWeight: 600,
+          color: '#0056b3'
         }}
       >
         Khóa học
