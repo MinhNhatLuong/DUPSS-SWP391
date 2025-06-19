@@ -248,8 +248,8 @@ export default function Topic() {
     // Open confirm dialog
     setConfirmDialog({
       open: true,
-      type: 'edit',
-      topicId: editDialog.topic.id,
+      type: editDialog.topic ? 'edit' : 'create',
+      topicId: editDialog.topic ? editDialog.topic.id : null,
       loading: false
     });
   };
@@ -263,11 +263,41 @@ export default function Topic() {
       // Show loading notification
       setSnackbar({
         open: true,
-        message: 'Đang xử lý...',
+        message: confirmDialog.type === 'create' ? 'Chủ đề đang được tạo...' : 'Đang xử lý...',
         severity: 'warning'
       });
 
-      if (confirmDialog.type === 'edit') {
+      if (confirmDialog.type === 'create') {
+        // Create new topic
+        const response = await axios.post(
+          '/api/manager/topic',
+          {
+            name: editDialog.name,
+            description: editDialog.description
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+
+        // Add new topic to the list
+        setTopics([response.data, ...topics]);
+
+        // Show success notification
+        setSnackbar({
+          open: true,
+          message: 'Chủ đề đã được tạo thành công',
+          severity: 'success'
+        });
+
+        // Close dialogs
+        setEditDialog({
+          ...editDialog,
+          open: false
+        });
+      } else if (confirmDialog.type === 'edit') {
         // Update topic
         await axios.patch(
           `/api/manager/topic/${confirmDialog.topicId}`,
@@ -582,13 +612,20 @@ export default function Topic() {
         onClose={() => !confirmDialog.loading && setConfirmDialog({ ...confirmDialog, open: false })}
       >
         <DialogTitle>
-          {confirmDialog.type === 'edit' ? 'Xác nhận chỉnh sửa' : 'Xác nhận xóa'}
+          {confirmDialog.type === 'edit' 
+            ? 'Xác nhận chỉnh sửa' 
+            : confirmDialog.type === 'create'
+              ? 'Xác nhận tạo mới'
+              : 'Xác nhận xóa'
+          }
         </DialogTitle>
         <DialogContent>
           <Typography>
             {confirmDialog.type === 'edit'
               ? 'Bạn có muốn sửa lại nội dung của chủ đề này không?'
-              : 'Bạn có chắc chắn muốn xóa chủ đề này không?'}
+              : confirmDialog.type === 'create'
+                ? 'Bạn có muốn tạo chủ đề mới này không?'
+                : 'Bạn có chắc chắn muốn xóa chủ đề này không?'}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -600,7 +637,7 @@ export default function Topic() {
           </Button>
           <Button
             variant="contained"
-            color={confirmDialog.type === 'edit' ? 'primary' : 'error'}
+            color={confirmDialog.type === 'delete' ? 'error' : 'primary'}
             onClick={handleConfirmAction}
             disabled={confirmDialog.loading}
             startIcon={confirmDialog.loading ? <CircularProgress size={20} color="inherit" /> : null}
@@ -609,7 +646,9 @@ export default function Topic() {
               ? 'Đang xử lý...'
               : confirmDialog.type === 'edit'
                 ? 'Có, chỉnh sửa'
-                : 'Có, xóa'}
+                : confirmDialog.type === 'create'
+                  ? 'Có, tạo mới'
+                  : 'Có, xóa'}
           </Button>
         </DialogActions>
       </Dialog>
