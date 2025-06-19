@@ -197,7 +197,7 @@ const SurveyDetail = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
+        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{fontWeight: 'bold', color: '#0056b3'}}>
           {survey.title}
         </Typography>
 
