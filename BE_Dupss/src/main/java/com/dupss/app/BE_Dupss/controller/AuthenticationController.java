@@ -3,6 +3,7 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.AccessTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
+import com.dupss.app.BE_Dupss.dto.request.LogoutRequest;
 import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.request.RegisterRequest;
 
@@ -57,6 +58,14 @@ public class AuthenticationController {
     @PostMapping("/refresh-token")
     public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) throws ParseException {
         RefreshTokenResponse response = authenticationService.refreshToken(request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(@RequestBody LogoutRequest request) throws ParseException {
+        authenticationService.logout(request);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Đăng xuất thành công");
         return ResponseEntity.ok(response);
     }
 

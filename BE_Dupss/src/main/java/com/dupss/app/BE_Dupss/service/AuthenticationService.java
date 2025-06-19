@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
+import com.dupss.app.BE_Dupss.dto.request.LogoutRequest;
 import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
@@ -48,20 +49,20 @@ public class AuthenticationService {
         }
     }
 
-//    public void logout(String accessToken) throws ParseException {
-//        // 1. Kiểm tra xem token đó có phải là token của hệ thống mình sản xuất ra hay không
-//        SignedJWT signedJWT = SignedJWT.parse(accessToken);
-//
-//        // 2. Đánh dấu token đó hết hiệu lực, và không có quyền truy cập vào hệ thống nữa, dù cho thời gian token còn hiệu lực
-//        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-//                .id(signedJWT.getJWTClaimsSet().getJWTID())
-//                .token(accessToken)
-//                .expirationTime(signedJWT.getJWTClaimsSet().getExpirationTime())
-//                .build();
-//        // 3. Lưu token vào data, từ lần sau kiểm tra token người dùng gửi có trong database hay không
-//        invalidatedTokenRepository.save(invalidatedToken);
-//        log.info("Logout successfully");
-//    }
+    public void logout(LogoutRequest request) throws ParseException {
+        // 1. Kiểm tra xem token đó có phải là token của hệ thống mình sản xuất ra hay không
+        SignedJWT signedJWT = SignedJWT.parse(request.getAccessToken());
+
+        // 2. Đánh dấu token đó hết hiệu lực, và không có quyền truy cập vào hệ thống nữa, dù cho thời gian token còn hiệu lực
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(signedJWT.getJWTClaimsSet().getJWTID())
+                .token(request.getAccessToken())
+                .expirationTime(signedJWT.getJWTClaimsSet().getExpirationTime())
+                .build();
+        // 3. Lưu token vào data, từ lần sau kiểm tra token người dùng gửi có trong database hay không
+        invalidatedTokenRepository.save(invalidatedToken);
+        log.info("Logout successfully");
+    }
 
     public RefreshTokenResponse refreshToken(RefreshTokenRequest request) throws ParseException {
         if(StringUtils.isBlank(request.getRefreshToken()))
