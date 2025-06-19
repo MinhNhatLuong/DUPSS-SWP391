@@ -62,12 +62,25 @@ const AlertNotification = () => {
       autoHideDuration={6000}
       onClose={handleClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      sx={{ 
+        top: '20px', 
+        right: '20px' 
+      }}
     >
       <Alert 
         onClose={handleClose} 
         severity={severity} 
         variant="filled"
-        sx={{ width: '100%' }}
+        sx={{ 
+          width: '100%',
+          minWidth: '300px',
+          fontSize: '1.1rem',
+          padding: '12px 16px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          '& .MuiAlert-icon': {
+            fontSize: '24px'
+          }
+        }}
       >
         {message}
       </Alert>

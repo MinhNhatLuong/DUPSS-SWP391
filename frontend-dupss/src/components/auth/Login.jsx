@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   Card, 
@@ -25,10 +25,21 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 从位置状态中获取提醒信息
+  const authAlert = location.state?.showAuthAlert;
+  const authMessage = location.state?.authMessage;
+  const returnUrl = location.state?.returnUrl;
 
   useEffect(() => {
     document.title = "Đăng Nhập - DUPSS";
-  }, []);
+    
+    // 如果有提醒信息，则通过AlertNotification组件显示在右上角
+    if (authAlert && authMessage) {
+      showErrorAlert(authMessage);
+    }
+  }, [authAlert, authMessage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,8 +93,13 @@ const Login = () => {
 
       showSuccessAlert('Đăng nhập thành công!');
       
-      // Navigate to home page and refresh to update UI
-      window.location.href = '/';
+      // 如果有returnUrl，登录成功后重定向到该URL
+      if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        // 否则重定向到首页
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Login error:', error);
       // Check if the error is related to network or other technical issues
