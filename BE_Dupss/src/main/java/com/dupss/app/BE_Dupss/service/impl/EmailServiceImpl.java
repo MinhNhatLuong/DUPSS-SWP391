@@ -125,6 +125,30 @@ public class EmailServiceImpl implements EmailService {
             throw new MessagingException("Không thể gửi email: " + e.getMessage(), e);
         }
     }
+
+    public void sendEnrollmentSuccessEmail(String toEmail, String userName,
+                                           String courseTitle, int duration,
+                                           String instructor, String enrollDate) throws MessagingException, UnsupportedEncodingException {
+
+        Context context = new Context();
+        context.setVariable("userName", userName);
+        context.setVariable("courseTitle", courseTitle);
+        context.setVariable("duration", duration);
+        context.setVariable("instructor", instructor);
+        context.setVariable("enrollDate", enrollDate);
+
+        String htmlContent = templateEngine.process("email/course-enroll-success", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+
+        helper.setFrom(fromEmail, "DUPSS Support");
+        helper.setTo(toEmail);
+        helper.setSubject("Đăng ký khóa học thành công");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
     
     private String getStatusChangeMessage(String newStatus, String previousStatus) {
         switch (newStatus) {

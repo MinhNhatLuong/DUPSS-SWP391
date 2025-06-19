@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.respository.CourseEnrollmentRepository;
 import com.dupss.app.BE_Dupss.respository.CourseModuleRepository;
 import com.dupss.app.BE_Dupss.respository.CourseRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,8 +18,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,9 +35,10 @@ public class CourseEnrollmentService {
     private final CourseModuleRepository moduleRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Transactional
-    public CourseEnrollmentResponse enrollCourse(Long courseId) {
+    public CourseEnrollmentResponse enrollCourse(Long courseId) throws MessagingException, UnsupportedEncodingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
@@ -63,6 +67,15 @@ public class CourseEnrollmentService {
         enrollment.setProgress(0.0);
         
         CourseEnrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        emailService.sendEnrollmentSuccessEmail(
+                currentUser.getEmail(),
+                currentUser.getFullname(),
+                course.getTitle(),
+                course.getDuration(),
+                course.getCreator().getFullname(),
+                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        );
         
         log.info("User {} enrolled in course: {}", currentUser.getUsername(), course.getTitle());
         
