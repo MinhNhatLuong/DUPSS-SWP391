@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Button, Grid, Paper, Divider, 
-         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled } from '@mui/material';
+         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -78,12 +78,20 @@ function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('success');
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/public/course/${id}`);
+        const accessToken = localStorage.getItem('accessToken');
+        const headers = accessToken 
+          ? { Authorization: `Bearer ${accessToken}` } 
+          : {};
+          
+        const response = await axios.get(`http://localhost:8080/api/public/course/${id}`, { headers });
         setCourse(response.data);
       } catch (err) {
         console.error('Error fetching course:', err);
@@ -110,6 +118,16 @@ function CourseDetail() {
     }
   };
 
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
+
+  const showAlert = (message, severity) => {
+    setAlertMessage(message);
+    setAlertSeverity(severity);
+    setAlertOpen(true);
+  };
+
   // Handle enrollment button click
   const handleEnrollClick = async () => {
     if (course.status === 'NOT_ENROLLED') {
@@ -127,15 +145,32 @@ function CourseDetail() {
         return;
       }
       
-      // In a real application, this would be an API call to enroll the user
-      console.log(`Enrolled in course with ID: ${course.id}`);
-      
-      // Update course status
-      setCourse(prev => ({
-        ...prev,
-        status: 'IN_PROGRESS',
-        totalEnrolled: prev.totalEnrolled + 1
-      }));
+      // Call API to enroll in the course
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        
+        await axios.post(
+          `http://localhost:8080/api/courses/${id}/enroll`, 
+          {}, 
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+
+        // Show success message
+        showAlert('Đăng ký khóa học thành công!', 'success');
+        
+        // Reload the page to refresh course status
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } catch (err) {
+        if (err.response && err.response.status === 400) {
+          // Show error message if user already enrolled
+          showAlert('Bạn đã đăng ký khóa học này!', 'error');
+        } else {
+          showAlert('Đã có lỗi xảy ra khi đăng ký khóa học!', 'error');
+        }
+        console.error('Enrollment error:', err);
+      }
     } else if (course.status === 'IN_PROGRESS') {
       // Navigate to course learning page
       navigate(`/courses/${course.id}/learn`);
@@ -171,6 +206,20 @@ function CourseDetail() {
   
   return (
     <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Snackbar 
+        open={alertOpen} 
+        autoHideDuration={6000} 
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleAlertClose} 
+          severity={alertSeverity} 
+          sx={{ width: '100%' }}
+        >
+          {alertMessage}
+        </Alert>
+      </Snackbar>
       
       <CourseDetailWrapper>
         {/* Left Side - Course Information */}
