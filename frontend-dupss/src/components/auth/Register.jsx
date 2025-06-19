@@ -492,7 +492,7 @@ const Register = () => {
                   backgroundColor: '#003d82',
                 },
                 textTransform: 'none',
-                fontWeight: 500,
+                fontWeight: 600,
                 fontSize: '1rem',
               }}
             >

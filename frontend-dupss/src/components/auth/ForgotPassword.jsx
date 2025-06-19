@@ -195,7 +195,7 @@ const ForgotPassword = () => {
                   },
                   textTransform: 'none',
                   fontSize: '1rem',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   marginTop: '20px'
                 }}
               >

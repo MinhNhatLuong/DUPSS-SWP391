@@ -255,7 +255,7 @@ const Login = () => {
                 },
                 textTransform: 'none',
                 fontSize: '1rem',
-                fontWeight: 500
+                fontWeight: 600,
               }}
             >
               {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
