@@ -15,6 +15,7 @@ import java.util.List;
 public class CourseDetailPublicResponse {
     private Long id;
     private String title;
+    private String topicName;
     private String content;
     private String coverImage;
     private int videoCount; // số lượng video

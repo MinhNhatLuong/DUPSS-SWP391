@@ -197,6 +197,7 @@ public class CourseService {
         return CourseDetailPublicResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
+                .topicName(course.getTopic().getName())
                 .content(course.getContent())
                 .coverImage(course.getCoverImage())
                 .duration(course.getDuration())
