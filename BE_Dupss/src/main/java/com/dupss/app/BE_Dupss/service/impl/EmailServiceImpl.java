@@ -27,6 +27,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
     
+    @Async
     @Override
     public void sendAppointmentConfirmation(Appointment appointment) {
         try {
@@ -51,6 +52,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
     
+    @Async
     @Override
     public void sendAppointmentStatusUpdate(Appointment appointment, String previousStatus) {
         try {
@@ -95,6 +97,7 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(message);
     }
     
+    @Async
     @Override
     public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         try {
@@ -129,6 +132,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    @Async
     @Override
     public void sendEnrollmentSuccessEmail(String toEmail, String userName,
                                            String courseTitle, int duration,
