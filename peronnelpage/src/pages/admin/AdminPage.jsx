@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -34,74 +34,76 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import CircularProgress from '@mui/material/CircularProgress';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { getAccessToken, isAuthenticated, logout } from '../../utils/auth';
 
 const roleColors = {
-  member: '#1976d2',
-  staff: '#43a047',
-  manager: '#ffd600',
-  admin: '#d32f2f',
-  consultant: '#8e24aa',
+  'ROLE_MEMBER': '#1976d2',
+  'ROLE_STAFF': '#43a047',
+  'ROLE_MANAGER': '#ffd600',
+  'ROLE_ADMIN': '#d32f2f',
+  'ROLE_CONSULTANT': '#8e24aa',
+  'ROLE_GUEST': '#757575',
 };
 
-const roleList = ['member', 'staff', 'manager', 'admin', 'consultant'];
+const roleList = ['ROLE_MEMBER', 'ROLE_STAFF', 'ROLE_CONSULTANT', 'ROLE_MANAGER', 'ROLE_ADMIN'];
 const genderList = ['male', 'female', 'other'];
 
-function randomDegree() {
-  const degrees = ['MBA', 'PhD', 'MSc', 'BSc', 'MD', 'None'];
-  return degrees[Math.floor(Math.random() * degrees.length)];
-}
-
-function createFakeUser(id) {
-  const role = roleList[Math.floor(Math.random() * roleList.length)];
-  return {
-    id,
-    username: `user${id}`,
-    password: 'password',
-    fullname: `User ${id} Fullname`,
-    gender: genderList[Math.floor(Math.random() * genderList.length)],
-    name: `User ${id}`,
-    avatar: '/Logo_Website_Blue.png',
-    email: `user${id}@email.com`,
-    phone: Math.random() > 0.5 ? `09${Math.floor(10000000 + Math.random() * 89999999)}` : '',
-    address: Math.random() > 0.5 ? `Address ${id}` : '',
-    role,
-    degree: role === 'consultant' ? randomDegree() : undefined,
-  };
-}
-
-const initialUsers = Array.from({ length: 37 }, (_, i) => createFakeUser(i + 1));
+const API_URL = 'http://localhost:8080'; // Update with your actual API base URL
 
 const searchCategories = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'Tất cả' },
   { value: 'id', label: 'ID' },
-  { value: 'username', label: 'Username' },
-  { value: 'fullname', label: 'Full Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'address', label: 'Address' },
-  { value: 'role', label: 'Role' },
-  { value: 'degree', label: 'Degree' },
+  { value: 'fullName', label: 'Họ và tên' },
+];
+
+const filterCategories = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'gender', label: 'Giới tính' },
+  { value: 'role', label: 'Vai trò' },
 ];
 
 const sortableFields = [
   { key: 'id', label: 'ID' },
-  { key: 'username', label: 'Username' },
-  { key: 'fullname', label: 'Full Name' },
-  { key: 'gender', label: 'Gender' },
+  { key: 'username', label: 'Tên đăng nhập' },
+  { key: 'fullName', label: 'Họ và tên' },
+  { key: 'gender', label: 'Giới tính' },
   { key: 'email', label: 'Email' },
-  { key: 'phone', label: 'Phone' },
-  { key: 'address', label: 'Address' },
-  { key: 'role', label: 'User Role' },
-  { key: 'degree', label: 'Degree' },
+  { key: 'phone', label: 'Số điện thoại' },
+  { key: 'address', label: 'Địa chỉ' },
+  { key: 'role', label: 'Vai trò' },
 ];
 
+// Create axios instance with authorization header
+const api = axios.create({
+  baseURL: API_URL,
+});
+
+// Add request interceptor to include the token in each request
+api.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default function AdminPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDialog, setOpenDialog] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, type: '', message: '' });
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState({
     username: '',
@@ -111,51 +113,97 @@ export default function AdminPage() {
     email: '',
     phone: '',
     address: '',
-    role: 'member',
-    degree: '',
+    role: 'ROLE_MEMBER',
   });
-  const [avatarFile, setAvatarFile] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [formErrors, setFormErrors] = useState({});
   const [searchCategory, setSearchCategory] = useState('all');
-  const [orderBy, setOrderBy] = useState('fullname');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterValue, setFilterValue] = useState('all');
+  const [orderBy, setOrderBy] = useState('id');
   const [order, setOrder] = useState('asc');
+  
+  const navigate = useNavigate();
 
-  const userName = 'Admin';
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
-  const handleLogout = () => {
-    // TODO: Thay bằng logic đăng xuất thực tế
-    alert('Logged out!');
+  // Fetch users data on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const apiResponse = await api.get('/api/admin/users');
+      setUsers(apiResponse.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      
+      if (error.response && error.response.status === 401) {
+        setNotification({
+          open: true,
+          message: 'Không có quyền truy cập. Vui lòng đăng nhập lại.',
+          severity: 'error'
+        });
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          logout(() => navigate('/login'));
+        }, 2000);
+      } else {
+        setNotification({
+          open: true,
+          message: 'Không thể tải danh sách người dùng',
+          severity: 'error'
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Search theo category
-  const filteredUsers = users.filter((u) => {
+  const handleLogout = () => {
+    logout(() => navigate('/login'));
+  };
+
+  // Filter users based on search and filter criteria
+  const filteredUsers = users.filter((user) => {
+    // Apply search filter
     const q = search.toLowerCase();
-    if (!q) return true;
-    if (searchCategory === 'all') {
-      return (
-        u.id.toString().includes(q) ||
-        (u.username && u.username.toLowerCase().includes(q)) ||
-        (u.fullname && u.fullname.toLowerCase().includes(q)) ||
-        (u.name && u.name.toLowerCase().includes(q)) ||
-        (u.email && u.email.toLowerCase().includes(q)) ||
-        (u.phone && u.phone.toLowerCase().includes(q)) ||
-        (u.address && u.address.toLowerCase().includes(q)) ||
-        (u.role && u.role.toLowerCase().includes(q)) ||
-        (u.degree && u.degree.toLowerCase().includes(q))
-      );
+    let searchMatch = true;
+    
+    if (q) {
+      if (searchCategory === 'all') {
+        searchMatch = 
+          user.id.toString().includes(q) || 
+          (user.fullName && user.fullName.toLowerCase().includes(q));
+      } else if (searchCategory === 'id') {
+        searchMatch = user.id.toString().includes(q);
+      } else if (searchCategory === 'fullName') {
+        searchMatch = (user.fullName || '').toLowerCase().includes(q);
+      }
     }
-    if (searchCategory === 'id') return u.id.toString().includes(q);
-    if (searchCategory === 'username') return (u.username || '').toLowerCase().includes(q);
-    if (searchCategory === 'fullname') return (u.fullname || '').toLowerCase().includes(q);
-    if (searchCategory === 'email') return (u.email || '').toLowerCase().includes(q);
-    if (searchCategory === 'phone') return (u.phone || '').toLowerCase().includes(q);
-    if (searchCategory === 'address') return (u.address || '').toLowerCase().includes(q);
-    if (searchCategory === 'role') return (u.role || '').toLowerCase().includes(q);
-    if (searchCategory === 'degree') return (u.degree || '').toLowerCase().includes(q);
-    return true;
+
+    // Apply additional filters
+    let filterMatch = true;
+    if (filterCategory !== 'all' && filterValue !== 'all') {
+      if (filterCategory === 'gender') {
+        filterMatch = user.gender === filterValue;
+      } else if (filterCategory === 'role') {
+        filterMatch = user.role === filterValue;
+      }
+    }
+
+    return searchMatch && filterMatch;
   });
 
-  // Hàm sort
+  // Sort function
   function sortComparator(a, b, key) {
     if (key === 'id') return order === 'asc' ? a.id - b.id : b.id - a.id;
     const valA = (a[key] || '').toString().toLowerCase();
@@ -185,14 +233,73 @@ export default function AdminPage() {
     );
   };
 
-  const handleDelete = (id) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    setSelected((prev) => prev.filter((sid) => sid !== id));
+  const handleOpenDeleteConfirm = (userId) => {
+    setEditUser(users.find(u => u.id === userId));
+    setConfirmDialog({
+      open: true,
+      type: 'delete',
+      message: 'Bạn có muốn xóa người dùng này không?'
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!editUser) return;
+    
+    setProcessing(true);
+    try {
+      await api.delete(`/api/admin/users/${editUser.id}`);
+      setUsers(prev => prev.filter(u => u.id !== editUser.id));
+      setSelected(prev => prev.filter(id => id !== editUser.id));
+      setNotification({
+        open: true,
+        message: 'Người dùng đã được xóa khỏi hệ thống',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setNotification({
+        open: true,
+        message: 'Không thể xóa người dùng',
+        severity: 'error'
+      });
+    } finally {
+      setProcessing(false);
+      setConfirmDialog({ open: false, type: '', message: '' });
+      setEditUser(null);
+    }
   };
 
   const handleDeleteSelected = () => {
-    setUsers((prev) => prev.filter((u) => !selected.includes(u.id)));
-    setSelected([]);
+    setConfirmDialog({
+      open: true,
+      type: 'deleteMultiple',
+      message: `Bạn có muốn xóa ${selected.length} người dùng này không?`
+    });
+  };
+
+  const deleteSelectedUsers = async () => {
+    setProcessing(true);
+    
+    try {
+      await Promise.all(selected.map(id => api.delete(`/api/admin/users/${id}`)));
+      setUsers(prev => prev.filter(user => !selected.includes(user.id)));
+      setSelected([]);
+      setNotification({
+        open: true,
+        message: 'Các người dùng đã được xóa khỏi hệ thống',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting multiple users:', error);
+      setNotification({
+        open: true,
+        message: 'Không thể xóa người dùng',
+        severity: 'error'
+      });
+    } finally {
+      setProcessing(false);
+      setConfirmDialog({ open: false, type: '', message: '' });
+    }
   };
 
   const handleOpenDialog = (user = null) => {
@@ -201,14 +308,13 @@ export default function AdminPage() {
       user
         ? {
             username: user.username || '',
-            password: '',
-            fullname: user.fullname || '',
+            fullname: user.fullName || '',
             gender: user.gender || '',
             email: user.email || '',
             phone: user.phone || '',
             address: user.address || '',
-            role: user.role || 'member',
-            degree: user.degree || '',
+            role: user.role || 'ROLE_MEMBER',
+            password: '', // We don't set password when editing
           }
         : {
             username: '',
@@ -218,8 +324,7 @@ export default function AdminPage() {
             email: '',
             phone: '',
             address: '',
-            role: 'member',
-            degree: '',
+            role: 'ROLE_MEMBER',
           }
     );
     setOpenDialog(true);
@@ -228,81 +333,230 @@ export default function AdminPage() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditUser(null);
+    setFormErrors({});
   };
 
   const handleFormChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'avatar') {
-      if (files && files[0]) {
-        setAvatarFile(files[0]);
-        setForm((prev) => ({ ...prev, avatar: URL.createObjectURL(files[0]) }));
-      }
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
     const errors = {};
-    if (!form.username) errors.username = 'Username is required';
-    if (!editUser && !form.password) errors.password = 'Password is required';
-    if (!form.fullname) errors.fullname = 'Full name is required';
-    if (!form.gender) errors.gender = 'Gender is required';
-    if (!form.email) errors.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Invalid email format';
-    if (form.role === 'consultant' && !form.degree) errors.degree = 'Degree is required for consultant';
+    if (!form.username) errors.username = 'Tên đăng nhập là bắt buộc';
+    if (!editUser && !form.password) errors.password = 'Mật khẩu là bắt buộc';
+    if (!form.fullname) errors.fullname = 'Họ tên là bắt buộc';
+    if (!form.phone) errors.phone = 'Số điện thoại là bắt buộc';
+    if (!form.email) errors.email = 'Email là bắt buộc';
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Định dạng email không hợp lệ';
     return errors;
   };
 
-  const handleSave = () => {
+  const handleSubmitForm = () => {
     const errors = validateForm();
     setFormErrors(errors);
+    
     if (Object.keys(errors).length > 0) return;
-    if (editUser) {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === editUser.id
-            ? {
-                ...u,
-                ...form,
-                degree: form.role === 'consultant' ? form.degree : undefined,
-                avatar: form.avatar || u.avatar,
-              }
+    
+    setConfirmDialog({
+      open: true,
+      type: editUser ? 'edit' : 'add',
+      message: editUser 
+        ? 'Bạn có muốn sửa lại thông tin người dùng này không?'
+        : 'Bạn có muốn thêm người dùng này không?'
+    });
+  };
+
+  const handleAddUser = async () => {
+    setProcessing(true);
+    
+    try {
+      const payload = {
+        username: form.username,
+        password: form.password,
+        fullname: form.fullname,
+        gender: form.gender || null,
+        email: form.email,
+        phone: form.phone,
+        address: form.address || null,
+        role: form.role
+      };
+      
+      const response = await api.post(`/api/admin/users`, payload);
+      setUsers(prev => [...prev, response.data]);
+      
+      setNotification({
+        open: true,
+        message: 'Người dùng đã được thêm vào',
+        severity: 'success'
+      });
+      
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error adding user:', error);
+      setNotification({
+        open: true,
+        message: 'Không thể thêm người dùng',
+        severity: 'error'
+      });
+    } finally {
+      setProcessing(false);
+      setConfirmDialog({ open: false, type: '', message: '' });
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    setProcessing(true);
+    
+    try {
+      const payload = {
+        fullname: form.fullname,
+        gender: form.gender || null,
+        email: form.email,
+        phone: form.phone,
+        address: form.address || null,
+        role: form.role
+      };
+      
+      await api.patch(`/api/admin/users/${editUser.id}`, payload);
+      
+      // Update local state
+      setUsers(prev => 
+        prev.map(u => 
+          u.id === editUser.id 
+            ? { 
+                ...u, 
+                fullName: form.fullname, 
+                gender: form.gender,
+                email: form.email,
+                phone: form.phone,
+                address: form.address,
+                role: form.role
+              } 
             : u
         )
       );
-    } else {
-      const newId = users.length ? Math.max(...users.map((u) => u.id)) + 1 : 1;
-      setUsers((prev) => [
-        ...prev,
-        {
-          id: newId,
-          ...form,
-          degree: form.role === 'consultant' ? form.degree : undefined,
-          avatar: form.avatar || '/Logo_Website_Blue.png',
-        },
-      ]);
+      
+      setNotification({
+        open: true,
+        message: 'Người dùng đã được cập nhật',
+        severity: 'success'
+      });
+      
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setNotification({
+        open: true,
+        message: 'Không thể cập nhật người dùng',
+        severity: 'error'
+      });
+    } finally {
+      setProcessing(false);
+      setConfirmDialog({ open: false, type: '', message: '' });
     }
-    setAvatarFile(null);
-    handleCloseDialog();
   };
 
-  // Xử lý khi click tiêu đề cột
+  // Handle confirmation dialog actions
+  const handleConfirmAction = () => {
+    switch(confirmDialog.type) {
+      case 'add':
+        handleAddUser();
+        break;
+      case 'edit':
+        handleUpdateUser();
+        break;
+      case 'delete':
+        handleDelete();
+        break;
+      case 'deleteMultiple':
+        deleteSelectedUsers();
+        break;
+      default:
+        setConfirmDialog({ open: false, type: '', message: '' });
+    }
+  };
+
+  // Handle notification close
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
+  };
+
+  // Handle sorting
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
 
+  // Handle filter category change
+  const handleFilterCategoryChange = (event) => {
+    setFilterCategory(event.target.value);
+    setFilterValue('all');
+  };
+
+  // Get filter options based on selected category
+  const getFilterOptions = () => {
+    if (filterCategory === 'gender') {
+      return [
+        { value: 'all', label: 'Tất cả giới tính' },
+        { value: 'male', label: 'Nam' },
+        { value: 'female', label: 'Nữ' },
+        { value: 'other', label: 'Khác' }
+      ];
+    } else if (filterCategory === 'role') {
+      return [
+        { value: 'all', label: 'Tất cả vai trò' },
+        { value: 'ROLE_MEMBER', label: 'Thành viên' },
+        { value: 'ROLE_STAFF', label: 'Nhân viên' },
+        { value: 'ROLE_CONSULTANT', label: 'Tư vấn viên' },
+        { value: 'ROLE_MANAGER', label: 'Quản lý' },
+        { value: 'ROLE_ADMIN', label: 'Quản trị viên' }
+      ];
+    }
+    return [{ value: 'all', label: 'Tất cả' }];
+  };
+
+  // Translate role names for display
+  const translateRole = (role) => {
+    const roleTranslations = {
+      'ROLE_MEMBER': 'Thành viên',
+      'ROLE_STAFF': 'Nhân viên',
+      'ROLE_CONSULTANT': 'Tư vấn viên',
+      'ROLE_MANAGER': 'Quản lý',
+      'ROLE_ADMIN': 'Quản trị viên',
+      'ROLE_GUEST': 'Khách'
+    };
+    return roleTranslations[role] || role.replace('ROLE_', '');
+  };
+
+  // Translate gender for display
+  const translateGender = (gender) => {
+    if (!gender) return "-";
+    const genderTranslations = {
+      'male': 'Nam',
+      'female': 'Nữ',
+      'other': 'Khác'
+    };
+    return genderTranslations[gender] || gender;
+  };
+
   return (
     <Box>
-      <Box className="admin-container">
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+      <Box className="admin-container" sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" component="h1">
+            Quản lý người dùng
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2, flexWrap: 'wrap' }}>
+          {/* Search */}
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Category</InputLabel>
+            <InputLabel>Tìm kiếm theo</InputLabel>
             <Select
               value={searchCategory}
-              label="Category"
+              label="Tìm kiếm theo"
               onChange={(e) => setSearchCategory(e.target.value)}
             >
               {searchCategories.map((cat) => (
@@ -313,7 +567,7 @@ export default function AdminPage() {
           <TextField
             variant="outlined"
             size="small"
-            placeholder={`Search${searchCategory !== 'all' ? ' ' + searchCategories.find(c => c.value === searchCategory).label : ''}...`}
+            placeholder={`Tìm kiếm${searchCategory !== 'all' ? ' theo ' + searchCategories.find(c => c.value === searchCategory).label : ''}...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             InputProps={{
@@ -325,20 +579,53 @@ export default function AdminPage() {
             }}
             sx={{ width: 260 }}
           />
+
+          {/* Filter */}
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Lọc theo</InputLabel>
+            <Select
+              value={filterCategory}
+              label="Lọc theo"
+              onChange={handleFilterCategoryChange}
+            >
+              {filterCategories.map((cat) => (
+                <MenuItem value={cat.value} key={cat.value}>{cat.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          
+          {filterCategory !== 'all' && (
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>{filterCategory === 'gender' ? 'Giới tính' : 'Vai trò'}</InputLabel>
+              <Select
+                value={filterValue}
+                label={filterCategory === 'gender' ? 'Giới tính' : 'Vai trò'}
+                onChange={(e) => setFilterValue(e.target.value)}
+              >
+                {getFilterOptions().map((option) => (
+                  <MenuItem value={option.value} key={option.value}>{option.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
+          <Box sx={{ flexGrow: 1 }} />
+
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
           >
-            Add User
+            Thêm người dùng
           </Button>
           {selected.length > 0 && (
             <Button variant="outlined" color="error" onClick={handleDeleteSelected}>
-              Delete Selected ({selected.length})
+              Xóa đã chọn ({selected.length})
             </Button>
           )}
         </Box>
+
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -350,7 +637,7 @@ export default function AdminPage() {
                     onChange={handleSelectAll}
                   />
                 </TableCell>
-                <TableCell>Avatar</TableCell>
+                <TableCell>Ảnh đại diện</TableCell>
                 {sortableFields.map((field) => (
                   <TableCell key={field.key} sortDirection={orderBy === field.key ? order : false}>
                     <TableSortLabel
@@ -362,62 +649,67 @@ export default function AdminPage() {
                     </TableSortLabel>
                   </TableCell>
                 ))}
-                <TableCell align="center">Action</TableCell>
+                <TableCell align="center">Thao tác</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {pagedUsers.map((user) => (
-                <TableRow key={user.id} selected={isSelected(user.id)}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={isSelected(user.id)}
-                      onChange={() => handleSelect(user.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Avatar src={user.avatar} alt={user.username} />
-                  </TableCell>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.fullname}</TableCell>
-                  <TableCell sx={{ textTransform: 'capitalize' }}>{user.gender}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
-                  <TableCell>{user.address}</TableCell>
-                  <TableCell>
-                    <Box
-                      component="span"
-                      sx={{
-                        background: roleColors[user.role],
-                        color: '#fff',
-                        borderRadius: '12px',
-                        px: 1.5,
-                        py: 0.5,
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                        textTransform: 'capitalize',
-                      }}
-                    >
-                      {user.role}
-                    </Box>
-                  </TableCell>
-                  <TableCell>{user.role === 'consultant' ? user.degree : ''}</TableCell>
-                  <TableCell align="center">
-                    <IconButton color="primary" onClick={() => handleOpenDialog(user)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(user.id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {pagedUsers.length === 0 && (
+              {loading ? (
                 <TableRow>
-                  <TableCell colSpan={13} align="center">
-                    No users found.
+                  <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
+                    <CircularProgress />
                   </TableCell>
                 </TableRow>
+              ) : pagedUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} align="center">
+                    Không tìm thấy người dùng nào.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pagedUsers.map((user) => (
+                  <TableRow key={user.id} selected={isSelected(user.id)}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected(user.id)}
+                        onChange={() => handleSelect(user.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Avatar src={user.avatar || "/Logo_Website_Blue.png"} alt={user.username} />
+                    </TableCell>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.fullName}</TableCell>
+                    <TableCell>{translateGender(user.gender)}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.phone}</TableCell>
+                    <TableCell>{user.address || "-"}</TableCell>
+                    <TableCell>
+                      <Box
+                        component="span"
+                        sx={{
+                          background: roleColors[user.role] || '#757575',
+                          color: '#fff',
+                          borderRadius: '12px',
+                          px: 1.5,
+                          py: 0.5,
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {translateRole(user.role)}
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton color="primary" onClick={() => handleOpenDialog(user)} title="Sửa">
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => handleOpenDeleteConfirm(user.id)} title="Xóa">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -433,142 +725,164 @@ export default function AdminPage() {
             setPage(0);
           }}
           rowsPerPageOptions={[5, 10, 20, 50]}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+          }
         />
       </Box>
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{editUser ? 'Edit User' : 'Add User'}</DialogTitle>
-        <DialogContent sx={{ minWidth: 350 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
-            <Avatar src={form.avatar || '/Logo_Website_Blue.png'} sx={{ width: 56, height: 56 }} />
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="avatar-upload"
-              type="file"
-              name="avatar"
-              onChange={handleFormChange}
-            />
-            <label htmlFor="avatar-upload">
-              <IconButton color="primary" component="span" aria-label="upload picture">
-                <PhotoCamera />
-              </IconButton>
-            </label>
-          </Box>
-          <TextField
-            margin="dense"
-            label="Username"
-            name="username"
-            value={form.username}
-            onChange={handleFormChange}
-            fullWidth
-            required
-            error={!!formErrors.username}
-            helperText={formErrors.username}
-          />
-          <TextField
-            margin="dense"
-            label="Password"
-            name="password"
-            value={form.password}
-            onChange={handleFormChange}
-            fullWidth
-            required={!editUser}
-            type="password"
-            autoComplete="new-password"
-            error={!!formErrors.password}
-            helperText={formErrors.password}
-          />
-          <TextField
-            margin="dense"
-            label="Full Name"
-            name="fullname"
-            value={form.fullname}
-            onChange={handleFormChange}
-            fullWidth
-            required
-            error={!!formErrors.fullname}
-            helperText={formErrors.fullname}
-          />
-          <FormControl fullWidth margin="dense" error={!!formErrors.gender}>
-            <InputLabel>Gender</InputLabel>
-            <Select
-              name="gender"
-              value={form.gender}
-              label="Gender"
-              onChange={handleFormChange}
-              required
-            >
-              {genderList.map((g) => (
-                <MenuItem value={g} key={g} sx={{ textTransform: 'capitalize' }}>
-                  {g}
-                </MenuItem>
-              ))}
-            </Select>
-            {formErrors.gender && <FormHelperText>{formErrors.gender}</FormHelperText>}
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Email"
-            name="email"
-            value={form.email}
-            onChange={handleFormChange}
-            fullWidth
-            required
-            type="email"
-            error={!!formErrors.email}
-            helperText={formErrors.email}
-          />
-          <TextField
-            margin="dense"
-            label="Phone (optional)"
-            name="phone"
-            value={form.phone}
-            onChange={handleFormChange}
-            fullWidth
-          />
-          <TextField
-            margin="dense"
-            label="Address (optional)"
-            name="address"
-            value={form.address}
-            onChange={handleFormChange}
-            fullWidth
-          />
-          <FormControl fullWidth margin="dense" error={!!formErrors.role}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={form.role}
-              label="Role"
-              onChange={handleFormChange}
-              required
-            >
-              {roleList.map((role) => (
-                <MenuItem value={role} key={role} sx={{ textTransform: 'capitalize' }}>
-                  {role}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {form.role === 'consultant' && (
+
+      {/* Add/Edit User Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editUser ? 'Sửa người dùng' : 'Thêm người dùng'}</DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ mt: 1 }}>
             <TextField
-              margin="dense"
-              label="Degree"
-              name="degree"
-              value={form.degree}
+              margin="normal"
+              label="Tên đăng nhập"
+              name="username"
+              value={form.username}
               onChange={handleFormChange}
               fullWidth
               required
-              error={!!formErrors.degree}
-              helperText={formErrors.degree}
+              error={!!formErrors.username}
+              helperText={formErrors.username}
+              disabled={!!editUser} // Disable username edit for existing users
             />
-          )}
+            
+            {!editUser && (
+              <TextField
+                margin="normal"
+                label="Mật khẩu"
+                name="password"
+                value={form.password}
+                onChange={handleFormChange}
+                fullWidth
+                required
+                type="password"
+                error={!!formErrors.password}
+                helperText={formErrors.password}
+              />
+            )}
+            
+            <TextField
+              margin="normal"
+              label="Họ và tên"
+              name="fullname"
+              value={form.fullname}
+              onChange={handleFormChange}
+              fullWidth
+              required
+              error={!!formErrors.fullname}
+              helperText={formErrors.fullname}
+            />
+            
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Giới tính</InputLabel>
+              <Select
+                name="gender"
+                value={form.gender}
+                label="Giới tính"
+                onChange={handleFormChange}
+              >
+                <MenuItem value="male">Nam</MenuItem>
+                <MenuItem value="female">Nữ</MenuItem>
+                <MenuItem value="other">Khác</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <TextField
+              margin="normal"
+              label="Email"
+              name="email"
+              value={form.email}
+              onChange={handleFormChange}
+              fullWidth
+              required
+              type="email"
+              error={!!formErrors.email}
+              helperText={formErrors.email}
+            />
+            
+            <TextField
+              margin="normal"
+              label="Số điện thoại"
+              name="phone"
+              value={form.phone}
+              onChange={handleFormChange}
+              fullWidth
+              required
+              error={!!formErrors.phone}
+              helperText={formErrors.phone}
+            />
+            
+            <TextField
+              margin="normal"
+              label="Địa chỉ (tùy chọn)"
+              name="address"
+              value={form.address}
+              onChange={handleFormChange}
+              fullWidth
+            />
+            
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Vai trò</InputLabel>
+              <Select
+                name="role"
+                value={form.role}
+                label="Vai trò"
+                onChange={handleFormChange}
+                required
+              >
+                <MenuItem value="ROLE_MEMBER">Thành viên</MenuItem>
+                <MenuItem value="ROLE_STAFF">Nhân viên</MenuItem>
+                <MenuItem value="ROLE_CONSULTANT">Tư vấn viên</MenuItem>
+                <MenuItem value="ROLE_MANAGER">Quản lý</MenuItem>
+                <MenuItem value="ROLE_ADMIN">Quản trị viên</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">Save</Button>
+          <Button onClick={handleCloseDialog}>Hủy</Button>
+          <Button onClick={handleSubmitForm} variant="contained" color="primary">
+            {editUser ? 'Cập nhật' : 'Lưu'}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, type: '', message: '' })}>
+        <DialogTitle>Xác nhận</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, type: '', message: '' })}>
+            Không
+          </Button>
+          <Button 
+            onClick={handleConfirmAction} 
+            variant="contained" 
+            color="primary"
+            disabled={processing}
+          >
+            {processing ? 'Đang xử lý...' : 'Có'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notifications */}
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 } 
