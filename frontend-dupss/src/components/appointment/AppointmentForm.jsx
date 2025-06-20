@@ -165,8 +165,14 @@ const AppointmentForm = () => {
 
   const formatDateForApi = (dateString) => {
     if (!dateString) return '';
+    
+    // 无论输入格式如何，都将其转换为dd/mm/yyyy格式
     const date = new Date(dateString);
-    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
   };
 
   const handleSubmit = async (e) => {

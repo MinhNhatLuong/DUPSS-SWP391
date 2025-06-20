@@ -1,15 +1,9 @@
+import api from './apiService';
+
 // API để lấy danh sách khảo sát
 export const fetchSurveys = async () => {
   try {
-    // Gọi API thực tế
-    const response = await fetch('http://localhost:8080/api/public/surveys/lastest');
-    
-    if (!response.ok) {
-      throw new Error('Không thể tải danh sách khảo sát');
-    }
-    
-    const data = await response.json();
-    return data;
+    return await api.publicGet('/surveys/lastest');
   } catch (error) {
     console.error('Lỗi khi lấy danh sách khảo sát:', error);
     throw error;
@@ -19,17 +13,14 @@ export const fetchSurveys = async () => {
 // API để lấy chi tiết một khảo sát
 export const fetchSurveyById = async (id) => {
   try {
-    // Gọi API thực tế
-    const response = await fetch(`http://localhost:8080/api/public/survey/${id}`);
+    // Sử dụng api service để gọi API
+    const data = await api.publicGet(`/survey/${id}`);
     
-    if (!response.ok) {
-      throw new Error('Không thể tải chi tiết khảo sát');
-    }
-    
-    const data = await response.json();
+    // Log API response để debug
+    console.log('API response for survey:', JSON.stringify(data, null, 2));
     
     // Chuyển đổi dữ liệu từ API để phù hợp với cấu trúc hiện tại
-    return {
+    const transformedData = {
       title: data.title,
       survey: {
         section: data.sections.map(section => ({
@@ -38,29 +29,48 @@ export const fetchSurveyById = async (id) => {
             question: q.questionText,
             options: q.options.map(opt => ({
               option: opt.optionText,
-              value: opt.score
+              value: opt.score,
+              id: opt.id // Đảm bảo rằng chúng ta đang giữ lại ID của option
             }))
           }))
         }))
       },
       conditions: data.conditions
     };
+    
+    console.log('Transformed survey data:', JSON.stringify(transformedData, null, 2));
+    
+    return transformedData;
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết khảo sát:', error);
     throw error;
   }
 };
 
-// API giả để gửi kết quả khảo sát
-export const submitSurveyResult = async (surveyId, answers, result) => {
-  // Giả lập độ trễ API
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  console.log('Submitting to API:', { surveyId, answers, result });
-  
-  // Giả lập thành công
-  return {
-    success: true,
-    message: 'Đã gửi kết quả khảo sát thành công!'
-  };
+// API để gửi kết quả khảo sát
+export const submitSurveyResult = async (surveyId, selectedOptionIds) => {
+  try {
+    // Đảm bảo surveyId là số nguyên
+    const numericSurveyId = parseInt(surveyId);
+    const payload = {
+      surveyId: isNaN(numericSurveyId) ? surveyId : numericSurveyId,
+      selectedOptionIds: selectedOptionIds
+    };
+
+    // Log request payload
+    console.log('Request payload:', JSON.stringify(payload, null, 2));
+
+    // Sử dụng api service để gọi API
+    const response = await api.post('/survey/results', payload);
+
+    console.log('Response:', response);
+
+    return {
+      success: true,
+      message: 'Lưu khảo sát thành công'
+    };
+  } catch (error) {
+    console.error('Lỗi khi gửi kết quả khảo sát:', error);
+    throw new Error('Lưu thất bại, xin thử lại sau!');
+  }
 }; 

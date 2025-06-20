@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Paper, List, ListItem, ListItemText, 
          ListItemButton, ListItemIcon, Collapse, Checkbox,
@@ -208,6 +208,22 @@ const getYoutubeId = (url) => {
   return (match && match[7].length === 11) ? match[7] : null;
 };
 
+// 添加YouTube IFrame API脚本加载函数
+function loadYouTubeAPI() {
+  if (window.YT) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+    window.onYouTubeIframeAPIReady = () => {
+      resolve();
+    };
+  });
+}
+
 function CourseLearning() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -216,6 +232,9 @@ function CourseLearning() {
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
   const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const progressTrackingRef = useRef(false);
+  const videoPlayerContainerRef = useRef(null);
 
   useEffect(() => {
     // 获取课程数据
@@ -320,37 +339,176 @@ function CourseLearning() {
     );
   };
 
-  const handleSelectVideo = (video) => {
-    setCurrentVideo(video);
+  // 播放状态变化时的回调
+  const onPlayerStateChange = (event) => {
+    // 当视频正在播放时(YT.PlayerState.PLAYING = 1)
+    if (event.data === 1 && !progressTrackingRef.current) {
+      progressTrackingRef.current = true;
+      
+      // 每秒检查一次进度
+      const progressInterval = setInterval(() => {
+        if (!playerRef.current) {
+          clearInterval(progressInterval);
+          return;
+        }
+        
+        try {
+          const currentTime = playerRef.current.getCurrentTime();
+          const duration = playerRef.current.getDuration();
+          const progress = (currentTime / duration) * 100;
+          
+          // 如果进度大于80%且视频未标记为已完成，则自动标记
+          if (progress >= 80 && currentVideo && !currentVideo.completed) {
+            clearInterval(progressInterval);
+            progressTrackingRef.current = false;
+            
+            // 使用静默更新方式，避免重新加载视频
+            silentMarkVideoComplete(currentVideo.id);
+          }
+        } catch (error) {
+          console.error('Error tracking video progress:', error);
+          clearInterval(progressInterval);
+          progressTrackingRef.current = false;
+        }
+      }, 1000);
+    } else if (event.data === 0 || event.data === 2) {
+      // 视频结束(0)或暂停(2)时停止进度跟踪
+      progressTrackingRef.current = false;
+    }
   };
 
-  const handleVideoCompletion = async (videoId, isCompleted) => {
+  // 添加静默更新函数，避免重新加载视频
+  const silentMarkVideoComplete = async (videoId) => {
     try {
-      // Sử dụng api instance từ authService
-      await api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`);
+      // 调用API标记视频为已观看
+      await api.post(`/courses/videos/watched/${videoId}?watched=true`);
       
-      // 更新模块和视频的完成状态
-      const updatedModules = modules.map(module => {
-        const updatedVideos = module.videoUrl.map(video => {
-          if (video.id === videoId) {
-            return { ...video, completed: !isCompleted };
-          }
-          return video;
+      // 直接更新状态，但不触发播放器重新创建
+      setModules(prevModules => {
+        return prevModules.map(module => {
+          const updatedVideos = module.videoUrl.map(video => {
+            if (video.id === videoId) {
+              return { ...video, completed: true };
+            }
+            return video;
+          });
+          
+          return { ...module, videoUrl: updatedVideos };
         });
-        
-        return { ...module, videoUrl: updatedVideos };
       });
       
-      setModules(updatedModules);
-      
-      // 如果当前视频是被标记的视频，更新当前视频状态
+      // 只更新当前视频的completed状态，不替换整个currentVideo对象
       if (currentVideo && currentVideo.id === videoId) {
-        setCurrentVideo({ ...currentVideo, completed: !isCompleted });
+        setCurrentVideo(prev => ({ ...prev, completed: true }));
+      }
+    } catch (error) {
+      console.error('Error silently updating video watch status:', error);
+    }
+  };
+
+  // 恢复handleVideoCompletion函数用于手动标记/取消标记
+  const handleVideoCompletion = async (videoId, isCompleted) => {
+    try {
+      // 调用API更新视频观看状态
+      await api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`);
+      
+      // 使用函数式更新，避免触发不必要的播放器重新创建
+      setModules(prevModules => {
+        return prevModules.map(module => {
+          const updatedVideos = module.videoUrl.map(video => {
+            if (video.id === videoId) {
+              return { ...video, completed: !isCompleted };
+            }
+            return video;
+          });
+          
+          return { ...module, videoUrl: updatedVideos };
+        });
+      });
+      
+      // 如果当前视频是被标记的视频，只更新completed状态
+      if (currentVideo && currentVideo.id === videoId) {
+        setCurrentVideo(prev => ({ ...prev, completed: !isCompleted }));
       }
     } catch (error) {
       console.error('Error updating video watch status:', error);
     }
   };
+
+  // 修改createPlayer函数，使用current player state
+  const createPlayer = useCallback(async () => {
+    if (!currentVideo) return;
+    
+    try {
+      await loadYouTubeAPI();
+      
+      // 保存当前播放器的状态（如果存在）
+      let currentTime = 0;
+      let wasPlaying = false;
+      
+      if (playerRef.current) {
+        try {
+          currentTime = playerRef.current.getCurrentTime();
+          wasPlaying = playerRef.current.getPlayerState() === 1; // 1 = playing
+          playerRef.current.destroy();
+        } catch (e) {
+          console.error('Error saving player state', e);
+        }
+      }
+      
+      const videoId = getYoutubeId(currentVideo.url);
+      
+      if (!videoId || !videoPlayerContainerRef.current) return;
+      
+      playerRef.current = new window.YT.Player(videoPlayerContainerRef.current, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: wasPlaying ? 1 : 0,
+          start: Math.floor(currentTime),
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onStateChange: onPlayerStateChange,
+          onReady: onPlayerReady
+        }
+      });
+    } catch (error) {
+      console.error('Error creating YouTube player:', error);
+    }
+  }, [currentVideo]);
+
+  // 播放器准备就绪时的回调
+  const onPlayerReady = (event) => {
+    // 播放器已准备就绪
+    console.log('Player ready');
+  };
+
+  // 更新处理视频选择的函数，在选择新视频时重新创建播放器
+  const handleSelectVideo = (video) => {
+    setCurrentVideo(video);
+    progressTrackingRef.current = false;
+  };
+
+  // 当currentVideo变化时创建新的播放器，但增加判断以避免不必要的重新渲染
+  useEffect(() => {
+    // 只有当视频URL变化时才重新创建播放器
+    if (currentVideo && (!playerRef.current || playerRef.current.getVideoUrl() !== currentVideo.url)) {
+      createPlayer();
+    }
+    
+    return () => {
+      if (playerRef.current) {
+        progressTrackingRef.current = false;
+        // 清理播放器
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.error('Error destroying player', e);
+        }
+      }
+    };
+  }, [currentVideo?.url, createPlayer]); // 只依赖于URL变化，而不是整个currentVideo对象
 
   const calculateProgress = () => {
     let totalVideos = 0;
@@ -424,12 +582,9 @@ function CourseLearning() {
             <Box sx={{ width: '100%', height: '100%' }}>
               {/* Video Player */}
               <VideoContainer>
-                <VideoPlayer 
-                  ref={videoRef}
-                  src={`https://www.youtube.com/embed/${getYoutubeId(currentVideo.url)}`}
-                  title={currentVideo.videoTitle}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                <Box 
+                  ref={videoPlayerContainerRef}
+                  sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                 />
               </VideoContainer>
             </Box>

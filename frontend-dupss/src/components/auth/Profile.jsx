@@ -165,29 +165,20 @@ const Profile = () => {
     }
   };
 
-  // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY khi gửi về server
+  // 修改格式化日期的函数，确保始终输出DD/MM/YYYY格式
   const formatDateForApi = (dateString) => {
     if (!dateString) return null;
     
-    // Kiểm tra định dạng YYYY-MM-DD
-    const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const match = dateString.match(datePattern);
+    // 将字符串转换为日期对象
+    const date = new Date(dateString);
     
-    if (!match) return null;
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return null;
     
-    const year = match[1];
-    const month = match[2];
-    const day = match[3];
-    
-    // Kiểm tra tính hợp lệ của ngày tháng
-    const isValidDate = (y, m, d) => {
-      const date = new Date(y, m - 1, d);
-      return date.getFullYear() === parseInt(y) && 
-             date.getMonth() === parseInt(m) - 1 && 
-             date.getDate() === parseInt(d);
-    };
-    
-    if (!isValidDate(year, month, day)) return null;
+    // 格式化为DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
     
     return `${day}/${month}/${year}`;
   };
