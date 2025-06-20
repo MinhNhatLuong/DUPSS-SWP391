@@ -13,7 +13,8 @@ import {
   IconButton,
   Grid,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -26,6 +27,10 @@ import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -67,14 +72,10 @@ const Register = () => {
     });
   };
 
-  const handleCloseProcessing = () => {
-    setProcessing(false);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Show processing alert
+    // Set processing state to true for button loading indicator
     setProcessing(true);
     
     try {
@@ -102,7 +103,7 @@ const Register = () => {
       );
       
       if (response.status === 201) {
-        // Hide processing alert
+        // Set processing state to false
         setProcessing(false);
         
         setAlert({
@@ -117,7 +118,7 @@ const Register = () => {
         }, 1500);
       }
     } catch (error) {
-      // Hide processing alert
+      // Set processing state to false on error
       setProcessing(false);
       
       const errorMessage = error.response?.data?.confirmPassword || 
@@ -186,34 +187,6 @@ const Register = () => {
           }}
         >
           {alert.message}
-        </Alert>
-      </Snackbar>
-      
-      <Snackbar
-        open={processing}
-        onClose={handleCloseProcessing}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px',
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý...
         </Alert>
       </Snackbar>
       
@@ -438,11 +411,14 @@ const Register = () => {
                 Ngày sinh
               </Typography>
               <TextField
-                fullWidth
                 type="date"
+                fullWidth
                 name="birthDate"
-                value={formData.birthDate}
+                value={formData.birthDate || ''}
                 onChange={handleChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -485,6 +461,7 @@ const Register = () => {
               fullWidth 
               variant="contained"
               type="submit"
+              disabled={processing}
               sx={{
                 padding: '12px',
                 backgroundColor: '#0056b3',
@@ -492,11 +469,25 @@ const Register = () => {
                   backgroundColor: '#003d82',
                 },
                 textTransform: 'none',
-                fontWeight: 500,
+                fontWeight: 600,
                 fontSize: '1rem',
+                position: 'relative'
               }}
             >
-              Đăng ký
+              {processing ? (
+                <>
+                  <CircularProgress 
+                    size={24} 
+                    sx={{ 
+                      color: 'white',
+                      position: 'absolute',
+                      left: '50%',
+                      marginLeft: '-12px'
+                    }} 
+                  />
+                  <span style={{ visibility: 'hidden' }}>Đăng ký</span>
+                </>
+              ) : 'Đăng ký'}
             </Button>
 
             <Box sx={{ 

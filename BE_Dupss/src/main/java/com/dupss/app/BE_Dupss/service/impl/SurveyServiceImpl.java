@@ -154,9 +154,23 @@ public class SurveyServiceImpl implements SurveyService {
 
 
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(request.getSelectedOptionIds());
-        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+//        int totalScore = survey.getSections().stream()
+//                .flatMap(section -> section.getQuestions().stream())
+//                .flatMap(question -> question.getOptions().stream())
+//                .mapToInt(SurveyOption::getScore)
+//                .sum();
+        int totalScore = survey.getSections().stream()
+                .flatMap(section -> section.getQuestions().stream())
+                .mapToInt(question ->
+                        question.getOptions().stream()
+                                .mapToInt(SurveyOption::getScore)
+                                .max()
+                                .orElse(0) // Nếu không có option nào, coi điểm là 0
+                )
+                .sum();
         String advice = survey.getConditions().stream()
-                .filter(c -> evaluate(totalScore, c))
+                .filter(c -> evaluate(userScore, c))
                 .sorted(Comparator.comparing(SurveyCondition::getValue))
                 .map(SurveyCondition::getMessage)
                 .reduce((a, b) -> b).orElse("Không có lời khuyên phù hợp");
@@ -164,7 +178,9 @@ public class SurveyServiceImpl implements SurveyService {
         SurveyResult result = new SurveyResult();
         result.setUser(user);
         result.setSurvey(survey);
+        result.setScore(userScore);
         result.setTotalScore(totalScore);
+        result.setAdvice(advice);
         result.setSubmittedAt(LocalDateTime.now());
 
         List<SurveyResultOption> resultOptions = selectedOptions.stream().map(option -> {
@@ -178,9 +194,28 @@ public class SurveyServiceImpl implements SurveyService {
 
         surveyResultRepository.save(result);
 
+        return mapToSurveyResultResponse(result);
+    }
+
+    @Override
+    public List<SurveyResultResponse> getSubmittedSurveys() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return surveyResultRepository.findByUser(user).stream()
+                .map(this::mapToSurveyResultResponse)
+                .collect(Collectors.toList());
+    }
+
+    private SurveyResultResponse mapToSurveyResultResponse(SurveyResult result) {
+
         return SurveyResultResponse.builder()
-                .totalScore(totalScore)
-                .advice(advice)
+                .surveyName(result.getSurvey().getTitle())
+                .totalScore(result.getTotalScore())
+                .score(result.getScore())
+                .advice(result.getAdvice())
                 .build();
     }
 

@@ -15,4 +15,5 @@ public interface SurveyService {
     List<SurveySummaryResponse> getSurveySummary();
     SurveyResponse getSurveyDetails(Long surveyId);
     SurveyResultResponse submitSurveyResult(SurveyResultRequest request);
+    List<SurveyResultResponse> getSubmittedSurveys();
 }

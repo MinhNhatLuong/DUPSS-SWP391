@@ -117,6 +117,22 @@ const AuthButtons = () => {
   };
 
   const handleLogout = () => {
+    const accessToken = localStorage.getItem('accessToken');
+    
+    // 调用登出API
+    if (accessToken) {
+      fetch('http://localhost:8080/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accessToken }),
+      }).catch(error => {
+        console.error('Error during logout:', error);
+      });
+    }
+    
+    // 不等待API响应，直接清除本地令牌
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);

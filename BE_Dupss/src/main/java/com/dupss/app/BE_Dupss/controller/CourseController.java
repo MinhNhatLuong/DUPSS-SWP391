@@ -29,11 +29,13 @@ public class CourseController {
 
     private final CourseService courseService;
     private final CourseEnrollmentService enrollmentService;
+    private final CourseEnrollmentService courseEnrollmentService;
 
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
-        return ResponseEntity.ok(courseService.getCourseById(id));
+        CourseResponse course = courseService.getCourseById(id);
+        return ResponseEntity.ok(course);
     }
 
     @PostMapping
@@ -66,6 +68,13 @@ public class CourseController {
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
     public ResponseEntity<List<CourseEnrollmentResponse>> getEnrolledCourses() {
         return ResponseEntity.ok(enrollmentService.getEnrolledCourses());
+    }
+
+    @PostMapping("/videos/watched/{videoId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId, @RequestParam boolean watched) {
+        courseEnrollmentService.markVideoAsWatched(videoId, watched);
+        return ResponseEntity.ok("Video watched status and progress updated");
     }
     
     @PutMapping("/enrolled/{enrollmentId}/progress")

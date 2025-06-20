@@ -18,7 +18,8 @@ import {
   InputAdornment,
   Paper,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { 
@@ -30,6 +31,10 @@ import {
   Wc as WcIcon
 } from '@mui/icons-material';
 import { showErrorAlert, showSuccessAlert } from '../common/AlertNotification';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -165,29 +170,20 @@ const Profile = () => {
     }
   };
 
-  // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY khi gửi về server
+  // 修改格式化日期的函数，确保始终输出DD/MM/YYYY格式
   const formatDateForApi = (dateString) => {
     if (!dateString) return null;
     
-    // Kiểm tra định dạng YYYY-MM-DD
-    const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const match = dateString.match(datePattern);
+    // 将字符串转换为日期对象
+    const date = new Date(dateString);
     
-    if (!match) return null;
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return null;
     
-    const year = match[1];
-    const month = match[2];
-    const day = match[3];
-    
-    // Kiểm tra tính hợp lệ của ngày tháng
-    const isValidDate = (y, m, d) => {
-      const date = new Date(y, m - 1, d);
-      return date.getFullYear() === parseInt(y) && 
-             date.getMonth() === parseInt(m) - 1 && 
-             date.getDate() === parseInt(d);
-    };
-    
-    if (!isValidDate(year, month, day)) return null;
+    // 格式化为DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
     
     return `${day}/${month}/${year}`;
   };
@@ -224,7 +220,7 @@ const Profile = () => {
     }
 
     try {
-      // Hiển thị trạng thái đang xử lý
+      // Set processing state to true for button loading indicator
       setIsProcessing(true);
 
       // Sử dụng FormData thay vì JSON
@@ -271,7 +267,7 @@ const Profile = () => {
 
       console.log('Status code:', response.status);
       
-      // Ẩn trạng thái đang xử lý
+      // Set processing state to false
       setIsProcessing(false);
       
       if (response.status === 200) {
@@ -428,13 +424,15 @@ const Profile = () => {
                   
                   {/* Date of Birth */}
                   <TextField
-                    sx={{ flex: 1 }}
-                    id="birthDate"
-                    name="birthDate"
                     label="Ngày sinh"
                     type="date"
-                    value={birthDate}
+                    value={birthDate || ''}
                     onChange={handleBirthDateChange}
+                    id="birthDate"
+                    name="birthDate"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -442,9 +440,7 @@ const Profile = () => {
                         </InputAdornment>
                       )
                     }}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
+                    sx={{ flex: 1 }}
                   />
                 </Box>
                 
@@ -494,7 +490,8 @@ const Profile = () => {
               <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                 <Button 
                   type="submit" 
-                  variant="contained" 
+                  variant="contained"
+                  disabled={isProcessing}
                   sx={{ 
                     py: 1.5,
                     px: 5,
@@ -502,35 +499,31 @@ const Profile = () => {
                     backgroundColor: '#1976d2',
                     '&:hover': {
                       backgroundColor: '#1565c0',
-                    }
+                    },
+                    position: 'relative',
+                    fontWeight: 600
                   }}
                 >
-                  Lưu thông tin
+                  {isProcessing ? (
+                    <>
+                      <CircularProgress 
+                        size={24} 
+                        sx={{ 
+                          color: 'white',
+                          position: 'absolute',
+                          left: '50%',
+                          marginLeft: '-12px'
+                        }}
+                      />
+                      <span style={{ visibility: 'hidden' }}>Lưu thông tin</span>
+                    </>
+                  ) : 'Lưu thông tin'}
                 </Button>
               </Box>
             </Box>
           </Grid>
         </Grid>
       </Paper>
-
-      {/* Alert thông báo đang xử lý */}
-      <Snackbar 
-        open={isProcessing} 
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontWeight: 500,
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý!
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

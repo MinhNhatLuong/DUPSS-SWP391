@@ -20,4 +20,8 @@ public interface EmailService {
     void sendEnrollmentSuccessEmail(String toEmail, String userName,
                                     String courseTitle, int duration,
                                     String instructor, String enrollDate) throws MessagingException, UnsupportedEncodingException;
+                                    
+    void sendWelcomeEmail(String toEmail, String userName) throws MessagingException, UnsupportedEncodingException;
+
+    void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException;
 } 

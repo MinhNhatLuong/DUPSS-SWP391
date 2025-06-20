@@ -33,6 +33,7 @@ public class CourseService {
     private final UserRepository userRepository;
     private final TopicRepo topicRepository;
     private final CloudinaryService cloudinaryService;
+    private final WatchedVideoRepo watchedVideoRepository;
 
     @Transactional
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
@@ -339,30 +340,29 @@ public class CourseService {
     
     private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
-                .map(this::mapToModuleResponse)
+                .map(m -> mapToModuleResponse(m, currentUser))
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
         EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+        double progress = 0.0;
         if (currentUser != null) {
             Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
             if (enrollmentOpt.isPresent()) {
                 enrollmentStatus = enrollmentOpt.get().getStatus();
+                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
             }
         }
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
-                .description(course.getDescription())
-                .coverImage(course.getCoverImage())
-                .content(course.getContent())
-                .duration(course.getDuration())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
-                .creator(mapToUserDetailResponse(course.getCreator()))
+                .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
+                .progress(progress)
                 .build();
     }
 
@@ -380,28 +380,25 @@ public class CourseService {
         return dto;
     }
 
-    private CourseModuleResponse mapToModuleResponse(CourseModule module) {
-        List<String> videoUrls = module.getVideos() != null
-                ? module.getVideos().stream()
-                .map(VideoCourse::getVideoUrl)
-                .collect(Collectors.toList())
-                : new ArrayList<>();
+    private CourseModuleResponse mapToModuleResponse(CourseModule module, User currentUser) {
+        List<VideoCourseResponse> videoDTOs = module.getVideos().stream()
+                .map(video -> {
+                    boolean watched = watchedVideoRepository.existsByUserAndVideoAndWatchedTrue(currentUser, video);
+                    return VideoCourseResponse.builder()
+                            .id(video.getId())
+                            .title(video.getTitle())
+                            .videoUrl(video.getVideoUrl())
+                            .watched(watched)
+                            .build();
+                })
+                .collect(Collectors.toList());
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .videoUrl(videoUrls)
+                .videos(videoDTOs)
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())
-                .build();
-    }
-    
-    private UserDetailResponse mapToUserDetailResponse(User user) {
-        return UserDetailResponse.builder()
-                .email(user.getEmail())
-                .fullName(user.getFullname())
-                .avatar(user.getAvatar())
-                .role(user.getRole().name())
                 .build();
     }
 } 

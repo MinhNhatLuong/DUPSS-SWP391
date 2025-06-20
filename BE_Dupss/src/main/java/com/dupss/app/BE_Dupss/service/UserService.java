@@ -45,7 +45,7 @@ public class UserService implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailServiceImpl mailService;
+    private final EmailService mailService;
     private final CloudinaryService cloudinaryService;
     private final JwtService jwtService;
 

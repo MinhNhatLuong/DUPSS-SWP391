@@ -1,20 +1,15 @@
 package com.dupss.app.BE_Dupss.service;
 
-import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseModuleResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
-import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
-import com.dupss.app.BE_Dupss.respository.CourseEnrollmentRepository;
-import com.dupss.app.BE_Dupss.respository.CourseModuleRepository;
-import com.dupss.app.BE_Dupss.respository.CourseRepository;
-import com.dupss.app.BE_Dupss.respository.UserRepository;
+import com.dupss.app.BE_Dupss.respository.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +32,8 @@ public class CourseEnrollmentService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final WatchedVideoRepo watchedVideoRepository;
+    private final VideoCourseRepo videoCourseRepository;
 
     @Transactional
     public CourseEnrollmentResponse enrollCourse(Long courseId) throws MessagingException, UnsupportedEncodingException {
@@ -129,13 +127,61 @@ public class CourseEnrollmentService {
         
         return mapToEnrollmentResponse(savedEnrollment);
     }
+
+    //check watched videos
+    public void markVideoAsWatched(Long videoId, boolean watchedStatus) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        VideoCourse video = videoCourseRepository.findById(videoId)
+                .orElseThrow(() -> new RuntimeException("Video not found"));
+
+        Optional<WatchedVideo> optionalWatched = watchedVideoRepository.findByUserAndVideo(user, video);
+
+        if (watchedStatus) {
+            // Nếu chưa có thì tạo mới
+            WatchedVideo watchedVideo = optionalWatched.orElseGet(() -> {
+                WatchedVideo w = new WatchedVideo();
+                w.setUser(user);
+                w.setVideo(video);
+                return w;
+            });
+            watchedVideo.setWatched(true);
+            watchedVideoRepository.save(watchedVideo);
+        } else {
+            optionalWatched.ifPresent(w -> {
+                w.setWatched(false);
+                watchedVideoRepository.save(w);
+            });
+        }
+
+        // Tính progress
+        Course course = video.getCourseModule().getCourse();
+        CourseEnrollment enrollment = enrollmentRepository.findByUserAndCourse(user, course)
+                .orElseThrow(() -> new RuntimeException("You are not enrolled in this course"));
+
+        long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
+        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course);
+
+        double progress = (watchedVideos * 100.0) / totalVideos;
+        enrollment.setProgress(progress);
+
+        if (progress >= 100) {
+            enrollment.setStatus(EnrollmentStatus.COMPLETED);
+            enrollment.setCompletionDate(LocalDateTime.now());
+        }
+
+        enrollmentRepository.save(enrollment);
+    }
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
         List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(enrollment.getCourse());
         
         return CourseEnrollmentResponse.builder()
                 .id(enrollment.getId())
-                .course(mapToCourseResponse(enrollment.getCourse(), modules, true))
+                .course(mapToCourseResponse(enrollment.getCourse(), modules, enrollment.getUser()))
                 .user(mapToUserDetailResponse(enrollment.getUser()))
                 .enrollmentDate(enrollment.getEnrollmentDate())
                 .completionDate(enrollment.getCompletionDate())
@@ -144,42 +190,52 @@ public class CourseEnrollmentService {
                 .build();
     }
     
-    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, boolean isEnrolled) {
+    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
-                .map(this::mapToModuleResponse)
+                .map(m -> mapToModuleResponse(m, currentUser))
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
         EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
-        if( isEnrolled) {
-            enrollmentStatus = EnrollmentStatus.IN_PROGRESS;
+
+        double progress = 0.0;
+        if (currentUser != null) {
+            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
+            if (enrollmentOpt.isPresent()) {
+                enrollmentStatus = enrollmentOpt.get().getStatus();
+                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
+            }
         }
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
-                .description(course.getDescription())
-                .coverImage(course.getCoverImage())
-                .content(course.getContent())
-                .duration(course.getDuration())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
-                .creator(mapToUserDetailResponse(course.getCreator()))
+                .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
+                .progress(progress)
                 .build();
     }
     
-    private CourseModuleResponse mapToModuleResponse(CourseModule module) {
-        List<String> videoUrls = module.getVideos() != null
-                ? module.getVideos().stream()
-                .map(VideoCourse::getVideoUrl)
-                .collect(Collectors.toList())
-                : new ArrayList<>();
+    private CourseModuleResponse mapToModuleResponse(CourseModule module, User currentUser) {
+
+        List<VideoCourseResponse> videoDTOs = module.getVideos().stream()
+                .map(video -> {
+                    boolean watched = watchedVideoRepository.existsByUserAndVideoAndWatchedTrue(currentUser, video);
+                    return VideoCourseResponse.builder()
+                            .id(video.getId())
+                            .title(video.getTitle())
+                            .videoUrl(video.getVideoUrl())
+                            .watched(watched)
+                            .build();
+                })
+                .collect(Collectors.toList());
         return CourseModuleResponse.builder()
                 .id(module.getId())
                 .title(module.getTitle())
-                .videoUrl(videoUrls)
+                .videos(videoDTOs)
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())

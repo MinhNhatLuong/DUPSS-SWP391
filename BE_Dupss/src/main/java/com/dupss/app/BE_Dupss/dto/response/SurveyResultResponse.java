@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class SurveyResultResponse {
+    private String surveyName;
     private Integer totalScore;
+    private Integer score;
     private String advice;
 }

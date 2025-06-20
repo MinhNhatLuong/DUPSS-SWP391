@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/survey")
@@ -25,6 +24,12 @@ public class SurveyController {
             @RequestBody @Valid SurveyResultRequest request) {
         SurveyResultResponse response = surveyService.submitSurveyResult(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/results")
+    public ResponseEntity<List<SurveyResultResponse>> getSurveyResultsByCurrentUser() {
+        List<SurveyResultResponse> results = surveyService.getSubmittedSurveys();
+        return ResponseEntity.ok(results);
     }
 }
 

@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
-import { Container, Typography, Box, CircularProgress, Fade, Divider } from '@mui/material';
+import { useParams, useLocation, Link as RouterLink } from 'react-router-dom';
+import { Container, Typography, Box, CircularProgress, Fade, Divider, 
+         Breadcrumbs, Link, styled } from '@mui/material';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import axios from 'axios';
 import BlogHeader from './BlogHeader';
 import BlogContent from './BlogContent';
 import RelatedArticles from './RelatedArticles';
+
+// Breadcrumb container
+const BreadcrumbContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: '#f5f5f5',
+  borderBottom: '1px solid #e0e0e0',
+}));
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -108,38 +117,62 @@ const BlogDetail = () => {
   }
 
   return (
-    <Fade in={contentVisible} timeout={500}>
-      <Container maxWidth="lg" sx={{ mt: 5, mb: 8, px: { xs: 1, sm: 2, md: 3 } }}>
-        <BlogHeader 
-          title={blog.title}
-          tag={blog.tag}
-          date={blog.createdDate}
-          author={blog.authorName}
-          thumbnail={blog.thumbnail}
-        />
-        
-        <BlogContent content={blog.blogContent} />
-        
-        <Box sx={{ mt: 6, mb: 4 }}>
-          <Divider sx={{ mb: 2 }} />
-          <Typography 
-            variant="h4" 
-            fontWeight="700" 
-            sx={{ 
-              mb: 2, 
-              color: '#0056b3', 
-              textAlign: 'center'
-            }}
+    <Box>
+      {/* Breadcrumb */}
+      <BreadcrumbContainer>
+        <Container maxWidth="lg">
+          <Breadcrumbs 
+            separator={<NavigateNextIcon fontSize="small" sx={{ color: '#0056b3' }} />} 
+            aria-label="breadcrumb"
           >
-            Các bài blog khác
-          </Typography>
-        </Box>
-        
-        <Box sx={{ mx: -1 }}>
-          <RelatedArticles articles={relatedArticles} />
-        </Box>
-      </Container>
-    </Fade>
+            <Link 
+              component={RouterLink} 
+              to="/blogs" 
+              sx={{ color: '#0056b3', '&:hover': { color: '#003d82' } }}
+              underline="hover"
+            >
+              Blogs & Thông tin
+            </Link>
+            <Typography sx={{ color: '#0056b3', fontWeight: 500 }}>
+              {blog?.title || 'Chi tiết blog'}
+            </Typography>
+          </Breadcrumbs>
+        </Container>
+      </BreadcrumbContainer>
+
+      <Fade in={contentVisible} timeout={500}>
+        <Container maxWidth="lg" sx={{ mt: 5, mb: 8, px: { xs: 1, sm: 2, md: 3 } }}>
+          <BlogHeader 
+            title={blog.title}
+            tag={blog.tag}
+            date={blog.createdDate}
+            author={blog.authorName}
+            thumbnail={blog.thumbnail}
+          />
+          
+          <BlogContent content={blog.blogContent} />
+          
+          <Box sx={{ mt: 6, mb: 4 }}>
+            <Divider sx={{ mb: 2 }} />
+            <Typography 
+              variant="h4" 
+              fontWeight="700" 
+              sx={{ 
+                mb: 2, 
+                color: '#0056b3', 
+                textAlign: 'center'
+              }}
+            >
+              Các bài blog khác
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mx: -1 }}>
+            <RelatedArticles articles={relatedArticles} />
+          </Box>
+        </Container>
+      </Fade>
+    </Box>
   );
 };
 

@@ -16,14 +16,11 @@ import java.util.List;
 public class CourseResponse {
     private Long id;
     private String title;
-    private String description;
-    private String coverImage;
-    private String content;
-    private Integer duration;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private UserDetailResponse creator;
+    private String creator;
     private List<CourseModuleResponse> modules;
     private Integer enrollmentCount;
     private EnrollmentStatus enrollmentStatus;
+    private double progress;
 } 

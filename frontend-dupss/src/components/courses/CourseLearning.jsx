@@ -1,20 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Paper, List, ListItem, ListItemText, 
          ListItemButton, ListItemIcon, Collapse, Checkbox,
-         IconButton, styled } from '@mui/material';
+         IconButton, styled, Breadcrumbs, Link } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import api from '../../services/authService';
 
 // Main container layout
 const PageContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  height: 'calc(100vh - 64px)', // Adjust based on your header height
+  height: 'calc(100vh - 112px)', // 调整高度，考虑了Breadcrumb高度
   overflow: 'hidden',
+  backgroundColor: '#fff',
+  border: '1px solid #e0e0e0',
+  borderTop: 'none',
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     height: 'auto',
@@ -24,22 +29,28 @@ const PageContainer = styled(Box)(({ theme }) => ({
 // Video panel
 const VideoPanel = styled(Box)(({ theme }) => ({
   flex: '1 1 70%',
-  padding: theme.spacing(3),
+  padding: 0,
   display: 'flex',
   flexDirection: 'column',
   overflowY: 'auto',
+  height: '100%',
   [theme.breakpoints.down('md')]: {
     flex: '1 1 auto',
+    height: '60vh',
   }
 }));
 
-// Sidebar panel
+// Sidebar panel - 调整样式以确保与视频区域完美衔接
 const SidebarPanel = styled(Box)(({ theme }) => ({
   flex: '0 0 30%',
   maxWidth: '30%',
   borderLeft: '1px solid #e0e0e0',
   display: 'flex',
   flexDirection: 'column',
+  height: '100%',
+  margin: 0,
+  padding: 0,
+  backgroundColor: '#fdfdfd',
   [theme.breakpoints.down('md')]: {
     flex: '1 1 auto',
     maxWidth: '100%',
@@ -88,10 +99,10 @@ const SectionInfo = styled(Typography)(({ theme }) => ({
 const VideoContainer = styled(Box)(({ theme }) => ({
   position: 'relative', 
   width: '100%',
-  paddingBottom: '56.25%', // 16:9 aspect ratio
-  height: 0, 
+  height: '100%',
+  paddingBottom: 0,
   overflow: 'hidden',
-  marginBottom: theme.spacing(3),
+  marginBottom: 0,
 }));
 
 const VideoPlayer = styled('iframe')(({ theme }) => ({
@@ -101,6 +112,13 @@ const VideoPlayer = styled('iframe')(({ theme }) => ({
   width: '100%', 
   height: '100%', 
   border: 0,
+}));
+
+// Breadcrumb container
+const BreadcrumbContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: '#f5f5f5',
+  borderBottom: '1px solid #e0e0e0',
 }));
 
 // Mock course data
@@ -199,31 +217,126 @@ const getYoutubeId = (url) => {
   return (match && match[7].length === 11) ? match[7] : null;
 };
 
+// 添加YouTube IFrame API脚本加载函数
+function loadYouTubeAPI() {
+  if (window.YT) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+    window.onYouTubeIframeAPIReady = () => {
+      resolve();
+    };
+  });
+}
+
 function CourseLearning() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
   const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const progressTrackingRef = useRef(false);
+  const videoPlayerContainerRef = useRef(null);
 
   useEffect(() => {
-    // In a real application, this would be an API call using the ID
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setCourse(mockCourse);
-      setModules(mockCourse.modules);
-      
-      // Set first video as current by default
-      if (mockCourse.modules.length > 0 && mockCourse.modules[0].videoUrl.length > 0) {
-        setCurrentVideo(mockCourse.modules[0].videoUrl[0]);
+    // 获取课程数据
+    const fetchCourseData = async () => {
+      setLoading(true);
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+          // 如果没有token，重定向到课程详情页
+          navigate(`/courses/${id}`, {
+            state: {
+              showAlert: true,
+              alertMessage: 'Bạn cần đăng nhập để xem khóa học này!',
+              alertSeverity: 'error'
+            }
+          });
+          return;
+        }
+
+        // Sử dụng api instance từ authService
+        const response = await api.get(`/courses/detail/${id}`);
+
+        setCourse(response.data);
+        
+        // 将响应数据映射到组件状态
+        const mappedModules = response.data.modules.map(module => ({
+          ...module,
+          videoUrl: module.videos.map(video => ({
+            id: video.id,
+            videoTitle: video.title,
+            url: video.videoUrl,
+            completed: video.watched,
+            duration: 0 // API没有提供时长，设为0
+          })),
+          isExpanded: false // 默认所有section都是关闭的
+        }));
+
+        // 查找包含未观看视频的第一个section
+        let sectionWithUnwatchedVideo = null;
+        let firstUnwatchedVideo = null;
+
+        // 遍历所有模块查找第一个包含未观看视频的模块
+        for (const module of mappedModules) {
+          const unwatchedVideo = module.videoUrl.find(video => !video.completed);
+          if (unwatchedVideo) {
+            sectionWithUnwatchedVideo = module;
+            firstUnwatchedVideo = unwatchedVideo;
+            break;
+          }
+        }
+
+        // 如果找到了含有未观看视频的section，则展开它
+        if (sectionWithUnwatchedVideo) {
+          const updatedModules = mappedModules.map(module => ({
+            ...module,
+            isExpanded: module.id === sectionWithUnwatchedVideo.id
+          }));
+          setModules(updatedModules);
+          setCurrentVideo(firstUnwatchedVideo);
+        } else {
+          // 如果所有视频都已观看，则默认展开第一个section
+          if (mappedModules.length > 0) {
+            const updatedModules = mappedModules.map((module, index) => ({
+              ...module,
+              isExpanded: index === 0
+            }));
+            setModules(updatedModules);
+            
+            // 选择第一个section的第一个视频
+            if (mappedModules[0].videoUrl.length > 0) {
+              setCurrentVideo(mappedModules[0].videoUrl[0]);
+            }
+          } else {
+            setModules(mappedModules);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        // 重定向到课程详情页并显示错误信息
+        navigate(`/courses/${id}`, {
+          state: {
+            showAlert: true,
+            alertMessage: 'Có lỗi xảy ra, hãy thử lại sau!',
+            alertSeverity: 'error'
+          }
+        });
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    };
+
+    fetchCourseData();
+  }, [id, navigate]);
 
   const handleToggleModule = (moduleId) => {
     setModules(prevModules => 
@@ -235,30 +348,218 @@ function CourseLearning() {
     );
   };
 
-  const handleSelectVideo = (video) => {
-    setCurrentVideo(video);
-  };
-
-  const handleVideoCompletion = (videoId) => {
-    // Update modules and videos to mark as completed
-    const updatedModules = modules.map(module => {
-      const updatedVideos = module.videoUrl.map(video => {
-        if (video.id === videoId) {
-          return { ...video, completed: !video.completed };
-        }
-        return video;
-      });
+  // 修改视频播放状态变化时的回调，添加更详细的注释
+  const onPlayerStateChange = (event) => {
+    // 当视频正在播放时(YT.PlayerState.PLAYING = 1)
+    if (event.data === 1 && !progressTrackingRef.current) {
+      progressTrackingRef.current = true;
       
-      return { ...module, videoUrl: updatedVideos };
-    });
-    
-    setModules(updatedModules);
-    
-    // Update current video if it's the one being marked
-    if (currentVideo && currentVideo.id === videoId) {
-      setCurrentVideo({ ...currentVideo, completed: !currentVideo.completed });
+      // 每秒检查一次进度
+      const progressInterval = setInterval(() => {
+        if (!playerRef.current) {
+          clearInterval(progressInterval);
+          return;
+        }
+        
+        try {
+          const currentTime = playerRef.current.getCurrentTime();
+          const duration = playerRef.current.getDuration();
+          const progress = (currentTime / duration) * 100;
+          
+          // 如果进度大于80%且视频未标记为已完成，则自动标记
+          if (progress >= 80 && currentVideo && !currentVideo.completed) {
+            clearInterval(progressInterval);
+            progressTrackingRef.current = false;
+            
+            // 使用静默更新方式，避免重新加载视频
+            silentMarkVideoComplete(currentVideo.id);
+          }
+        } catch (error) {
+          console.error('Error tracking video progress:', error);
+          clearInterval(progressInterval);
+          progressTrackingRef.current = false;
+        }
+      }, 1000);
+    } else if (event.data === 0 || event.data === 2) {
+      // 视频结束(0)或暂停(2)时停止进度跟踪
+      progressTrackingRef.current = false;
     }
   };
+
+  // 优化静默更新函数，确保不触发播放器重新创建
+  const silentMarkVideoComplete = async (videoId) => {
+    try {
+      // 调用API标记视频为已观看
+      await api.post(`/courses/videos/watched/${videoId}?watched=true`);
+      
+      // 直接更新模块状态，避免不必要的重渲染
+      setModules(prevModules => {
+        return prevModules.map(module => {
+          const updatedVideos = module.videoUrl.map(video => {
+            if (video.id === videoId) {
+              return { ...video, completed: true };
+            }
+            return video;
+          });
+          
+          return { ...module, videoUrl: updatedVideos };
+        });
+      });
+      
+      // 使用函数式更新currentVideo状态，只更新completed属性
+      if (currentVideo && currentVideo.id === videoId) {
+        setCurrentVideo(prev => {
+          // 确保我们不是创建一个全新的对象，而只是更新属性
+          if (prev.completed) return prev; // 如果已经是completed，不做任何改变
+          return { ...prev, completed: true };
+        });
+      }
+    } catch (error) {
+      console.error('Error silently updating video watch status:', error);
+    }
+  };
+
+  // 优化手动标记/取消标记函数，避免视频重载
+  const handleVideoCompletion = async (videoId, isCompleted) => {
+    try {
+      // 调用API更新视频观看状态
+      await api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`);
+      
+      // 使用函数式更新，避免触发不必要的播放器重新创建
+      setModules(prevModules => {
+        return prevModules.map(module => {
+          const updatedVideos = module.videoUrl.map(video => {
+            if (video.id === videoId) {
+              return { ...video, completed: !isCompleted };
+            }
+            return video;
+          });
+          
+          return { ...module, videoUrl: updatedVideos };
+        });
+      });
+      
+      // 如果当前视频是被标记的视频，只更新completed状态，保持播放器不变
+      if (currentVideo && currentVideo.id === videoId) {
+        setCurrentVideo(prev => {
+          // 如果状态没有变化，直接返回原对象
+          if (prev.completed === !isCompleted) return prev;
+          return { ...prev, completed: !isCompleted };
+        });
+      }
+    } catch (error) {
+      console.error('Error updating video watch status:', error);
+    }
+  };
+
+  // 优化createPlayer函数，确保播放器正确填充容器
+  const createPlayer = useCallback(async () => {
+    if (!currentVideo) return;
+    
+    try {
+      await loadYouTubeAPI();
+      
+      // 保存当前播放器的状态（如果存在）
+      let currentTime = 0;
+      let wasPlaying = false;
+      
+      // 检查是否真的需要重新创建播放器
+      const videoId = getYoutubeId(currentVideo.url);
+      const currentPlayerVideoId = playerRef.current && playerRef.current.getVideoData ? 
+        playerRef.current.getVideoData().video_id : null;
+      
+      // 如果当前播放的就是这个视频，不需要重新创建播放器
+      if (playerRef.current && currentPlayerVideoId === videoId) {
+        console.log('Same video is already playing, not recreating player');
+        return;
+      }
+      
+      if (playerRef.current) {
+        try {
+          currentTime = playerRef.current.getCurrentTime();
+          wasPlaying = playerRef.current.getPlayerState() === 1; // 1 = playing
+          playerRef.current.destroy();
+        } catch (e) {
+          console.error('Error saving player state', e);
+        }
+      }
+      
+      if (!videoId || !videoPlayerContainerRef.current) return;
+      
+      // 创建容器元素
+      const playerContainer = document.createElement('div');
+      playerContainer.id = 'youtube-player-' + Date.now();
+      playerContainer.style.width = '100%';
+      playerContainer.style.height = '100%';
+      
+      // 清除现有内容
+      while (videoPlayerContainerRef.current.firstChild) {
+        videoPlayerContainerRef.current.removeChild(videoPlayerContainerRef.current.firstChild);
+      }
+      
+      // 添加新容器
+      videoPlayerContainerRef.current.appendChild(playerContainer);
+      
+      // 创建YouTube播放器并设置为填充整个容器
+      playerRef.current = new window.YT.Player(playerContainer.id, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: wasPlaying ? 1 : 0,
+          start: Math.floor(currentTime),
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onStateChange: onPlayerStateChange,
+          onReady: onPlayerReady
+        },
+        height: '100%',
+        width: '100%'
+      });
+    } catch (error) {
+      console.error('Error creating YouTube player:', error);
+    }
+  }, [currentVideo?.url]); // 仅依赖URL，而不是整个currentVideo对象
+
+  // 播放器准备就绪时的回调
+  const onPlayerReady = (event) => {
+    // 播放器已准备就绪
+    console.log('Player ready');
+  };
+
+  // 优化视频选择函数，避免重复选择同一视频引起重载
+  const handleSelectVideo = (video) => {
+    // 如果选择的是当前正在播放的视频，不做任何操作
+    if (currentVideo && currentVideo.id === video.id) {
+      console.log('Same video selected, no action needed');
+      return;
+    }
+    
+    setCurrentVideo(video);
+    progressTrackingRef.current = false;
+  };
+
+  // 当currentVideo变化时创建新的播放器，增加判断以避免不必要的重新渲染
+  useEffect(() => {
+    // 只有当视频URL变化时才重新创建播放器
+    if (currentVideo && (!playerRef.current || 
+        (playerRef.current.getVideoData && playerRef.current.getVideoData().video_id !== getYoutubeId(currentVideo.url)))
+    ) {
+      createPlayer();
+    }
+    
+    return () => {
+      if (playerRef.current) {
+        progressTrackingRef.current = false;
+        // 清理播放器
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.error('Error destroying player', e);
+        }
+      }
+    };
+  }, [currentVideo?.url, createPlayer]); // 只依赖于URL变化，而不是整个currentVideo对象
 
   const calculateProgress = () => {
     let totalVideos = 0;
@@ -298,99 +599,131 @@ function CourseLearning() {
   }
 
   return (
-    <PageContainer>
-      {/* Video Panel - Left side */}
-      <VideoPanel>
-        {currentVideo ? (
-          <Box>
-            {/* Video Player */}
-            <VideoContainer>
-              <VideoPlayer 
-                ref={videoRef}
-                src={`https://www.youtube.com/embed/${getYoutubeId(currentVideo.url)}`}
-                title={currentVideo.videoTitle}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </VideoContainer>
-          </Box>
-        ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
-            <Typography>Vui lòng chọn một video để bắt đầu</Typography>
-          </Box>
-        )}
-      </VideoPanel>
-      
-      {/* Course Curriculum Sidebar - Right side */}
-      <SidebarPanel>
-        <SidebarWrapper>
-          <ContentHeader>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Course content</Typography>
-          </ContentHeader>
-          
-          <ContentList>
-            {modules.map((module, index) => (
-              <Box key={module.id}>
-                <SectionHeader onClick={() => handleToggleModule(module.id)}>
-                  <Box sx={{ width: '100%' }}>
-                    <SectionTitle>
-                      Section {index + 1}: {module.title}
-                    </SectionTitle>
-                    <SectionInfo>
-                      {getModuleCompletionCount(module)} | {formatDuration(module.duration)}
-                    </SectionInfo>
-                  </Box>
-                  <IconButton edge="end" sx={{ ml: 1 }}>
-                    {module.isExpanded ? <ExpandLess /> : <ExpandMore />}
-                  </IconButton>
-                </SectionHeader>
-                
-                <Collapse in={module.isExpanded} timeout="auto">
-                  <List component="div" disablePadding sx={{ bgcolor: 'rgba(0,0,0,0.01)' }}>
-                    {module.videoUrl.map((video) => (
-                      <ListItemButton 
-                        key={video.id}
-                        selected={currentVideo && currentVideo.id === video.id}
-                        onClick={() => handleSelectVideo(video)}
-                        sx={{ 
-                          pl: 4, 
-                          py: 1.5,
-                          borderLeft: currentVideo && currentVideo.id === video.id ? 
-                            '4px solid #3f51b5' : '4px solid transparent'
-                        }}
-                      >
-                        <ListItemIcon sx={{ minWidth: 36 }}>
-                          <Checkbox
-                            icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-                            checkedIcon={<CheckBoxIcon fontSize="small" />}
-                            checked={video.completed}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              handleVideoCompletion(video.id);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            color="success"
-                            size="small"
-                          />
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary={video.videoTitle.split(":")[1] || video.videoTitle} 
-                          secondary={formatDuration(video.duration)}
-                          primaryTypographyProps={{
-                            fontSize: '0.9rem',
-                            fontWeight: currentVideo && currentVideo.id === video.id ? 600 : 400
+    <Box>
+      {/* Breadcrumb */}
+      <BreadcrumbContainer>
+        <Breadcrumbs 
+          separator={<NavigateNextIcon fontSize="small" sx={{ color: '#0056b3' }} />} 
+          aria-label="breadcrumb"
+        >
+          <Link 
+            component={RouterLink} 
+            to="/courses" 
+            sx={{ color: '#0056b3', '&:hover': { color: '#003d82' } }}
+            underline="hover"
+          >
+            Khóa học
+          </Link>
+          <Link 
+            component={RouterLink} 
+            to={`/courses/${id}`} 
+            sx={{ color: '#0056b3', '&:hover': { color: '#003d82' } }}
+            underline="hover"
+          >
+            {course?.title || 'Chi tiết khóa học'}
+          </Link>
+          <Typography sx={{ color: '#0056b3', fontWeight: 500 }}>Bài giảng</Typography>
+        </Breadcrumbs>
+      </BreadcrumbContainer>
+    
+      <PageContainer>
+        {/* Video Panel - Left side */}
+        <VideoPanel>
+          {currentVideo ? (
+            <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
+              {/* Video Player */}
+              <VideoContainer>
+                <Box 
+                  ref={videoPlayerContainerRef}
+                  sx={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    width: '100%', 
+                    height: '100%',
+                    border: 0
+                  }}
+                />
+              </VideoContainer>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <Typography>Vui lòng chọn một video để bắt đầu</Typography>
+            </Box>
+          )}
+        </VideoPanel>
+        
+        {/* Course Curriculum Sidebar - Right side */}
+        <SidebarPanel>
+          <SidebarWrapper>
+            <ContentHeader>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Course content</Typography>
+            </ContentHeader>
+            
+            <ContentList>
+              {modules.map((module, index) => (
+                <Box key={module.id}>
+                  <SectionHeader onClick={() => handleToggleModule(module.id)}>
+                    <Box sx={{ width: '100%' }}>
+                      <SectionTitle>
+                        Section {index + 1}: {module.title}
+                      </SectionTitle>
+                      <SectionInfo>
+                        {getModuleCompletionCount(module)} | {module.videos ? `${module.videos.length} videos` : '0 videos'}
+                      </SectionInfo>
+                    </Box>
+                    <IconButton edge="end" sx={{ ml: 1 }}>
+                      {module.isExpanded ? <ExpandLess /> : <ExpandMore />}
+                    </IconButton>
+                  </SectionHeader>
+                  
+                  <Collapse in={module.isExpanded} timeout="auto">
+                    <List component="div" disablePadding sx={{ bgcolor: 'rgba(0,0,0,0.01)' }}>
+                      {module.videoUrl.map((video) => (
+                        <ListItemButton 
+                          key={video.id}
+                          selected={currentVideo && currentVideo.id === video.id}
+                          onClick={() => handleSelectVideo(video)}
+                          sx={{ 
+                            pl: 4, 
+                            py: 1.5,
+                            borderLeft: currentVideo && currentVideo.id === video.id ? 
+                              '4px solid #3f51b5' : '4px solid transparent'
                           }}
-                        />
-                      </ListItemButton>
-                    ))}
-                  </List>
-                </Collapse>
-              </Box>
-            ))}
-          </ContentList>
-        </SidebarWrapper>
-      </SidebarPanel>
-    </PageContainer>
+                        >
+                          <ListItemIcon sx={{ minWidth: 36 }}>
+                            <Checkbox
+                              icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+                              checkedIcon={<CheckBoxIcon fontSize="small" />}
+                              checked={video.completed}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleVideoCompletion(video.id, video.completed);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              color="success"
+                              size="small"
+                            />
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={video.videoTitle.includes(":") ? video.videoTitle.split(":")[1] : video.videoTitle} 
+                            secondary={video.duration > 0 ? formatDuration(video.duration) : null}
+                            primaryTypographyProps={{
+                              fontSize: '0.9rem',
+                              fontWeight: currentVideo && currentVideo.id === video.id ? 600 : 400
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Collapse>
+                </Box>
+              ))}
+            </ContentList>
+          </SidebarWrapper>
+        </SidebarPanel>
+      </PageContainer>
+    </Box>
   );
 }
 
