@@ -72,14 +72,10 @@ const Register = () => {
     });
   };
 
-  const handleCloseProcessing = () => {
-    setProcessing(false);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Show processing alert
+    // Set processing state to true for button loading indicator
     setProcessing(true);
     
     try {
@@ -107,7 +103,7 @@ const Register = () => {
       );
       
       if (response.status === 201) {
-        // Hide processing alert
+        // Set processing state to false
         setProcessing(false);
         
         setAlert({
@@ -122,7 +118,7 @@ const Register = () => {
         }, 1500);
       }
     } catch (error) {
-      // Hide processing alert
+      // Set processing state to false on error
       setProcessing(false);
       
       const errorMessage = error.response?.data?.confirmPassword || 
@@ -191,34 +187,6 @@ const Register = () => {
           }}
         >
           {alert.message}
-        </Alert>
-      </Snackbar>
-      
-      <Snackbar
-        open={processing}
-        onClose={handleCloseProcessing}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px',
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý...
         </Alert>
       </Snackbar>
       

@@ -220,7 +220,7 @@ const Profile = () => {
     }
 
     try {
-      // Hiển thị trạng thái đang xử lý
+      // Set processing state to true for button loading indicator
       setIsProcessing(true);
 
       // Sử dụng FormData thay vì JSON
@@ -267,7 +267,7 @@ const Profile = () => {
 
       console.log('Status code:', response.status);
       
-      // Ẩn trạng thái đang xử lý
+      // Set processing state to false
       setIsProcessing(false);
       
       if (response.status === 200) {
@@ -524,25 +524,6 @@ const Profile = () => {
           </Grid>
         </Grid>
       </Paper>
-
-      {/* Alert thông báo đang xử lý */}
-      <Snackbar 
-        open={isProcessing} 
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontWeight: 500,
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý!
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

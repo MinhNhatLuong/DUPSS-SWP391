@@ -186,7 +186,7 @@ const AppointmentForm = () => {
     
     if (validateForm()) {
       try {
-        // Show processing alert
+        // Set processing state to true for button loading indicator
         setIsProcessing(true);
         
         // Format the data for API
@@ -203,7 +203,7 @@ const AppointmentForm = () => {
         // Submit the appointment
         const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
         
-        // Hide processing alert
+        // Set processing state to false
         setIsProcessing(false);
         
         // Handle success
@@ -214,7 +214,7 @@ const AppointmentForm = () => {
         });
         handleReset();
       } catch (error) {
-        // Hide processing alert
+        // Set processing state to false on error
         setIsProcessing(false);
         
         // Handle error
@@ -484,34 +484,6 @@ const AppointmentForm = () => {
           }}
         >
           {alert.message}
-        </Alert>
-      </Snackbar>
-
-      {/* Processing notification */}
-      <Snackbar 
-        open={isProcessing} 
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px',
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý...
         </Alert>
       </Snackbar>
     </Paper>
