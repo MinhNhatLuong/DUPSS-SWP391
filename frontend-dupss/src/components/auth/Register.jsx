@@ -26,6 +26,10 @@ import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -437,27 +441,36 @@ const Register = () => {
               <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 500, color: '#555' }}>
                 Ngày sinh
               </Typography>
-              <TextField
-                fullWidth
-                type="date"
-                name="birthDate"
-                value={formData.birthDate}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarTodayIcon sx={{ color: '#aaa' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#ddd' },
-                    '&:hover fieldset': { borderColor: '#0056b3' },
-                    '&.Mui-focused fieldset': { borderColor: '#0056b3' },
-                  }
-                }}
-              />
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  value={formData.birthDate ? parse(formData.birthDate, 'yyyy-MM-dd', new Date()) : null}
+                  onChange={(newDate) => {
+                    const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
+                    handleChange({ target: { name: 'birthDate', value: formattedDate } });
+                  }}
+                  format="dd/MM/yyyy"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      name: "birthDate",
+                      InputProps: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarTodayIcon sx={{ color: '#aaa' }} />
+                          </InputAdornment>
+                        ),
+                      },
+                      sx: {
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': { borderColor: '#ddd' },
+                          '&:hover fieldset': { borderColor: '#0056b3' },
+                          '&.Mui-focused fieldset': { borderColor: '#0056b3' },
+                        }
+                      }
+                    }
+                  }}
+                />
+              </LocalizationProvider>
             </Box>
 
             <FormControlLabel

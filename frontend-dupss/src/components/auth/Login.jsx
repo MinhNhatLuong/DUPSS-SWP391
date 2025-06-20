@@ -58,8 +58,17 @@ const Login = () => {
       
       showSuccessAlert('Đăng nhập thành công!');
       
+      // Check if there's a redirect URL in sessionStorage
+      const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+      
+      if (redirectAfterLogin) {
+        // Clear the redirect URL from sessionStorage
+        sessionStorage.removeItem('redirectAfterLogin');
+        // Navigate to the saved URL
+        window.location.href = redirectAfterLogin;
+      } 
       // Nếu có returnUrl, đăng nhập thành công sau sẽ chuyển hướng đến URL đó
-      if (returnUrl) {
+      else if (returnUrl) {
         window.location.href = returnUrl;
       } else {
         // Nếu không thì chuyển hướng đến trang chủ

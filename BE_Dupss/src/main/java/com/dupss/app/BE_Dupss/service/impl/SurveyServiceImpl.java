@@ -155,10 +155,19 @@ public class SurveyServiceImpl implements SurveyService {
 
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(request.getSelectedOptionIds());
         int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+//        int totalScore = survey.getSections().stream()
+//                .flatMap(section -> section.getQuestions().stream())
+//                .flatMap(question -> question.getOptions().stream())
+//                .mapToInt(SurveyOption::getScore)
+//                .sum();
         int totalScore = survey.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
-                .flatMap(question -> question.getOptions().stream())
-                .mapToInt(SurveyOption::getScore)
+                .mapToInt(question ->
+                        question.getOptions().stream()
+                                .mapToInt(SurveyOption::getScore)
+                                .max()
+                                .orElse(0) // Nếu không có option nào, coi điểm là 0
+                )
                 .sum();
         String advice = survey.getConditions().stream()
                 .filter(c -> evaluate(userScore, c))

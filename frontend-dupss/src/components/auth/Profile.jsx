@@ -30,6 +30,10 @@ import {
   Wc as WcIcon
 } from '@mui/icons-material';
 import { showErrorAlert, showSuccessAlert } from '../common/AlertNotification';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -165,29 +169,20 @@ const Profile = () => {
     }
   };
 
-  // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY khi gửi về server
+  // 修改格式化日期的函数，确保始终输出DD/MM/YYYY格式
   const formatDateForApi = (dateString) => {
     if (!dateString) return null;
     
-    // Kiểm tra định dạng YYYY-MM-DD
-    const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const match = dateString.match(datePattern);
+    // 将字符串转换为日期对象
+    const date = new Date(dateString);
     
-    if (!match) return null;
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return null;
     
-    const year = match[1];
-    const month = match[2];
-    const day = match[3];
-    
-    // Kiểm tra tính hợp lệ của ngày tháng
-    const isValidDate = (y, m, d) => {
-      const date = new Date(y, m - 1, d);
-      return date.getFullYear() === parseInt(y) && 
-             date.getMonth() === parseInt(m) - 1 && 
-             date.getDate() === parseInt(d);
-    };
-    
-    if (!isValidDate(year, month, day)) return null;
+    // 格式化为DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
     
     return `${day}/${month}/${year}`;
   };
@@ -427,25 +422,31 @@ const Profile = () => {
                   />
                   
                   {/* Date of Birth */}
-                  <TextField
-                    sx={{ flex: 1 }}
-                    id="birthDate"
-                    name="birthDate"
-                    label="Ngày sinh"
-                    type="date"
-                    value={birthDate}
-                    onChange={handleBirthDateChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CalendarIcon />
-                        </InputAdornment>
-                      )
-                    }}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                      label="Ngày sinh"
+                      value={birthDate ? parse(birthDate, 'yyyy-MM-dd', new Date()) : null}
+                      onChange={(newDate) => {
+                        const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
+                        handleBirthDateChange({ target: { name: 'birthDate', value: formattedDate } });
+                      }}
+                      format="dd/MM/yyyy"
+                      slotProps={{
+                        textField: {
+                          sx: { flex: 1 },
+                          id: "birthDate",
+                          name: "birthDate",
+                          InputProps: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <CalendarIcon />
+                              </InputAdornment>
+                            )
+                          }
+                        }
+                      }}
+                    />
+                  </LocalizationProvider>
                 </Box>
                 
                 {/* Gender and Address on the same row */}
