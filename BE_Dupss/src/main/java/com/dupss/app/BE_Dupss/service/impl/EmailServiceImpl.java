@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -25,6 +26,7 @@ public class EmailServiceImpl implements EmailService {
     
     @Value("${spring.mail.username}")
     private String fromEmail;
+    
     
     @Override
     public void sendAppointmentConfirmation(Appointment appointment) {
@@ -92,6 +94,7 @@ public class EmailServiceImpl implements EmailService {
 
         mailSender.send(message);
     }
+
     
     public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         try {

@@ -39,36 +39,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
         }
 
-        // Xử lý consultant
-        Consultant consultant = null;
-        Slot matchedSlot = null;
-        
-        // Tìm consultant phù hợp
-        List<Consultant> availableConsultants = consultantRepository.findByEnabledTrue();
-        
-        if (availableConsultants.isEmpty()) {
-            throw new ResourceNotFoundException("Không có tư vấn viên nào đang hoạt động");
-        }
-        
-        // Duyệt từng consultant để tìm slot phù hợp
-        for (Consultant c : availableConsultants) {
-            Optional<Slot> optionalSlot = slotRepository.findAvailableSlotByConsultantAndDateTime(
-                    c.getId(),
-                    requestDto.getAppointmentDate(),
-                    requestDto.getAppointmentTime());
-            
-            if (optionalSlot.isPresent()) {
-                consultant = c;
-                matchedSlot = optionalSlot.get();
-                break;
-            }
-        }
-        
-        // Nếu duyệt xong vẫn không tìm thấy slot phù hợp
-        if (matchedSlot == null) {
-            throw new ResourceNotFoundException("Không có tư vấn viên nào rảnh vào thời điểm này");
-        }
-
         // Khởi tạo đối tượng Appointment
         Appointment appointment = new Appointment();
         appointment.setCustomerName(requestDto.getCustomerName());
@@ -77,7 +47,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setAppointmentDate(requestDto.getAppointmentDate());
         appointment.setAppointmentTime(requestDto.getAppointmentTime());
         appointment.setTopic(topic);
-        appointment.setConsultant(consultant);
         appointment.setStatus("PENDING");
 
         // Nếu có userId, đây là thành viên đã đăng nhập
@@ -90,10 +59,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             // Nếu không có userId, đây là khách
             appointment.setGuest(true);
         }
-
-        // Cập nhật trạng thái slot
-        matchedSlot.setAvailable(false);
-        slotRepository.save(matchedSlot);
 
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
@@ -153,8 +118,16 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + id));
 
-        // Kiểm tra xem cuộc hẹn có thuộc về tư vấn viên này không
-        if (!Objects.equals(appointment.getConsultant().getId(), consultantId)) {
+        // Get the consultant
+        Consultant consultant = consultantRepository.findById(consultantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
+        
+        // If appointment doesn't have a consultant, assign this consultant
+        if (appointment.getConsultant() == null) {
+            appointment.setConsultant(consultant);
+        } 
+        // If appointment has a different consultant, check if this consultant has permission
+        else if (!Objects.equals(appointment.getConsultant().getId(), consultantId)) {
             throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
         }
 
@@ -256,6 +229,50 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<AppointmentResponseDto> getUnassignedAppointments() {
+        List<Appointment> appointments = appointmentRepository.findByConsultantIsNull();
+        return appointments.stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
+        
+        // Kiểm tra xem cuộc hẹn đã được phân công chưa
+        if (appointment.getConsultant() != null) {
+            throw new IllegalArgumentException("Cuộc hẹn này đã được phân công cho tư vấn viên khác");
+        }
+        
+        // Lấy thông tin tư vấn viên
+        Consultant consultant = consultantRepository.findById(consultantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
+        
+        // Phân công cuộc hẹn cho tư vấn viên
+        appointment.setConsultant(consultant);
+        
+        // Cập nhật trạng thái nếu đang là PENDING
+        if ("PENDING".equals(appointment.getStatus())) {
+            String previousStatus = appointment.getStatus();
+            appointment.setStatus("CONFIRMED");
+            
+            // Lưu vào database
+            Appointment updatedAppointment = appointmentRepository.save(appointment);
+            
+            // Gửi email thông báo cập nhật trạng thái
+            emailService.sendAppointmentStatusUpdate(updatedAppointment, previousStatus);
+            
+            return mapToResponseDto(updatedAppointment);
+        } else {
+            // Nếu không phải PENDING, chỉ cập nhật consultant
+            Appointment updatedAppointment = appointmentRepository.save(appointment);
+            return mapToResponseDto(updatedAppointment);
+        }
+    }
+
     private boolean isValidStatus(String status) {
         return status.equals("PENDING") ||
                 status.equals("CONFIRMED") ||
@@ -272,7 +289,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setAppointmentDate(appointment.getAppointmentDate());
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
-        responseDto.setConsultantName(appointment.getConsultant().getFullname());
+        
+        // Handle null consultant
+        if (appointment.getConsultant() != null) {
+            responseDto.setConsultantName(appointment.getConsultant().getFullname());
+        } else {
+            responseDto.setConsultantName("Chưa phân công");
+        }
+        
         responseDto.setGuest(appointment.isGuest());
         responseDto.setStatus(appointment.getStatus());
         
