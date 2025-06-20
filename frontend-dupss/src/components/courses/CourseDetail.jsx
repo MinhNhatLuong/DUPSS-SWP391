@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Typography, Button, Grid, Paper, Divider, 
          List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
@@ -7,6 +7,8 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import api, { isAuthenticated } from '../../services/authService';
 import axios from 'axios';
 
 // Styled components to match the original HTML/CSS
@@ -58,7 +60,7 @@ const FeatureItem = styled(ListItem)(({ theme }) => ({
 const EnrollButton = styled(Button)(({ theme, status }) => ({
   width: '100%',
   padding: '15px',
-  backgroundColor: status === 'COMPLETED' ? '#27ae60' : '#3498db',
+  backgroundColor: status === 'IN_PROGRESS' ? '#3498db' : '#27ae60',
   color: 'white',
   border: 'none',
   borderRadius: '4px',
@@ -68,13 +70,31 @@ const EnrollButton = styled(Button)(({ theme, status }) => ({
   transition: 'background-color 0.3s ease',
   marginTop: theme.spacing(1),
   '&:hover': {
-    backgroundColor: status === 'COMPLETED' ? '#219653' : '#2980b9',
+    backgroundColor: status === 'IN_PROGRESS' ? '#2980b9' : '#219653',
+  },
+}));
+
+const CertificateButton = styled(Button)(({ theme }) => ({
+  width: '100%',
+  padding: '15px',
+  backgroundColor: '#27ae60',
+  color: 'white',
+  border: 'none',
+  borderRadius: '4px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'background-color 0.3s ease',
+  marginTop: theme.spacing(1),
+  '&:hover': {
+    backgroundColor: '#219653',
   },
 }));
 
 function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -83,15 +103,24 @@ function CourseDetail() {
   const [alertSeverity, setAlertSeverity] = useState('success');
 
   useEffect(() => {
+    // 检查是否有通过导航传递的状态
+    if (location.state?.showAlert) {
+      setAlertMessage(location.state.alertMessage);
+      setAlertSeverity(location.state.alertSeverity || 'error');
+      setAlertOpen(true);
+      
+      // 清除状态，避免用户刷新页面时再次显示提示
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const accessToken = localStorage.getItem('accessToken');
-        const headers = accessToken 
-          ? { Authorization: `Bearer ${accessToken}` } 
-          : {};
-          
-        const response = await axios.get(`http://localhost:8080/api/public/course/${id}`, { headers });
+        // Sử dụng api instance thay vì axios trực tiếp
+        // Không cần thêm header Authorization vì api instance đã tự động thêm
+        const response = await api.get(`/public/course/${id}`);
         setCourse(response.data);
       } catch (err) {
         console.error('Error fetching course:', err);
@@ -106,16 +135,7 @@ function CourseDetail() {
 
   // Check if user is authenticated
   const checkAuthentication = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) return false;
-
-    try {
-      const response = await axios.post('http://localhost:8080/api/auth/me', { accessToken });
-      return response.status === 200;
-    } catch (err) {
-      console.error('Authentication error:', err);
-      return false;
-    }
+    return isAuthenticated();
   };
 
   const handleAlertClose = () => {
@@ -132,8 +152,8 @@ function CourseDetail() {
   const handleEnrollClick = async () => {
     if (course.status === 'NOT_ENROLLED') {
       // Check if user is authenticated
-      const isAuthenticated = await checkAuthentication();
-      if (!isAuthenticated) {
+      const isUserAuthenticated = await checkAuthentication();
+      if (!isUserAuthenticated) {
         // 直接重定向到登录页面，并传递状态以显示alert
         navigate('/login', { 
           state: { 
@@ -147,13 +167,8 @@ function CourseDetail() {
       
       // Call API to enroll in the course
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        
-        await axios.post(
-          `http://localhost:8080/api/courses/${id}/enroll`, 
-          {}, 
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
+        // Sử dụng api instance thay vì axios trực tiếp
+        await api.post(`/courses/${id}/enroll`);
 
         // Show success message
         showAlert('Đăng ký khóa học thành công!', 'success');
@@ -171,13 +186,17 @@ function CourseDetail() {
         }
         console.error('Enrollment error:', err);
       }
-    } else if (course.status === 'IN_PROGRESS') {
+    } else {
       // Navigate to course learning page
       navigate(`/courses/${course.id}/learn`);
-    } else if (course.status === 'COMPLETED') {
-      // Handle certificate download or view
-      console.log('Download certificate');
     }
+  };
+  
+  // Handle certificate button click
+  const handleCertificateClick = () => {
+    // 处理下载证书逻辑
+    console.log('Download certificate');
+    // TODO: 添加下载证书的API调用
   };
 
   // Get button text based on enrollment status
@@ -186,7 +205,7 @@ function CourseDetail() {
       case 'IN_PROGRESS':
         return 'TIẾP TỤC KHÓA HỌC';
       case 'COMPLETED':
-        return 'NHẬN CHỨNG CHỈ';
+        return 'TIẾP TỤC KHÓA HỌC';
       default:
         return 'ĐĂNG KÝ KHÓA HỌC';
     }
@@ -292,11 +311,20 @@ function CourseDetail() {
               </FeatureItem>
               
               <EnrollButton 
-                status={course.status}
+                status={course.status !== 'COMPLETED' ? course.status : 'IN_PROGRESS'}
                 onClick={handleEnrollClick}
               >
                 {getButtonText()}
               </EnrollButton>
+
+              {course.status === 'COMPLETED' && (
+                <CertificateButton
+                  onClick={handleCertificateClick}
+                  startIcon={<EmojiEventsIcon />}
+                >
+                  NHẬN CHỨNG CHỈ
+                </CertificateButton>
+              )}
             </CourseFeatures>
           </CoursePreview>
         </CourseSidebar>

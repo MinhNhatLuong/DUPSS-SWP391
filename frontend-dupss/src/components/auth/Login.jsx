@@ -18,6 +18,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import { Link as RouterLink } from 'react-router-dom';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
+import { login } from '../../services/authService';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -52,52 +53,16 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Call login API
-      const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      // Handle response
-      if (loginResponse.status === 400 || loginResponse.status === 401 || loginResponse.status === 403) {
-        showErrorAlert('Username hoặc Mật khẩu sai!');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!loginResponse.ok) {
-        throw new Error(`Login failed with status: ${loginResponse.status}`);
-      }
-
-      const loginData = await loginResponse.json();
+      // Sử dụng hàm login từ authService
+      const userData = await login({ username, password });
       
-      // Save tokens
-      localStorage.setItem('accessToken', loginData.accessToken);
-      localStorage.setItem('refreshToken', loginData.refreshToken);
-
-      // Get user information
-      const meResponse = await fetch('http://localhost:8080/api/auth/me', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ accessToken: loginData.accessToken }),
-      });
-
-      if (!meResponse.ok) {
-        throw new Error(`Failed to fetch user profile: ${meResponse.status}`);
-      }
-
       showSuccessAlert('Đăng nhập thành công!');
       
-      // 如果有returnUrl，登录成功后重定向到该URL
+      // Nếu có returnUrl, đăng nhập thành công sau sẽ chuyển hướng đến URL đó
       if (returnUrl) {
         window.location.href = returnUrl;
       } else {
-        // 否则重定向到首页
+        // Nếu không thì chuyển hướng đến trang chủ
         window.location.href = '/';
       }
     } catch (error) {
