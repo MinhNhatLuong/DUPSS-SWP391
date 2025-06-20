@@ -13,7 +13,8 @@ import {
   IconButton,
   Grid,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -441,36 +442,30 @@ const Register = () => {
               <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 500, color: '#555' }}>
                 Ngày sinh
               </Typography>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  value={formData.birthDate ? parse(formData.birthDate, 'yyyy-MM-dd', new Date()) : null}
-                  onChange={(newDate) => {
-                    const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
-                    handleChange({ target: { name: 'birthDate', value: formattedDate } });
-                  }}
-                  format="dd/MM/yyyy"
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      name: "birthDate",
-                      InputProps: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarTodayIcon sx={{ color: '#aaa' }} />
-                          </InputAdornment>
-                        ),
-                      },
-                      sx: {
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: '#ddd' },
-                          '&:hover fieldset': { borderColor: '#0056b3' },
-                          '&.Mui-focused fieldset': { borderColor: '#0056b3' },
-                        }
-                      }
-                    }
-                  }}
-                />
-              </LocalizationProvider>
+              <TextField
+                type="date"
+                fullWidth
+                name="birthDate"
+                value={formData.birthDate || ''}
+                onChange={handleChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarTodayIcon sx={{ color: '#aaa' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': { borderColor: '#ddd' },
+                    '&:hover fieldset': { borderColor: '#0056b3' },
+                    '&.Mui-focused fieldset': { borderColor: '#0056b3' },
+                  }
+                }}
+              />
             </Box>
 
             <FormControlLabel
@@ -498,6 +493,7 @@ const Register = () => {
               fullWidth 
               variant="contained"
               type="submit"
+              disabled={processing}
               sx={{
                 padding: '12px',
                 backgroundColor: '#0056b3',
@@ -507,9 +503,23 @@ const Register = () => {
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
+                position: 'relative'
               }}
             >
-              Đăng ký
+              {processing ? (
+                <>
+                  <CircularProgress 
+                    size={24} 
+                    sx={{ 
+                      color: 'white',
+                      position: 'absolute',
+                      left: '50%',
+                      marginLeft: '-12px'
+                    }} 
+                  />
+                  <span style={{ visibility: 'hidden' }}>Đăng ký</span>
+                </>
+              ) : 'Đăng ký'}
             </Button>
 
             <Box sx={{ 

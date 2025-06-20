@@ -8,7 +8,8 @@ import {
   Typography, 
   Link, 
   InputAdornment, 
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
@@ -230,9 +231,23 @@ const Login = () => {
                 textTransform: 'none',
                 fontSize: '1rem',
                 fontWeight: 600,
+                position: 'relative'
               }}
             >
-              {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+              {isLoading ? (
+                <>
+                  <CircularProgress 
+                    size={24} 
+                    sx={{ 
+                      color: 'white',
+                      position: 'absolute',
+                      left: '50%',
+                      marginLeft: '-12px'
+                    }} 
+                  />
+                  <span style={{ visibility: 'hidden' }}>Đăng nhập</span>
+                </>
+              ) : 'Đăng nhập'}
             </Button>
 
             <Box sx={{
