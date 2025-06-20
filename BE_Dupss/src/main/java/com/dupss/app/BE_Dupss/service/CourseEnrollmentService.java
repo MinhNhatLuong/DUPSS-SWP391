@@ -148,10 +148,9 @@ public class CourseEnrollmentService {
                 w.setVideo(video);
                 return w;
             });
-            watchedVideo.setWatched(true); // ✅ cập nhật trạng thái
+            watchedVideo.setWatched(true);
             watchedVideoRepository.save(watchedVideo);
         } else {
-            // Nếu có rồi thì cập nhật watched = false hoặc xoá
             optionalWatched.ifPresent(w -> {
                 w.setWatched(false);
                 watchedVideoRepository.save(w);
@@ -164,7 +163,7 @@ public class CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("You are not enrolled in this course"));
 
         long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
-        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course); // ✅ đếm video "đã xem"
+        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course);
 
         double progress = (watchedVideos * 100.0) / totalVideos;
         enrollment.setProgress(progress);
@@ -172,9 +171,6 @@ public class CourseEnrollmentService {
         if (progress >= 100) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletionDate(LocalDateTime.now());
-        } else {
-            enrollment.setStatus(EnrollmentStatus.IN_PROGRESS); // Tránh giữ trạng thái completed khi đã bỏ tick
-            enrollment.setCompletionDate(null);
         }
 
         enrollmentRepository.save(enrollment);

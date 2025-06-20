@@ -6,7 +6,6 @@ import com.dupss.app.BE_Dupss.entity.VideoCourse;
 import com.dupss.app.BE_Dupss.entity.WatchedVideo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface WatchedVideoRepo extends JpaRepository<WatchedVideo, Long> {

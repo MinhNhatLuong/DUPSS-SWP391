@@ -1,6 +1,8 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.ERole;
+import com.dupss.app.BE_Dupss.validation.MinAge;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -24,6 +26,8 @@ public class UpdateUserRequest {
 
     private MultipartFile avatar;
     private String gender;
+    @MinAge(value = 13, message = "Người dùng phải từ 13 tuổi trở lên")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate yob;
 
     @Email(message = "Email must be valid!!")
