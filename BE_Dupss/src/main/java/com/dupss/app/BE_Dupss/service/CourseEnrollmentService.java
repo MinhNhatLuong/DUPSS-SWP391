@@ -196,7 +196,7 @@ public class CourseEnrollmentService {
     
     private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
-                .map(this::mapToModuleResponse)
+                .map(m -> mapToModuleResponse(m, currentUser))
                 .collect(Collectors.toList());
                 
         long enrollmentCount = enrollmentRepository.countByCourse(course);
@@ -223,13 +223,18 @@ public class CourseEnrollmentService {
                 .build();
     }
     
-    private CourseModuleResponse mapToModuleResponse(CourseModule module) {
+    private CourseModuleResponse mapToModuleResponse(CourseModule module, User currentUser) {
+
         List<VideoCourseResponse> videoDTOs = module.getVideos().stream()
-                .map(video -> VideoCourseResponse.builder()
-                        .id(video.getId())
-                        .title(video.getTitle())
-                        .videoUrl(video.getVideoUrl())
-                        .build())
+                .map(video -> {
+                    boolean watched = watchedVideoRepository.existsByUserAndVideoAndWatchedTrue(currentUser, video);
+                    return VideoCourseResponse.builder()
+                            .id(video.getId())
+                            .title(video.getTitle())
+                            .videoUrl(video.getVideoUrl())
+                            .watched(watched)
+                            .build();
+                })
                 .collect(Collectors.toList());
         return CourseModuleResponse.builder()
                 .id(module.getId())
