@@ -28,6 +28,9 @@ public class SurveyResult {
 
     private Integer totalScore;
 
+    private String advice;
+
+    private Integer score;
 
     @Column(nullable = false)
     private LocalDateTime submittedAt;

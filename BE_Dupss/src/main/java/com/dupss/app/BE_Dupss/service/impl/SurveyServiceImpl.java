@@ -154,9 +154,14 @@ public class SurveyServiceImpl implements SurveyService {
 
 
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(request.getSelectedOptionIds());
-        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        int totalScore = survey.getSections().stream()
+                .flatMap(section -> section.getQuestions().stream())
+                .flatMap(question -> question.getOptions().stream())
+                .mapToInt(SurveyOption::getScore)
+                .sum();
         String advice = survey.getConditions().stream()
-                .filter(c -> evaluate(totalScore, c))
+                .filter(c -> evaluate(userScore, c))
                 .sorted(Comparator.comparing(SurveyCondition::getValue))
                 .map(SurveyCondition::getMessage)
                 .reduce((a, b) -> b).orElse("Không có lời khuyên phù hợp");
@@ -164,7 +169,9 @@ public class SurveyServiceImpl implements SurveyService {
         SurveyResult result = new SurveyResult();
         result.setUser(user);
         result.setSurvey(survey);
+        result.setScore(userScore);
         result.setTotalScore(totalScore);
+        result.setAdvice(advice);
         result.setSubmittedAt(LocalDateTime.now());
 
         List<SurveyResultOption> resultOptions = selectedOptions.stream().map(option -> {
@@ -194,20 +201,12 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     private SurveyResultResponse mapToSurveyResultResponse(SurveyResult result) {
-        Survey survey = result.getSurvey();
-        int totalScore = result.getTotalScore();
-
-        String advice = survey.getConditions().stream()
-                .filter(c -> evaluate(totalScore, c))
-                .sorted(Comparator.comparing(SurveyCondition::getValue))
-                .map(SurveyCondition::getMessage)
-                .reduce((a, b) -> b)
-                .orElse("Không có lời khuyên phù hợp");
 
         return SurveyResultResponse.builder()
-                .surveyName(survey.getTitle())
-                .totalScore(totalScore)
-                .advice(advice)
+                .surveyName(result.getSurvey().getTitle())
+                .totalScore(result.getTotalScore())
+                .score(result.getScore())
+                .advice(result.getAdvice())
                 .build();
     }
 

@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class SurveyResultResponse {
     private String surveyName;
     private Integer totalScore;
+    private Integer score;
     private String advice;
 }
