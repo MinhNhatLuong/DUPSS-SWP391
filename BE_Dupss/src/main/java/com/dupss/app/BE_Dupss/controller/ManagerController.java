@@ -72,6 +72,13 @@ public class ManagerController {
         return ResponseEntity.ok(topicRes);
     }
 
+    @PatchMapping("/topic/delete/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
+    public ResponseEntity<?> deleteTopic(@PathVariable Long id) {
+        topicService.delete(id);
+        return ResponseEntity.ok("Topic deleted successfully");
+    }
+
     @PostMapping(value = "/survey", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request
                                                        ) throws IOException {

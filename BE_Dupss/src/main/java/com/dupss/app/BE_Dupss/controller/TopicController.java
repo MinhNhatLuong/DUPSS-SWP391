@@ -46,4 +46,6 @@ public class TopicController {
         List<TopicResponse> topics = topicService.getTopicsCreatedByCurrentUser();
         return ResponseEntity.ok(topics);
     }
+
+
 } 
