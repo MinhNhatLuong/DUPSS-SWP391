@@ -21,6 +21,11 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import './AppointmentForm.css';
+import { CalendarIcon as CalendarIconX } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const AppointmentForm = () => {
   const [formData, setFormData] = useState({
@@ -310,29 +315,38 @@ const AppointmentForm = () => {
           {/* Date and Time Row */}
           <Box sx={{ display: 'flex', width: '100%', gap: 2 }}>
             {/* Appointment Date */}
-            <TextField
-              fullWidth
-              required
-              id="appointmentDate"
-              name="appointmentDate"
-              label="Ngày hẹn"
-              type="date"
-              value={formData.appointmentDate}
-              onChange={handleChange}
-              error={!!errors.appointmentDate}
-              helperText={errors.appointmentDate}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarIcon />
-                  </InputAdornment>
-                )
-              }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{ flex: 1 }}
-            />
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                label="Ngày hẹn"
+                value={formData.appointmentDate ? parse(formData.appointmentDate, 'yyyy-MM-dd', new Date()) : null}
+                onChange={(newDate) => {
+                  const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
+                  setFormData({
+                    ...formData,
+                    appointmentDate: formattedDate
+                  });
+                }}
+                format="dd/MM/yyyy"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true,
+                    id: "appointmentDate",
+                    name: "appointmentDate",
+                    error: !!errors.appointmentDate,
+                    helperText: errors.appointmentDate,
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarIconX />
+                        </InputAdornment>
+                      )
+                    },
+                    sx: { flex: 1 }
+                  }
+                }}
+              />
+            </LocalizationProvider>
             
             {/* Appointment Time */}
             <TextField

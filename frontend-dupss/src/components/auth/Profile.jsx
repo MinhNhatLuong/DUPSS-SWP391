@@ -30,6 +30,10 @@ import {
   Wc as WcIcon
 } from '@mui/icons-material';
 import { showErrorAlert, showSuccessAlert } from '../common/AlertNotification';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format, parse } from 'date-fns';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -418,25 +422,31 @@ const Profile = () => {
                   />
                   
                   {/* Date of Birth */}
-                  <TextField
-                    sx={{ flex: 1 }}
-                    id="birthDate"
-                    name="birthDate"
-                    label="Ngày sinh"
-                    type="date"
-                    value={birthDate}
-                    onChange={handleBirthDateChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CalendarIcon />
-                        </InputAdornment>
-                      )
-                    }}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                      label="Ngày sinh"
+                      value={birthDate ? parse(birthDate, 'yyyy-MM-dd', new Date()) : null}
+                      onChange={(newDate) => {
+                        const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
+                        handleBirthDateChange({ target: { name: 'birthDate', value: formattedDate } });
+                      }}
+                      format="dd/MM/yyyy"
+                      slotProps={{
+                        textField: {
+                          sx: { flex: 1 },
+                          id: "birthDate",
+                          name: "birthDate",
+                          InputProps: {
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <CalendarIcon />
+                              </InputAdornment>
+                            )
+                          }
+                        }
+                      }}
+                    />
+                  </LocalizationProvider>
                 </Box>
                 
                 {/* Gender and Address on the same row */}
