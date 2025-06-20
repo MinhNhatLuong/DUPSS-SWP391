@@ -27,6 +27,9 @@ public class WatchedVideo {
     @Column(nullable = false)
     private LocalDateTime watchedAt;
 
+    @Column(nullable = false)
+    private Boolean watched;
+
     @PrePersist
     protected void onCreate() {
         watchedAt = LocalDateTime.now();

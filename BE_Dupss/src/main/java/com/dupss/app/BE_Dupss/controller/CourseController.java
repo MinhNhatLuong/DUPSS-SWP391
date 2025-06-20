@@ -72,9 +72,9 @@ public class CourseController {
 
     @PostMapping("/videos/watched/{videoId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId) {
-        courseEnrollmentService.markVideoAsWatched(videoId);
-        return ResponseEntity.ok("Marked as watched and progress updated");
+    public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId, @RequestParam boolean watched) {
+        courseEnrollmentService.markVideoAsWatched(videoId, watched);
+        return ResponseEntity.ok("Video watched status and progress updated");
     }
     
     @PutMapping("/enrolled/{enrollmentId}/progress")

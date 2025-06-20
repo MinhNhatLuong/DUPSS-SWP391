@@ -129,7 +129,7 @@ public class CourseEnrollmentService {
     }
 
     //check watched videos
-    public void markVideoAsWatched(Long videoId) {
+    public void markVideoAsWatched(Long videoId, boolean watchedStatus) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User user = userRepository.findByUsername(username)
@@ -138,24 +138,33 @@ public class CourseEnrollmentService {
         VideoCourse video = videoCourseRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
 
-        // Kiểm tra đã xem chưa
-        boolean alreadyWatched = watchedVideoRepository.existsByUserAndVideo(user, video);
-        if (alreadyWatched) return;
+        Optional<WatchedVideo> optionalWatched = watchedVideoRepository.findByUserAndVideo(user, video);
 
-        // Ghi nhận đã xem
-        WatchedVideo watched = new WatchedVideo();
-        watched.setUser(user);
-        watched.setVideo(video);
-        watchedVideoRepository.save(watched);
+        if (watchedStatus) {
+            // Nếu chưa có thì tạo mới
+            WatchedVideo watchedVideo = optionalWatched.orElseGet(() -> {
+                WatchedVideo w = new WatchedVideo();
+                w.setUser(user);
+                w.setVideo(video);
+                return w;
+            });
+            watchedVideo.setWatched(true); // ✅ cập nhật trạng thái
+            watchedVideoRepository.save(watchedVideo);
+        } else {
+            // Nếu có rồi thì cập nhật watched = false hoặc xoá
+            optionalWatched.ifPresent(w -> {
+                w.setWatched(false);
+                watchedVideoRepository.save(w);
+            });
+        }
 
-        // Lấy CourseEnrollment
+        // Tính progress
         Course course = video.getCourseModule().getCourse();
         CourseEnrollment enrollment = enrollmentRepository.findByUserAndCourse(user, course)
                 .orElseThrow(() -> new RuntimeException("You are not enrolled in this course"));
 
-        // Tính tổng số video trong khóa học
         long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
-        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course(user, course);
+        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course); // ✅ đếm video "đã xem"
 
         double progress = (watchedVideos * 100.0) / totalVideos;
         enrollment.setProgress(progress);
@@ -163,6 +172,9 @@ public class CourseEnrollmentService {
         if (progress >= 100) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletionDate(LocalDateTime.now());
+        } else {
+            enrollment.setStatus(EnrollmentStatus.IN_PROGRESS); // Tránh giữ trạng thái completed khi đã bỏ tick
+            enrollment.setCompletionDate(null);
         }
 
         enrollmentRepository.save(enrollment);

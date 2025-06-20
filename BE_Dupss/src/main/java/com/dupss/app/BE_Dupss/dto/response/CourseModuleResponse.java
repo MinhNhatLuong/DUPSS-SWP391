@@ -17,7 +17,6 @@ public class CourseModuleResponse {
     private Long id;
     private String title;
     private List<VideoCourseResponse> videos;
-    private String documentUrl;
     private Integer orderIndex;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
