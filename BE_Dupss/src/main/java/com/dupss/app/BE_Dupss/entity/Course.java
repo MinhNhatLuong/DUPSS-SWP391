@@ -38,6 +38,10 @@ public class Course {
     @Column(nullable = false)
     private ApprovalStatus status;
 
+    @OneToOne
+    @JoinColumn(name = "quiz_id")
+    private Survey surveyQuiz;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseModule> modules = new ArrayList<>();
 

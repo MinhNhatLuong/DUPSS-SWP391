@@ -2,9 +2,11 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.response.CertificateResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseDetailPublicResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
+import com.dupss.app.BE_Dupss.entity.Certificate;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
 import jakarta.mail.MessagingException;
@@ -103,6 +105,19 @@ public class CourseController {
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
         } catch (RuntimeException | IOException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/{id}/cert/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getCertificate(@PathVariable Long id, @PathVariable Long userId) {
+        try {
+            CertificateResponse certRes = courseEnrollmentService.getCertificateResponse(id, userId);
+            return ResponseEntity.ok(certRes);
+        } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);

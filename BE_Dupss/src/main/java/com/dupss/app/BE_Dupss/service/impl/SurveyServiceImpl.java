@@ -110,7 +110,7 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public List<SurveySummaryResponse> getSurveySummary() {
-        List<Survey> surveys = surveyRepository.findTop2ByActiveTrueOrderByCreatedAtDesc();
+        List<Survey> surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
         return surveys.stream()
                 .map(survey -> {
                     SurveySummaryResponse response = new SurveySummaryResponse();
