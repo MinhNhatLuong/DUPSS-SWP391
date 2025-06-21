@@ -8,7 +8,7 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import api, { isAuthenticated } from '../../services/authService';
+import api, { isAuthenticated, getUserData } from '../../services/authService';
 import axios from 'axios';
 
 // Styled components to match the original HTML/CSS
@@ -102,15 +102,16 @@ function CourseDetail() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    // 检查是否有通过导航传递的状态
+    // Check if there is state passed through navigation
     if (location.state?.showAlert) {
       setAlertMessage(location.state.alertMessage);
       setAlertSeverity(location.state.alertSeverity || 'error');
       setAlertOpen(true);
       
-      // 清除状态，避免用户刷新页面时再次显示提示
+      // Clear state to avoid showing alert again on page refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -119,8 +120,8 @@ function CourseDetail() {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        // Sử dụng api instance thay vì axios trực tiếp
-        // Không cần thêm header Authorization vì api instance đã tự động thêm
+        // Use api instance instead of axios directly
+        // No need to add Authorization header as api instance does it automatically
         const response = await api.get(`/public/course/${id}`);
         setCourse(response.data);
       } catch (err) {
@@ -133,6 +134,14 @@ function CourseDetail() {
     
     fetchCourse();
   }, [id]);
+
+  useEffect(() => {
+    // Lấy thông tin người dùng từ localStorage
+    const userData = getUserData();
+    if (userData && userData.id) {
+      setUserId(userData.id);
+    }
+  }, []);
 
   // Check if user is authenticated
   const checkAuthentication = async () => {
@@ -155,7 +164,7 @@ function CourseDetail() {
       // Check if user is authenticated
       const isUserAuthenticated = await checkAuthentication();
       if (!isUserAuthenticated) {
-        // 直接重定向到登录页面，并传递状态以显示alert
+        // Redirect directly to login page and pass state to display alert
         navigate('/login', { 
           state: { 
             showAuthAlert: true, 
@@ -171,7 +180,7 @@ function CourseDetail() {
       
       // Call API to enroll in the course
       try {
-        // Sử dụng api instance thay vì axios trực tiếp
+        // Use api instance instead of axios directly
         await api.post(`/courses/${id}/enroll`);
 
         // Show success message
@@ -201,9 +210,13 @@ function CourseDetail() {
   
   // Handle certificate button click
   const handleCertificateClick = () => {
-    // 处理下载证书逻辑
-    console.log('Download certificate');
-    // TODO: 添加下载证书的API调用
+    if (!userId) {
+      showAlert('Vui lòng đăng nhập để xem chứng chỉ', 'error');
+      return;
+    }
+    
+    // Điều hướng đến trang chứng chỉ với courseId và userId
+    navigate(`/courses/${id}/cert/${userId}`);
   };
 
   // Get button text based on enrollment status

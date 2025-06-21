@@ -2,9 +2,11 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.response.CertificateResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseDetailPublicResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
 import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
+import com.dupss.app.BE_Dupss.entity.Certificate;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
 import jakarta.mail.MessagingException;

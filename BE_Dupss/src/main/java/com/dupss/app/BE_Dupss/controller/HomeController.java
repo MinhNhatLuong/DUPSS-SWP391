@@ -3,6 +3,7 @@ package com.dupss.app.BE_Dupss.controller;
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.service.BlogService;
+import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
 import com.dupss.app.BE_Dupss.service.SurveyService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class HomeController {
     private final CourseService courseService;
     private final BlogService blogService;
     private final SurveyService surveyService;
+    private final CourseEnrollmentService courseEnrollmentService;
 
     @GetMapping("/courses")
     public ResponseEntity<Map<String, Object>> getAllCourses(
@@ -115,6 +117,18 @@ public class HomeController {
     public ResponseEntity<CourseDetailPublicResponse> getCourseDetailPublic(@PathVariable Long id) {
         CourseDetailPublicResponse response = courseService.getCoursePublicDetail(id);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/course/{id}/cert/{userId}")
+    public ResponseEntity<?> getCertificate(@PathVariable Long id, @PathVariable Long userId) {
+        try {
+            CertificateResponse certRes = courseEnrollmentService.getCertificateResponse(id, userId);
+            return ResponseEntity.ok(certRes);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
 }

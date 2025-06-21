@@ -29,7 +29,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // 从位置状态中获取提醒信息
+  // Get alert message from location state
   const authAlert = location.state?.showAuthAlert;
   const authMessage = location.state?.authMessage;
   const returnUrl = location.state?.returnUrl;
@@ -37,7 +37,7 @@ const Login = () => {
   useEffect(() => {
     document.title = "Đăng Nhập - DUPSS";
     
-    // 如果有提醒信息，则通过AlertNotification组件显示在右上角
+    // If there's an alert message, display it in the top right corner via AlertNotification component
     if (authAlert && authMessage) {
       showErrorAlert(authMessage);
     }
@@ -54,7 +54,7 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Sử dụng hàm login từ authService
+      // Use the login function from authService
       const userData = await login({ username, password });
       
       showSuccessAlert('Đăng nhập thành công!');
@@ -68,11 +68,11 @@ const Login = () => {
         // Navigate to the saved URL
         window.location.href = redirectAfterLogin;
       } 
-      // Nếu có returnUrl, đăng nhập thành công sau sẽ chuyển hướng đến URL đó
+      // If there's a returnUrl, redirect to that URL after successful login
       else if (returnUrl) {
         window.location.href = returnUrl;
       } else {
-        // Nếu không thì chuyển hướng đến trang chủ
+        // If not, redirect to the homepage
         window.location.href = '/';
       }
     } catch (error) {

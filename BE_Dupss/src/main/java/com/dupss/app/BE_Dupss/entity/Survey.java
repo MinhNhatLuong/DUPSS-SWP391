@@ -32,6 +32,9 @@ public class Survey {
     @Column(nullable = false)
     private boolean active;
 
+    @Column(nullable = false)
+    private boolean forCourse = false;
+
     @Column(length = 500)
     private String surveyImage;
 

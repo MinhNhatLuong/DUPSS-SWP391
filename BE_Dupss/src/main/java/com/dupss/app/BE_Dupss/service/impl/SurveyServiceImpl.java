@@ -17,10 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,7 +110,7 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public List<SurveySummaryResponse> getSurveySummary() {
-        List<Survey> surveys = surveyRepository.findTop2ByActiveTrueOrderByCreatedAtDesc();
+        List<Survey> surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
         return surveys.stream()
                 .map(survey -> {
                     SurveySummaryResponse response = new SurveySummaryResponse();
@@ -155,11 +152,7 @@ public class SurveyServiceImpl implements SurveyService {
 
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(request.getSelectedOptionIds());
         int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
-//        int totalScore = survey.getSections().stream()
-//                .flatMap(section -> section.getQuestions().stream())
-//                .flatMap(question -> question.getOptions().stream())
-//                .mapToInt(SurveyOption::getScore)
-//                .sum();
+
         int totalScore = survey.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
                 .mapToInt(question ->
@@ -216,6 +209,7 @@ public class SurveyServiceImpl implements SurveyService {
                 .totalScore(result.getTotalScore())
                 .score(result.getScore())
                 .advice(result.getAdvice())
+                .submittedAt(result.getSubmittedAt())
                 .build();
     }
 

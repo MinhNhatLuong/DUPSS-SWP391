@@ -5,7 +5,7 @@ const Navbar = () => {
   const location = useLocation();
   const [activePage, setActivePage] = useState('');
 
-  // 更新活动页面状态的函数
+  // Function to update active page state
   const updateActivePage = (path) => {
     if (path === '/') return 'home';
     if (path.startsWith('/courses')) return 'courses';
@@ -13,12 +13,12 @@ const Navbar = () => {
     if (path.startsWith('/surveys')) return 'surveys';
     if (path.startsWith('/appointment')) return 'appointment';
     if (path.startsWith('/about-us')) return 'about';
-    // 对于登录、注册和个人资料页面，不高亮显示任何导航项
+    // For login, register and profile pages, don't highlight any navigation item
     if (path.startsWith('/login') || path.startsWith('/register') || path.startsWith('/profile') || path.startsWith('/forgot-password')) return '';
     return '';
   };
 
-  // 监听路由变化并更新活动页面
+  // Monitor route changes and update active page
   useEffect(() => {
     setActivePage(updateActivePage(location.pathname));
   }, [location.pathname]);

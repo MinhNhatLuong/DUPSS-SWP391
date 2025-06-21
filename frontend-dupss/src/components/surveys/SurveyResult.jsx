@@ -2,10 +2,10 @@ import React from 'react';
 import { Box, Typography, Button, Alert, AlertTitle, CircularProgress } from '@mui/material';
 
 const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
-  // 确定结果颜色
+  // Determine result color
   const getResultSeverity = () => {
-    if (result.score <= 1) return "success"; // 低风险，绿色
-    return "warning"; // 有风险或高风险，黄色
+    if (result.score <= 1) return "success"; // Low risk, green
+    return "warning"; // Medium or high risk, yellow
   };
 
   return (
@@ -87,6 +87,7 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
           }}
           disabled={submitting}
           size="large"
+          sx={{fontWeight: 600}}
         >
           Quay lại
         </Button>
@@ -100,6 +101,7 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
           disabled={submitting}
           startIcon={submitting ? <CircularProgress size={20} /> : null}
           size="large"
+          sx={{fontWeight: 600}}
         >
           {submitting ? 'Đang gửi...' : 'Lưu kết quả'}
         </Button>
