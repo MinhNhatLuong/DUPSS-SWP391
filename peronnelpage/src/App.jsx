@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HeaderManager from './layout/HeaderManager';
 import HeaderAdmin from './layout/Header';
 import Dashboard from './pages/manager/Dashboard';
-import ConsultantManagement from './pages/manager/ConsultantManagement';
+import EmployeeManagement from './pages/manager/EmployeeManagement';
 import ContentReview from './pages/manager/ContentReview';
 import Topic from './pages/manager/Topic';
 import Login from './pages/Login';
@@ -138,7 +138,7 @@ function App() {
                   <main className="content">
                     <Routes>
                       <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="consultants" element={<ConsultantManagement />} />
+                      <Route path="employees" element={<EmployeeManagement />} />
                       <Route path="content-review" element={<ContentReview />} />
                       <Route path="topics" element={<Topic />} />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
