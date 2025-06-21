@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 
-// 创建一个全局事件总线，用于在组件之间通信
+// Create a global event bus for communication between components
 export const alertEventBus = {
   listeners: {},
   subscribe(event, callback) {
@@ -20,12 +20,12 @@ export const alertEventBus = {
   }
 };
 
-// 显示成功提示的辅助函数
+// Helper function to show success alert
 export const showSuccessAlert = (message) => {
   alertEventBus.emit('show', { message, severity: 'success' });
 };
 
-// 显示错误提示的辅助函数
+// Helper function to show error alert
 export const showErrorAlert = (message) => {
   alertEventBus.emit('show', { message, severity: 'error' });
 };

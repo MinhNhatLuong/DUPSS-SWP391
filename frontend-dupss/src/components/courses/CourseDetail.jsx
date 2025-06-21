@@ -104,13 +104,13 @@ function CourseDetail() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // 检查是否有通过导航传递的状态
+    // Check if there is state passed through navigation
     if (location.state?.showAlert) {
       setAlertMessage(location.state.alertMessage);
       setAlertSeverity(location.state.alertSeverity || 'error');
       setAlertOpen(true);
       
-      // 清除状态，避免用户刷新页面时再次显示提示
+      // Clear state to avoid showing alert again on page refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -119,8 +119,8 @@ function CourseDetail() {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        // Sử dụng api instance thay vì axios trực tiếp
-        // Không cần thêm header Authorization vì api instance đã tự động thêm
+        // Use api instance instead of axios directly
+        // No need to add Authorization header as api instance does it automatically
         const response = await api.get(`/public/course/${id}`);
         setCourse(response.data);
       } catch (err) {
@@ -155,7 +155,7 @@ function CourseDetail() {
       // Check if user is authenticated
       const isUserAuthenticated = await checkAuthentication();
       if (!isUserAuthenticated) {
-        // 直接重定向到登录页面，并传递状态以显示alert
+        // Redirect directly to login page and pass state to display alert
         navigate('/login', { 
           state: { 
             showAuthAlert: true, 
@@ -171,7 +171,7 @@ function CourseDetail() {
       
       // Call API to enroll in the course
       try {
-        // Sử dụng api instance thay vì axios trực tiếp
+        // Use api instance instead of axios directly
         await api.post(`/courses/${id}/enroll`);
 
         // Show success message
@@ -201,9 +201,9 @@ function CourseDetail() {
   
   // Handle certificate button click
   const handleCertificateClick = () => {
-    // 处理下载证书逻辑
+    // Handle certificate download logic
     console.log('Download certificate');
-    // TODO: 添加下载证书的API调用
+    // TODO: Add API call to download certificate
   };
 
   // Get button text based on enrollment status

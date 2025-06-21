@@ -30,7 +30,7 @@ const SurveyDetail = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Lấy chi tiết khảo sát dựa vào id
+    // Get survey details based on id
     const fetchSurveyData = async () => {
       setLoading(true);
       
@@ -39,7 +39,7 @@ const SurveyDetail = () => {
         setSurvey(surveyData);
       } catch (error) {
         console.error('Error fetching survey:', error);
-        navigate('/surveys'); // Nếu không tìm thấy khảo sát, quay lại trang danh sách
+        navigate('/surveys'); // If survey not found, return to listing page
       } finally {
         setLoading(false);
       }
@@ -62,7 +62,7 @@ const SurveyDetail = () => {
   const handleNext = () => {
     const currentSection = survey.survey.section[activeSection];
     
-    // Kiểm tra xem người dùng đã trả lời hết câu hỏi trong section hiện tại chưa
+    // Check if user has answered all questions in the current section
     const answeredAll = currentSection.questions.every((_, index) => {
       const sectionName = currentSection.sectionName;
       return answers[sectionName] && answers[sectionName][index] !== undefined;
@@ -75,12 +75,12 @@ const SurveyDetail = () => {
     
     if (activeSection < survey.survey.section.length - 1) {
       setActiveSection(activeSection + 1);
-      // Cuộn lên đầu trang sau khi chuyển section
+      // Scroll to top after changing section
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       calculateResult();
       setShowResult(true);
-      // Cuộn lên đầu trang sau khi hiển thị kết quả
+      // Scroll to top after showing results
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -88,36 +88,36 @@ const SurveyDetail = () => {
   const handlePrevious = () => {
     if (activeSection > 0) {
       setActiveSection(activeSection - 1);
-      // Cuộn lên đầu trang sau khi quay lại section trước
+      // Scroll to top after going back to previous section
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const calculateResult = () => {
-    // Tính tổng điểm từ tất cả các câu trả lời
+    // Calculate total score from all answers
     let totalScore = 0;
     let maxPossibleScore = 0;
 
-    // Tính tổng điểm và điểm tối đa
+    // Calculate total score and maximum possible score
     survey.survey.section.forEach(section => {
       section.questions.forEach(question => {
-        // Tìm giá trị điểm cao nhất trong các lựa chọn
+        // Find the highest score value from the options
         const maxOptionScore = Math.max(...question.options.map(opt => opt.value));
         maxPossibleScore += maxOptionScore;
       });
     });
 
-    // Tính tổng điểm người dùng đã đạt được
+    // Calculate total score achieved by the user
     Object.values(answers).forEach(sectionAnswers => {
       Object.values(sectionAnswers).forEach(value => {
         totalScore += value;
       });
     });
 
-    // Tìm thông báo kết quả dựa trên điểm số
+    // Find result message based on score
     let resultMessage = null;
     
-    // Kiểm tra các điều kiện
+    // Check conditions
     for (const condition of survey.conditions) {
       if (condition.operator === '=') {
         if (totalScore === condition.value) {
@@ -268,7 +268,7 @@ const SurveyDetail = () => {
 
   const handleBackToSurvey = () => {
     setShowResult(false);
-    // Cuộn lên đầu trang khi quay lại khảo sát
+    // Scroll to top after going back to survey
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -333,12 +333,14 @@ const SurveyDetail = () => {
                 variant="outlined"
                 onClick={handlePrevious}
                 disabled={activeSection === 0}
+                sx={{fontWeight: 600}}
               >
                 Quay lại
               </Button>
               <Button
                 variant="contained"
                 onClick={handleNext}
+                sx={{fontWeight: 600}}
               >
                 {activeSection < survey.survey.section.length - 1 ? 'Tiếp theo' : 'Xem kết quả'}
               </Button>

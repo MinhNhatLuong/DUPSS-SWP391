@@ -5,7 +5,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { styled } from '@mui/material/styles';
 
-// 创建自定义MenuItem组件，覆盖默认样式
+// Create custom MenuItem component, override default styles
 const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
   backgroundColor: 'transparent !important',
   '&:hover': {
@@ -31,9 +31,9 @@ const AuthButtons = () => {
   useEffect(() => {
     checkAuthStatus();
 
-    // Lắng nghe sự kiện cập nhật thông tin người dùng từ trang Profile
+    // Listen for user information update events from Profile page
     const handleProfileUpdate = (event) => {
-      // Nếu userData đã tồn tại, chỉ cập nhật các thông tin được truyền từ sự kiện
+      // If userData exists, only update information passed from the event
       if (userData) {
         setUserData(prevData => ({
           ...prevData,
@@ -43,10 +43,10 @@ const AuthButtons = () => {
       }
     };
 
-    // Đăng ký lắng nghe sự kiện
+    // Register event listener
     document.addEventListener('user-profile-updated', handleProfileUpdate);
 
-    // Hủy đăng ký khi component unmount
+    // Unregister event listener when component unmounts
     return () => {
       document.removeEventListener('user-profile-updated', handleProfileUpdate);
     };
@@ -119,7 +119,7 @@ const AuthButtons = () => {
   const handleLogout = () => {
     const accessToken = localStorage.getItem('accessToken');
     
-    // 调用登出API
+    // Call logout API
     if (accessToken) {
       fetch('http://localhost:8080/api/auth/logout', {
         method: 'POST',
@@ -132,7 +132,7 @@ const AuthButtons = () => {
       });
     }
     
-    // 不等待API响应，直接清除本地令牌
+    // Don't wait for API response, directly clear local tokens
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsLoggedIn(false);

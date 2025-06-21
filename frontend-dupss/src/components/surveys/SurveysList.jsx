@@ -9,7 +9,7 @@ const SurveysList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Lấy danh sách khảo sát từ service
+    // Get survey list from service
     const getSurveys = async () => {
       setLoading(true);
       
