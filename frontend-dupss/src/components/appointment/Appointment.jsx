@@ -85,7 +85,7 @@ const Appointment = () => {
           </Typography>
         </Paper>
         
-        {/* Card 2: Thời gian tư vấn */}
+        {/* Card 2: Appointment time */}
         <Paper 
           elevation={0} 
           sx={{ 
@@ -123,7 +123,7 @@ const Appointment = () => {
           </Typography>
         </Paper>
         
-        {/* Card 3: Bảo mật thông tin */}
+        {/* Card 3: Infomation security */}
         <Paper 
           elevation={0} 
           sx={{ 

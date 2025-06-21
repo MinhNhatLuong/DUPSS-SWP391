@@ -337,8 +337,8 @@ export default function Topic() {
           open: false
         });
       } else if (confirmDialog.type === 'delete') {
-        // Delete topic
-        await axios.delete(`/api/manager/topic/${confirmDialog.topicId}`, {
+        // Delete topic using PATCH to update status
+        await axios.patch(`/api/manager/topic/delete/${confirmDialog.topicId}`, {}, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }

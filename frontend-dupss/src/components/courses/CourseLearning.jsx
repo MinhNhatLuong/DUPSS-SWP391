@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Paper, List, ListItem, ListItemText, 
          ListItemButton, ListItemIcon, Collapse, Checkbox,
-         IconButton, styled, Breadcrumbs, Link } from '@mui/material';
+         IconButton, styled, Breadcrumbs, Link, Button, Alert } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
@@ -10,12 +10,13 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import api from '../../services/authService';
 
 // Main container layout
 const PageContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  height: 'calc(100vh - 112px)', // 调整高度，考虑了Breadcrumb高度
+  height: 'calc(100vh - 112px)', // Adjust height, considering Breadcrumb height
   overflow: 'hidden',
   backgroundColor: '#fff',
   border: '1px solid #e0e0e0',
@@ -40,7 +41,7 @@ const VideoPanel = styled(Box)(({ theme }) => ({
   }
 }));
 
-// Sidebar panel - 调整样式以确保与视频区域完美衔接
+// Sidebar panel - Adjust styles to ensure perfect integration with the video area
 const SidebarPanel = styled(Box)(({ theme }) => ({
   flex: '0 0 30%',
   maxWidth: '30%',
@@ -121,94 +122,21 @@ const BreadcrumbContainer = styled(Box)(({ theme }) => ({
   borderBottom: '1px solid #e0e0e0',
 }));
 
-// Mock course data
-const mockCourse = {
-  id: 9,
-  topicName: "Nhận thức",
-  title: "Nhận thức về tác hại của ma túy đối với sức khỏe và xã hội",
-  description: "Khóa học giúp người học hiểu rõ về tác hại của ma túy đối với sức khỏe cá nhân, gia đình và những hệ lụy xã hội.",
-  targetAudience: "Học Sinh",
-  coverImage: "https://res.cloudinary.com/dxkvlbzzu/image/upload/v1749404874/upload/file_ciwtlv.jpg",
-  content: "<p>Khóa học cung cấp kiến thức và kỹ năng cơ bản giúp học sinh nhận biết và phòng tránh các chất gây nghiện phổ biến. Bạn sẽ được học về cách nhận diện các loại chất gây nghiện, tác hại của chúng đối với sức khỏe và cuộc sống, cũng như các kỹ năng từ chối khi bị rủ rê sử dụng.</p>",
-  duration: 300,
-  creator: {
-    email: "laml33366@gmail.com",
-    fullName: "Lương Gia Lâm",
-    avatar: null,
-    role: "ROLE_MANAGER"
-  },
-  modules: [
-    {
-      id: 9,
-      title: "Nhận diện các chất ma túy phổ biến",
-      content: "Phân biệt thuốc lắc, cần sa, heroin qua hình ảnh",
-      videoUrl: [
-        {
-          id: 1,
-          videoTitle: "01.Bài 1: Nhận diện các loại ma túy thông dụng",
-          url: "https://www.youtube.com/watch?v=a_frdvO7f44",
-          completed: true,
-          duration: 420
-        },
-        {
-          id: 2,
-          videoTitle: "02.Bài 2: Phân biệt ma túy tổng hợp và tự nhiên",
-          url: "https://www.youtube.com/watch?v=zBZm0gXJF2E",
-          completed: false,
-          duration: 380
-        }
-      ],
-      duration: 800,
-      orderIndex: 1,
-      isExpanded: true
-    },
-    {
-      id: 10,
-      title: "Tình huống xử lý khi bị rủ rê",
-      content: "Cách từ chối và tìm kiếm giúp đỡ từ người lớn",
-      videoUrl: [
-        {
-          id: 3,
-          videoTitle: "03.Bài 3: Kỹ năng từ chối tình huống nguy hiểm",
-          url: "https://www.youtube.com/watch?v=FSyB-coD7EM",
-          completed: false,
-          duration: 550
-        }
-      ],
-      duration: 550,
-      orderIndex: 2,
-      isExpanded: false
-    },
-    {
-      id: 11,
-      title: "Ảnh hưởng của ma túy đến não bộ",
-      content: "Tác động sinh lý và biến đổi hành vi",
-      videoUrl: [
-        {
-          id: 4,
-          videoTitle: "04.Bài 4: Cơ chế tác động của ma túy lên não bộ",
-          url: "https://www.youtube.com/watch?v=FSyB-coD7EM",
-          completed: false,
-          duration: 470
-        },
-        {
-          id: 5,
-          videoTitle: "05.Bài 5: Các triệu chứng cai và phục hồi",
-          url: "https://www.youtube.com/watch?v=FSyB-coD7EM",
-          completed: false,
-          duration: 390
-        }
-      ],
-      duration: 860,
-      orderIndex: 3,
-      isExpanded: false
-    }
-  ],
-  enrollmentCount: 1250,
-  isEnrolled: true,
-  active: true,
-  instructor: "ThS. Trần Minh Hiếu"
-};
+// Progress Info container
+const ProgressInfoContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: '#f5f8ff',
+  borderBottom: '1px solid #e0e0e0',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: theme.spacing(2),
+  [theme.breakpoints.down('md')]: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  }
+}));
 
 // Helper function to extract YouTube video ID
 const getYoutubeId = (url) => {
@@ -217,7 +145,7 @@ const getYoutubeId = (url) => {
   return (match && match[7].length === 11) ? match[7] : null;
 };
 
-// 添加YouTube IFrame API脚本加载函数
+// Add YouTube IFrame API script loading function
 function loadYouTubeAPI() {
   if (window.YT) return Promise.resolve();
 
@@ -240,19 +168,20 @@ function CourseLearning() {
   const [currentVideo, setCurrentVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
+  const [courseProgress, setCourseProgress] = useState(0);
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const progressTrackingRef = useRef(false);
   const videoPlayerContainerRef = useRef(null);
 
   useEffect(() => {
-    // 获取课程数据
+    // Get course data
     const fetchCourseData = async () => {
       setLoading(true);
       try {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
-          // 如果没有token，重定向到课程详情页
+          // If no token, redirect to course details page
           navigate(`/courses/${id}`, {
             state: {
               showAlert: true,
@@ -263,12 +192,14 @@ function CourseLearning() {
           return;
         }
 
-        // Sử dụng api instance từ authService
+        // Use api instance from authService
         const response = await api.get(`/courses/detail/${id}`);
 
         setCourse(response.data);
+        // Lấy giá trị progress từ API response
+        setCourseProgress(response.data.progress || 0);
         
-        // 将响应数据映射到组件状态
+        // Map response data to component state
         const mappedModules = response.data.modules.map(module => ({
           ...module,
           videoUrl: module.videos.map(video => ({
@@ -276,16 +207,16 @@ function CourseLearning() {
             videoTitle: video.title,
             url: video.videoUrl,
             completed: video.watched,
-            duration: 0 // API没有提供时长，设为0
+            duration: 0 // API doesn't provide duration, set to 0
           })),
-          isExpanded: false // 默认所有section都是关闭的
+          isExpanded: false // Default all sections are closed
         }));
 
-        // 查找包含未观看视频的第一个section
+        // Find first section with unwatched videos
         let sectionWithUnwatchedVideo = null;
         let firstUnwatchedVideo = null;
 
-        // 遍历所有模块查找第一个包含未观看视频的模块
+        // Iterate through all modules to find the first one with unwatched videos
         for (const module of mappedModules) {
           const unwatchedVideo = module.videoUrl.find(video => !video.completed);
           if (unwatchedVideo) {
@@ -295,7 +226,7 @@ function CourseLearning() {
           }
         }
 
-        // 如果找到了含有未观看视频的section，则展开它
+        // If found a section with unwatched videos, expand it
         if (sectionWithUnwatchedVideo) {
           const updatedModules = mappedModules.map(module => ({
             ...module,
@@ -304,7 +235,7 @@ function CourseLearning() {
           setModules(updatedModules);
           setCurrentVideo(firstUnwatchedVideo);
         } else {
-          // 如果所有视频都已观看，则默认展开第一个section
+          // If all videos are watched, expand the first section by default
           if (mappedModules.length > 0) {
             const updatedModules = mappedModules.map((module, index) => ({
               ...module,
@@ -312,7 +243,7 @@ function CourseLearning() {
             }));
             setModules(updatedModules);
             
-            // 选择第一个section的第一个视频
+            // Select first video of first section
             if (mappedModules[0].videoUrl.length > 0) {
               setCurrentVideo(mappedModules[0].videoUrl[0]);
             }
@@ -322,7 +253,7 @@ function CourseLearning() {
         }
       } catch (error) {
         console.error('Error fetching course data:', error);
-        // 重定向到课程详情页并显示错误信息
+        // Redirect to course detail page and display error message
         navigate(`/courses/${id}`, {
           state: {
             showAlert: true,
@@ -348,13 +279,13 @@ function CourseLearning() {
     );
   };
 
-  // 修改视频播放状态变化时的回调，添加更详细的注释
+  // Modified callback for video playback state changes, with more detailed comments
   const onPlayerStateChange = (event) => {
-    // 当视频正在播放时(YT.PlayerState.PLAYING = 1)
+    // When video is playing (YT.PlayerState.PLAYING = 1)
     if (event.data === 1 && !progressTrackingRef.current) {
       progressTrackingRef.current = true;
       
-      // 每秒检查一次进度
+      // Check progress every second
       const progressInterval = setInterval(() => {
         if (!playerRef.current) {
           clearInterval(progressInterval);
@@ -366,12 +297,12 @@ function CourseLearning() {
           const duration = playerRef.current.getDuration();
           const progress = (currentTime / duration) * 100;
           
-          // 如果进度大于80%且视频未标记为已完成，则自动标记
+          // If progress is over 80% and video is not marked as completed, auto-mark it
           if (progress >= 80 && currentVideo && !currentVideo.completed) {
             clearInterval(progressInterval);
             progressTrackingRef.current = false;
             
-            // 使用静默更新方式，避免重新加载视频
+            // Use silent update method to avoid reloading the video
             silentMarkVideoComplete(currentVideo.id);
           }
         } catch (error) {
@@ -381,20 +312,20 @@ function CourseLearning() {
         }
       }, 1000);
     } else if (event.data === 0 || event.data === 2) {
-      // 视频结束(0)或暂停(2)时停止进度跟踪
+      // Video ended (0) or paused (2), stop progress tracking
       progressTrackingRef.current = false;
     }
   };
 
-  // 优化静默更新函数，确保不触发播放器重新创建
+  // Optimize silent update function to ensure player is not recreated
   const silentMarkVideoComplete = async (videoId) => {
     try {
-      // 调用API标记视频为已观看
+      // Call API to mark video as watched
       await api.post(`/courses/videos/watched/${videoId}?watched=true`);
       
-      // 直接更新模块状态，避免不必要的重渲染
+      // Directly update module state to avoid unnecessary re-renders
       setModules(prevModules => {
-        return prevModules.map(module => {
+        let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
             if (video.id === videoId) {
               return { ...video, completed: true };
@@ -404,13 +335,17 @@ function CourseLearning() {
           
           return { ...module, videoUrl: updatedVideos };
         });
+        
+        // Cập nhật tiến độ sau khi đánh dấu video
+        updateProgressAfterVideoChange(updatedModules);
+        return updatedModules;
       });
       
-      // 使用函数式更新currentVideo状态，只更新completed属性
+      // Use functional update for currentVideo state, only update completed property
       if (currentVideo && currentVideo.id === videoId) {
         setCurrentVideo(prev => {
-          // 确保我们不是创建一个全新的对象，而只是更新属性
-          if (prev.completed) return prev; // 如果已经是completed，不做任何改变
+          // Ensure we're not creating a completely new object, just updating properties
+          if (prev.completed) return prev; // If already completed, don't change anything
           return { ...prev, completed: true };
         });
       }
@@ -419,15 +354,15 @@ function CourseLearning() {
     }
   };
 
-  // 优化手动标记/取消标记函数，避免视频重载
+  // Optimize manual mark/unmark function to avoid video reload
   const handleVideoCompletion = async (videoId, isCompleted) => {
     try {
-      // 调用API更新视频观看状态
+      // Call API to update video watch status
       await api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`);
       
-      // 使用函数式更新，避免触发不必要的播放器重新创建
+      // Use functional update to avoid unnecessary player recreation
       setModules(prevModules => {
-        return prevModules.map(module => {
+        let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
             if (video.id === videoId) {
               return { ...video, completed: !isCompleted };
@@ -437,12 +372,16 @@ function CourseLearning() {
           
           return { ...module, videoUrl: updatedVideos };
         });
+        
+        // Cập nhật tiến độ sau khi thay đổi trạng thái video
+        updateProgressAfterVideoChange(updatedModules);
+        return updatedModules;
       });
       
-      // 如果当前视频是被标记的视频，只更新completed状态，保持播放器不变
+      // If current video is the marked video, only update completed status, keep player unchanged
       if (currentVideo && currentVideo.id === videoId) {
         setCurrentVideo(prev => {
-          // 如果状态没有变化，直接返回原对象
+          // If status hasn't changed, return the original object
           if (prev.completed === !isCompleted) return prev;
           return { ...prev, completed: !isCompleted };
         });
@@ -452,23 +391,39 @@ function CourseLearning() {
     }
   };
 
-  // 优化createPlayer函数，确保播放器正确填充容器
+  // Hàm cập nhật tiến độ sau khi thay đổi trạng thái video
+  const updateProgressAfterVideoChange = (currentModules) => {
+    let totalVideos = 0;
+    let completedVideos = 0;
+    
+    currentModules.forEach(module => {
+      module.videoUrl.forEach(video => {
+        totalVideos++;
+        if (video.completed) completedVideos++;
+      });
+    });
+    
+    const newProgress = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+    setCourseProgress(newProgress);
+  };
+
+  // Optimize createPlayer function to ensure player correctly fills container
   const createPlayer = useCallback(async () => {
     if (!currentVideo) return;
     
     try {
       await loadYouTubeAPI();
       
-      // 保存当前播放器的状态（如果存在）
+      // Save current player state (if exists)
       let currentTime = 0;
       let wasPlaying = false;
       
-      // 检查是否真的需要重新创建播放器
+      // Check if we really need to recreate the player
       const videoId = getYoutubeId(currentVideo.url);
       const currentPlayerVideoId = playerRef.current && playerRef.current.getVideoData ? 
         playerRef.current.getVideoData().video_id : null;
       
-      // 如果当前播放的就是这个视频，不需要重新创建播放器
+      // If the current player is already playing this video, no need to recreate
       if (playerRef.current && currentPlayerVideoId === videoId) {
         console.log('Same video is already playing, not recreating player');
         return;
@@ -486,21 +441,21 @@ function CourseLearning() {
       
       if (!videoId || !videoPlayerContainerRef.current) return;
       
-      // 创建容器元素
+      // Create container element
       const playerContainer = document.createElement('div');
       playerContainer.id = 'youtube-player-' + Date.now();
       playerContainer.style.width = '100%';
       playerContainer.style.height = '100%';
       
-      // 清除现有内容
+      // Clear existing content
       while (videoPlayerContainerRef.current.firstChild) {
         videoPlayerContainerRef.current.removeChild(videoPlayerContainerRef.current.firstChild);
       }
       
-      // 添加新容器
+      // Add new container
       videoPlayerContainerRef.current.appendChild(playerContainer);
       
-      // 创建YouTube播放器并设置为填充整个容器
+      // Create YouTube player and set it to fill the entire container
       playerRef.current = new window.YT.Player(playerContainer.id, {
         videoId: videoId,
         playerVars: {
@@ -519,17 +474,17 @@ function CourseLearning() {
     } catch (error) {
       console.error('Error creating YouTube player:', error);
     }
-  }, [currentVideo?.url]); // 仅依赖URL，而不是整个currentVideo对象
+  }, [currentVideo?.url]); // Only depend on URL, not the entire currentVideo object
 
-  // 播放器准备就绪时的回调
+  // Callback when player is ready
   const onPlayerReady = (event) => {
-    // 播放器已准备就绪
+    // Player is ready
     console.log('Player ready');
   };
 
-  // 优化视频选择函数，避免重复选择同一视频引起重载
+  // Optimize video selection function to avoid reloading when selecting the same video
   const handleSelectVideo = (video) => {
-    // 如果选择的是当前正在播放的视频，不做任何操作
+    // If selecting the currently playing video, do nothing
     if (currentVideo && currentVideo.id === video.id) {
       console.log('Same video selected, no action needed');
       return;
@@ -539,9 +494,9 @@ function CourseLearning() {
     progressTrackingRef.current = false;
   };
 
-  // 当currentVideo变化时创建新的播放器，增加判断以避免不必要的重新渲染
+  // Create new player when currentVideo changes, add conditions to avoid unnecessary re-rendering
   useEffect(() => {
-    // 只有当视频URL变化时才重新创建播放器
+    // Only recreate the player when video URL changes
     if (currentVideo && (!playerRef.current || 
         (playerRef.current.getVideoData && playerRef.current.getVideoData().video_id !== getYoutubeId(currentVideo.url)))
     ) {
@@ -551,7 +506,7 @@ function CourseLearning() {
     return () => {
       if (playerRef.current) {
         progressTrackingRef.current = false;
-        // 清理播放器
+        // Clean up the player
         try {
           playerRef.current.destroy();
         } catch (e) {
@@ -559,7 +514,7 @@ function CourseLearning() {
         }
       }
     };
-  }, [currentVideo?.url, createPlayer]); // 只依赖于URL变化，而不是整个currentVideo对象
+  }, [currentVideo?.url, createPlayer]); // Only depend on URL changes, not the entire currentVideo object
 
   const calculateProgress = () => {
     let totalVideos = 0;
@@ -590,6 +545,18 @@ function CourseLearning() {
     const total = module.videoUrl.length;
     const completed = module.videoUrl.filter(video => video.completed).length;
     return `${completed} / ${total}`;
+  };
+
+  const handleSurveyClick = () => {
+    // Tạm thời không xử lý vì chưa có trang khảo sát
+    console.log('Survey button clicked');
+    alert('Chức năng này sẽ được phát triển trong tương lai!');
+  };
+
+  // Format progress với 2 chữ số thập phân
+  const formatProgress = (progress) => {
+    if (progress === undefined || progress === null) return '0.00';
+    return progress.toFixed(2);
   };
 
   if (loading) {
@@ -625,6 +592,34 @@ function CourseLearning() {
           <Typography sx={{ color: '#0056b3', fontWeight: 500 }}>Bài giảng</Typography>
         </Breadcrumbs>
       </BreadcrumbContainer>
+
+      {/* Progress Info Section */}
+      <ProgressInfoContainer>
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+            Tiến độ hiện tại: <span style={{ color: courseProgress >= 100 ? '#27ae60' : '#0056b3' }}>{formatProgress(courseProgress)}%</span>
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#505050' }}>
+            Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm khảo sát để có thể hoàn thành khóa học
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={<AssignmentIcon />}
+          disabled={courseProgress < 100}
+          onClick={handleSurveyClick}
+          sx={{ 
+            fontWeight: 'bold',
+            bgcolor: courseProgress >= 100 ? '#27ae60' : undefined,
+            '&:hover': {
+              bgcolor: courseProgress >= 100 ? '#219653' : undefined,
+            }
+          }}
+        >
+          Làm khảo sát
+        </Button>
+      </ProgressInfoContainer>
     
       <PageContainer>
         {/* Video Panel - Left side */}

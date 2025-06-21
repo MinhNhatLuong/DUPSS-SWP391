@@ -46,10 +46,10 @@ const Profile = () => {
     address: '',
     avatar: ''
   });
-  const [birthDate, setBirthDate] = useState(''); // Tách riêng state cho ngày sinh
+  const [birthDate, setBirthDate] = useState(''); // Separate state for birth date
   const [loading, setLoading] = useState(true);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false); // State theo dõi trạng thái xử lý
+  const [isProcessing, setIsProcessing] = useState(false); // State to track processing status
 
   useEffect(() => {
     fetchUserData();
@@ -64,7 +64,7 @@ const Profile = () => {
     }
 
     try {
-      // Tuân theo đúng cấu trúc API endpoint
+      // Follow the exact API endpoint structure
       const response = await fetch('http://localhost:8080/api/auth/me', {
         method: 'POST',
         headers: {
@@ -85,19 +85,19 @@ const Profile = () => {
           avatar: data.avatar || '',
         });
         
-        // Xử lý riêng ngày sinh
+        // Handle birth date separately
         if (data.yob) {
-          // Chuyển từ DD/MM/YYYY sang YYYY-MM-DD cho input type="date"
+          // Convert from DD/MM/YYYY to YYYY-MM-DD for input type="date"
           const parts = data.yob.split('/');
           if (parts.length === 3) {
             setBirthDate(`${parts[2]}-${parts[1]}-${parts[0]}`);
           }
         }
       } else {
-        // Xử lý token hết hạn
+        // Handle expired token
         if (response.status === 401) {
           try {
-            // Thử refresh token
+            // Try refreshing token
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
               const refreshResponse = await fetch('http://localhost:8080/api/auth/refresh-token', {
@@ -112,7 +112,7 @@ const Profile = () => {
                 const refreshData = await refreshResponse.json();
                 localStorage.setItem('accessToken', refreshData.accessToken);
                 
-                // Thử lại với token mới
+                // Retry with new token
                 return fetchUserData();
               }
             }
@@ -120,7 +120,7 @@ const Profile = () => {
             console.error('Error refreshing token:', refreshError);
           }
           
-          // Nếu refresh token không thành công hoặc không có refresh token
+          // If refresh token fails or doesn't exist
           showErrorAlert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
@@ -149,7 +149,7 @@ const Profile = () => {
     }));
   };
 
-  // Xử lý riêng cho field ngày sinh
+  // Handle birth date field separately
   const handleBirthDateChange = (e) => {
     setBirthDate(e.target.value);
   };
@@ -170,17 +170,17 @@ const Profile = () => {
     }
   };
 
-  // 修改格式化日期的函数，确保始终输出DD/MM/YYYY格式
+  // Format date function to ensure DD/MM/YYYY format output
   const formatDateForApi = (dateString) => {
     if (!dateString) return null;
     
-    // 将字符串转换为日期对象
+    // Convert string to date object
     const date = new Date(dateString);
     
-    // 检查日期是否有效
+    // Check if date is valid
     if (isNaN(date.getTime())) return null;
     
-    // 格式化为DD/MM/YYYY
+    // Format to DD/MM/YYYY
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
@@ -188,10 +188,10 @@ const Profile = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Hàm cập nhật lại thông tin trong AuthButton
+  // Function to update information in AuthButton
   const updateAuthButtonInfo = () => {
     try {
-      // Tạo và kích hoạt một sự kiện tùy chỉnh để thông báo cho AuthButton cập nhật
+      // Create and dispatch a custom event to notify AuthButton to update
       const updateEvent = new CustomEvent('user-profile-updated', { 
         detail: { 
           fullName: userData.fullName,
@@ -223,21 +223,21 @@ const Profile = () => {
       // Set processing state to true for button loading indicator
       setIsProcessing(true);
 
-      // Sử dụng FormData thay vì JSON
+      // Use FormData instead of JSON
       const formData = new FormData();
       
-      // Chú ý: Backend yêu cầu trường fullname (không phải fullName)
+      // Note: Backend requires field 'fullname' (not 'fullName')
       formData.append('fullname', userData.fullName);
       formData.append('email', userData.email);
       formData.append('phone', userData.phone);
       
-      // Thêm các trường tùy chọn nếu có giá trị
+      // Add optional fields if they have values
       if (userData.gender) formData.append('gender', userData.gender);
       
-      // Định dạng ngày sinh nếu có
+      // Format birth date if available
       if (birthDate) {
         const formattedDate = formatDateForApi(birthDate);
-        // Chỉ gửi nếu ngày hợp lệ
+        // Only send if date is valid
         if (formattedDate) {
           formData.append('yob', formattedDate);
         }
@@ -245,13 +245,13 @@ const Profile = () => {
       
       if (userData.address) formData.append('address', userData.address);
       
-      // Thêm file avatar nếu có
+      // Add avatar file if available
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
 
-      // Hiển thị dữ liệu đang gửi để kiểm tra
-      console.log('Đang gửi dữ liệu:');
+      // Display data being sent for debugging
+      console.log('Sending data:');
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
@@ -260,7 +260,7 @@ const Profile = () => {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`
-          // Không thêm Content-Type, để trình duyệt tự thiết lập khi gửi FormData
+          // Don't add Content-Type, let browser set it automatically when sending FormData
         },
         body: formData
       });
@@ -275,13 +275,13 @@ const Profile = () => {
         console.log('Response data:', data);
         showSuccessAlert(data.message || 'Cập nhật thông tin thành công!');
         
-        // Cập nhật lại dữ liệu người dùng sau khi lưu thành công
+        // Update user data after successful save
         fetchUserData();
         
-        // Cập nhật thông tin trong AuthButton
+        // Update information in AuthButton
         updateAuthButtonInfo();
         
-        // Đợi 1.5 giây để người dùng thấy thông báo thành công, sau đó refresh trang
+        // Wait 1.5 seconds for user to see success message, then refresh page
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -293,7 +293,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Error updating profile:', error);
       showErrorAlert('Có lỗi xảy ra khi cập nhật thông tin!');
-      setIsProcessing(false); // Đảm bảo tắt trạng thái xử lý nếu có lỗi
+      setIsProcessing(false); // Ensure processing state is turned off if error occurs
     }
   };
 

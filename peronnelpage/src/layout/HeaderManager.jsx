@@ -47,7 +47,7 @@ const HeaderManager = ({ userName }) => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/manager/dashboard' },
-    { text: 'Consultants', icon: <PeopleIcon />, path: '/manager/consultants' },
+    { text: 'Nhân viên', icon: <PeopleIcon />, path: '/manager/employees' },
     { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
     { text: 'Topics', icon: <TopicIcon />, path: '/manager/topics' },
   ];

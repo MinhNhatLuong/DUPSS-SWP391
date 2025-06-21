@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Typography, Button, Grid, Paper, Divider, 
-         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar, CircularProgress } from '@mui/material';
+         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar, CircularProgress, LinearProgress } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import api, { isAuthenticated } from '../../services/authService';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import api, { isAuthenticated, getUserData } from '../../services/authService';
 import axios from 'axios';
 
 // Styled components to match the original HTML/CSS
@@ -102,15 +103,18 @@ function CourseDetail() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [courseDetail, setCourseDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
-    // 检查是否有通过导航传递的状态
+    // Check if there is state passed through navigation
     if (location.state?.showAlert) {
       setAlertMessage(location.state.alertMessage);
       setAlertSeverity(location.state.alertSeverity || 'error');
       setAlertOpen(true);
       
-      // 清除状态，避免用户刷新页面时再次显示提示
+      // Clear state to avoid showing alert again on page refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -119,10 +123,15 @@ function CourseDetail() {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        // Sử dụng api instance thay vì axios trực tiếp
-        // Không cần thêm header Authorization vì api instance đã tự động thêm
+        // Use api instance instead of axios directly
+        // No need to add Authorization header as api instance does it automatically
         const response = await api.get(`/public/course/${id}`);
         setCourse(response.data);
+        
+        // Nếu đã đăng nhập và trạng thái khóa học là IN_PROGRESS hoặc COMPLETED, lấy thông tin chi tiết
+        if (isAuthenticated() && (response.data.status === 'IN_PROGRESS' || response.data.status === 'COMPLETED')) {
+          fetchCourseDetail();
+        }
       } catch (err) {
         console.error('Error fetching course:', err);
         setError('Không thể tải thông tin khóa học. Vui lòng thử lại sau.');
@@ -133,6 +142,28 @@ function CourseDetail() {
     
     fetchCourse();
   }, [id]);
+
+  // Hàm lấy thông tin chi tiết khóa học bao gồm tiến độ
+  const fetchCourseDetail = async () => {
+    try {
+      setLoadingDetail(true);
+      const response = await api.get(`/courses/detail/${id}`);
+      setCourseDetail(response.data);
+    } catch (err) {
+      console.error('Error fetching course detail:', err);
+      // Không hiển thị lỗi đến người dùng vì đây là tính năng bổ sung
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  useEffect(() => {
+    // Lấy thông tin người dùng từ localStorage
+    const userData = getUserData();
+    if (userData && userData.id) {
+      setUserId(userData.id);
+    }
+  }, []);
 
   // Check if user is authenticated
   const checkAuthentication = async () => {
@@ -155,7 +186,7 @@ function CourseDetail() {
       // Check if user is authenticated
       const isUserAuthenticated = await checkAuthentication();
       if (!isUserAuthenticated) {
-        // 直接重定向到登录页面，并传递状态以显示alert
+        // Redirect directly to login page and pass state to display alert
         navigate('/login', { 
           state: { 
             showAuthAlert: true, 
@@ -171,7 +202,7 @@ function CourseDetail() {
       
       // Call API to enroll in the course
       try {
-        // Sử dụng api instance thay vì axios trực tiếp
+        // Use api instance instead of axios directly
         await api.post(`/courses/${id}/enroll`);
 
         // Show success message
@@ -201,9 +232,13 @@ function CourseDetail() {
   
   // Handle certificate button click
   const handleCertificateClick = () => {
-    // 处理下载证书逻辑
-    console.log('Download certificate');
-    // TODO: 添加下载证书的API调用
+    if (!userId) {
+      showAlert('Vui lòng đăng nhập để xem chứng chỉ', 'error');
+      return;
+    }
+    
+    // Điều hướng đến trang chứng chỉ với courseId và userId
+    navigate(`/courses/${id}/cert/${userId}`);
   };
 
   // Get button text based on enrollment status
@@ -216,6 +251,12 @@ function CourseDetail() {
       default:
         return 'THAM GIA KHÓA HỌC';
     }
+  };
+
+  // Format progress với 2 chữ số thập phân
+  const formatProgress = (progress) => {
+    if (!progress && progress !== 0) return '0.00';
+    return progress.toFixed(2);
   };
 
   if (loading) {
@@ -334,6 +375,31 @@ function CourseDetail() {
                 <PersonIcon sx={{ mr: 1.5, color: '#3498db' }} />
                 <Typography>Giảng viên: <strong>{course.createdBy}</strong></Typography>
               </FeatureItem>
+              
+              {(course.status === 'IN_PROGRESS' || course.status === 'COMPLETED') && courseDetail && (
+                <Box sx={{ mt: 1, mb: 1.5 }}>
+                  <FeatureItem disableGutters>
+                    <TimelineIcon sx={{ mr: 1.5, color: '#3498db' }} />
+                    <Typography>
+                      Tiến độ: <strong>{course.status === 'COMPLETED' ? '100.00' : formatProgress(courseDetail.progress)}%</strong>
+                    </Typography>
+                  </FeatureItem>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={course.status === 'COMPLETED' ? 100 : courseDetail.progress} 
+                    sx={{ 
+                      height: 10, 
+                      borderRadius: 5,
+                      mt: 0.5,
+                      mb: 1,
+                      backgroundColor: '#e0e0e0',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: course.status === 'COMPLETED' ? '#27ae60' : '#27ae60'
+                      }
+                    }} 
+                  />
+                </Box>
+              )}
               
               <EnrollButton 
                 status={course.status !== 'COMPLETED' ? course.status : 'IN_PROGRESS'}
