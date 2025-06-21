@@ -199,4 +199,20 @@ export const logout = () => {
 
 export const isAuthenticated = () => {
   return !!localStorage.getItem('accessToken');
+};
+
+// Lấy thông tin người dùng từ token JWT
+export const getUserData = () => {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return null;
+  
+  const decodedToken = parseJwt(token);
+  if (!decodedToken) return null;
+  
+  return {
+    id: decodedToken.sub || decodedToken.id,
+    username: decodedToken.preferred_username || decodedToken.username,
+    email: decodedToken.email,
+    roles: decodedToken.roles || []
+  };
 }; 

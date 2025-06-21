@@ -8,7 +8,7 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import api, { isAuthenticated } from '../../services/authService';
+import api, { isAuthenticated, getUserData } from '../../services/authService';
 import axios from 'axios';
 
 // Styled components to match the original HTML/CSS
@@ -102,6 +102,7 @@ function CourseDetail() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     // Check if there is state passed through navigation
@@ -133,6 +134,14 @@ function CourseDetail() {
     
     fetchCourse();
   }, [id]);
+
+  useEffect(() => {
+    // Lấy thông tin người dùng từ localStorage
+    const userData = getUserData();
+    if (userData && userData.id) {
+      setUserId(userData.id);
+    }
+  }, []);
 
   // Check if user is authenticated
   const checkAuthentication = async () => {
@@ -201,9 +210,13 @@ function CourseDetail() {
   
   // Handle certificate button click
   const handleCertificateClick = () => {
-    // Handle certificate download logic
-    console.log('Download certificate');
-    // TODO: Add API call to download certificate
+    if (!userId) {
+      showAlert('Vui lòng đăng nhập để xem chứng chỉ', 'error');
+      return;
+    }
+    
+    // Điều hướng đến trang chứng chỉ với courseId và userId
+    navigate(`/courses/${id}/cert/${userId}`);
   };
 
   // Get button text based on enrollment status
