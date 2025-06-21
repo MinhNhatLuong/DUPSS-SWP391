@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +17,7 @@ public class SlotRequestDto {
     
     @NotNull(message = "Ngày không được để trống")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private LocalDate date;
+    private Date date;
     
     @NotNull(message = "Thời gian bắt đầu không được để trống")
     @JsonFormat(pattern = "HH:mm")

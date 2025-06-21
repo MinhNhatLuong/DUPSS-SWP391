@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ public class UserDetailResponse {
     private String phone;
     private String fullName;
     private String gender;
-    private LocalDate yob;
+    private Date yob;
     private String avatar;
     private String address;
     private String role;

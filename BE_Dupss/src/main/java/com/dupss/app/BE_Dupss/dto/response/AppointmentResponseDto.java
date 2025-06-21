@@ -26,6 +26,7 @@ public class AppointmentResponseDto {
     
     private String topicName;
     private String consultantName;
+    private Long consultantId;
     private boolean isGuest;
     private String status;
     private Long userId;

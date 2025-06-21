@@ -2,20 +2,18 @@ package com.dupss.app.BE_Dupss.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
+@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-public class SurveyResult {
-
+@Builder
+public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,19 +22,9 @@ public class SurveyResult {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "survey_id", nullable = false)
-    private Survey survey;
-
-    private Integer totalScore;
-
-    private String advice;
-
-    private Integer score;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(nullable = false)
-    private LocalDateTime submittedAt;
-
-    @OneToMany(mappedBy = "surveyResult", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SurveyResultOption> selectedOptions = new ArrayList<>();
-
+    private LocalDateTime issuedDate;
 }

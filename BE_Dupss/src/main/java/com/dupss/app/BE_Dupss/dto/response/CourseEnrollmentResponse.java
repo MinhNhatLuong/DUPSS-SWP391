@@ -14,9 +14,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseEnrollmentResponse {
-    private Long id;
-    private CourseResponse course;
-    private UserDetailResponse user;
+    private String courseTitle;
+    private String username;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime enrollmentDate;
     private LocalDateTime completionDate;

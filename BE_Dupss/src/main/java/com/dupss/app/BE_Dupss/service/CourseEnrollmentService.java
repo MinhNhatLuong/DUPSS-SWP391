@@ -3,13 +3,13 @@ package com.dupss.app.BE_Dupss.service;
 import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
+import com.dupss.app.BE_Dupss.respository.CertificateRepo;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +33,7 @@ public class CourseEnrollmentService {
     private final EmailService emailService;
     private final WatchedVideoRepo watchedVideoRepository;
     private final VideoCourseRepo videoCourseRepository;
+    private final CertificateRepo certificateRepository;
 
     @Transactional
     public CourseEnrollmentResponse enrollCourse(Long courseId) throws MessagingException, UnsupportedEncodingException {
@@ -129,7 +129,7 @@ public class CourseEnrollmentService {
     }
 
     //check watched videos
-    public void markVideoAsWatched(Long videoId, boolean watchedStatus) {
+    public void markVideoAsWatched(Long videoId, boolean watchedStatus) throws MessagingException, UnsupportedEncodingException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User user = userRepository.findByUsername(username)
@@ -171,18 +171,42 @@ public class CourseEnrollmentService {
         if (progress >= 100) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletionDate(LocalDateTime.now());
+            boolean certificateExists = certificateRepository.existsByUserAndCourse(user, course);
+
+            if (!certificateExists) {
+                Certificate certificate = new Certificate();
+                certificate.setUser(user);
+                certificate.setCourse(course);
+                certificate.setIssuedDate(LocalDateTime.now());
+                certificateRepository.save(certificate);
+            }
+            emailService.sendCourseCompletionEmail(
+                    user.getEmail(),
+                    user.getFullname(),
+                    course.getTitle(),
+                    course.getDuration(),
+                    course.getCreator().getFullname(),
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            );
         }
 
         enrollmentRepository.save(enrollment);
     }
+
+    public CertificateResponse getCertificateResponse(Long courseId, Long userId) {
+        Certificate cert = certificateRepository.findByUserIdAndCourseId(userId, courseId)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
+
+        return CertificateResponse.builder()
+                .courseTitle(cert.getCourse().getTitle())
+                .username(cert.getUser().getFullname())
+                .build();
+    }
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
-        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(enrollment.getCourse());
-        
         return CourseEnrollmentResponse.builder()
-                .id(enrollment.getId())
-                .course(mapToCourseResponse(enrollment.getCourse(), modules, enrollment.getUser()))
-                .user(mapToUserDetailResponse(enrollment.getUser()))
+                .courseTitle(enrollment.getCourse().getTitle())
+                .username(enrollment.getUser().getUsername())
                 .enrollmentDate(enrollment.getEnrollmentDate())
                 .completionDate(enrollment.getCompletionDate())
                 .status(enrollment.getStatus())
