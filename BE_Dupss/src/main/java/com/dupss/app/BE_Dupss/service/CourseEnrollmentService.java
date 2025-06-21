@@ -185,12 +185,9 @@ public class CourseEnrollmentService {
     }
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
-        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(enrollment.getCourse());
-        
         return CourseEnrollmentResponse.builder()
-                .id(enrollment.getId())
-                .course(mapToCourseResponse(enrollment.getCourse(), modules, enrollment.getUser()))
-                .user(mapToUserDetailResponse(enrollment.getUser()))
+                .courseTitle(enrollment.getCourse().getTitle())
+                .username(enrollment.getUser().getUsername())
                 .enrollmentDate(enrollment.getEnrollmentDate())
                 .completionDate(enrollment.getCompletionDate())
                 .status(enrollment.getStatus())
