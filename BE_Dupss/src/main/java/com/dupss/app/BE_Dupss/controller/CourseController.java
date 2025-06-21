@@ -110,17 +110,4 @@ public class CourseController {
             return ResponseEntity.badRequest().body(error);
         }
     }
-
-    @GetMapping("/{id}/cert/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getCertificate(@PathVariable Long id, @PathVariable Long userId) {
-        try {
-            CertificateResponse certRes = courseEnrollmentService.getCertificateResponse(id, userId);
-            return ResponseEntity.ok(certRes);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
 } 
