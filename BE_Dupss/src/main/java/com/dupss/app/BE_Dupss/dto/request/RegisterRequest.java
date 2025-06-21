@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import com.dupss.app.BE_Dupss.validation.PasswordMatch;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -36,7 +37,7 @@ public class RegisterRequest {
     private String gender;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private LocalDate yob;
+    private Date yob;
 
     @NotEmpty(message = "Email cannot be empty")
     @Email(message = "Email should be valid")

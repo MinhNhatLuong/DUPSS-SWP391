@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 
 @Data
@@ -26,9 +27,9 @@ public class UpdateUserRequest {
 
     private MultipartFile avatar;
     private String gender;
-    @MinAge(value = 13, message = "Người dùng phải từ 13 tuổi trở lên")
+//    @MinAge(value = 13, message = "Người dùng phải từ 13 tuổi trở lên")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private LocalDate yob;
+    private Date yob;
 
     @Email(message = "Email must be valid!!")
     private String email;

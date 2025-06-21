@@ -149,7 +149,36 @@ public class EmailServiceImpl implements EmailService {
 
         mailSender.send(message);
     }
-    
+
+    public void sendCourseCompletionEmail(String toEmail,
+                                          String userName,
+                                          String courseTitle,
+                                          int duration,
+                                          String instructor,
+                                          String completedDate) throws MessagingException, UnsupportedEncodingException {
+
+        Context context = new Context();
+        context.setVariable("userName", userName);
+        context.setVariable("courseTitle", courseTitle);
+        context.setVariable("duration", duration);
+        context.setVariable("instructor", instructor);
+        context.setVariable("completedDate", completedDate);
+
+        String htmlContent = templateEngine.process("email/course-completed", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(
+                message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+
+        helper.setFrom(fromEmail, "DUPSS Support");
+        helper.setTo(toEmail);
+        helper.setSubject("🎓 Bạn đã hoàn thành khóa học thành công!");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
+
+
     private String getStatusChangeMessage(String newStatus, String previousStatus) {
         switch (newStatus) {
             case "CONFIRMED":

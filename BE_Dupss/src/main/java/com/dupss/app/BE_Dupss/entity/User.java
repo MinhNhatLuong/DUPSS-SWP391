@@ -12,10 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
@@ -38,7 +35,7 @@ public class User implements UserDetails {
     private String fullname;
     private String avatar;
     private String gender;
-    private LocalDate yob;
+    private Date yob;
     @Column(nullable = false)
     private String email;
     private String phone;

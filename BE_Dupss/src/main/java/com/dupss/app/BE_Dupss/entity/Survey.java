@@ -32,7 +32,7 @@ public class Survey {
     @Column(nullable = false)
     private boolean active;
 
-    @Column(length = 255)
+    @Column(length = 500)
     private String surveyImage;
 
 

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "slots")
@@ -20,7 +21,7 @@ public class Slot {
     private Long id;
 
     @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private Date date;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;

@@ -72,7 +72,7 @@ public class CourseController {
 
     @PostMapping("/videos/watched/{videoId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId, @RequestParam boolean watched) {
+    public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId, @RequestParam boolean watched) throws MessagingException, UnsupportedEncodingException {
         courseEnrollmentService.markVideoAsWatched(videoId, watched);
         return ResponseEntity.ok("Video watched status and progress updated");
     }

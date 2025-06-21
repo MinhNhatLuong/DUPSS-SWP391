@@ -129,7 +129,7 @@ public class CourseEnrollmentService {
     }
 
     //check watched videos
-    public void markVideoAsWatched(Long videoId, boolean watchedStatus) {
+    public void markVideoAsWatched(Long videoId, boolean watchedStatus) throws MessagingException, UnsupportedEncodingException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User user = userRepository.findByUsername(username)
@@ -171,6 +171,14 @@ public class CourseEnrollmentService {
         if (progress >= 100) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
             enrollment.setCompletionDate(LocalDateTime.now());
+            emailService.sendCourseCompletionEmail(
+                    user.getEmail(),
+                    user.getFullname(),
+                    course.getTitle(),
+                    course.getDuration(),
+                    course.getCreator().getFullname(),
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            );;
         }
 
         enrollmentRepository.save(enrollment);

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 
 @Data
@@ -21,7 +22,7 @@ public class UpdateUserResponse {
     private String username;
     private String fullname;
     private String avatar;
-    private LocalDate yob;
+    private Date yob;
     private String gender;
 
     private String email;
