@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Typography, Grid, CircularProgress, Box } from '@mui/material';
 import SurveyCard from './SurveyCard';
 import { fetchSurveys } from '../../services/surveyService';
+import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 
 const SurveysList = () => {
   const [surveys, setSurveys] = useState([]);
@@ -26,6 +27,33 @@ const SurveysList = () => {
     };
 
     getSurveys();
+  }, []);
+
+  // Kiểm tra và hiển thị thông báo từ localStorage
+  useEffect(() => {
+    const checkSubmissionResult = () => {
+      const resultJson = localStorage.getItem('surveySubmissionResult');
+      if (!resultJson) return;
+      
+      try {
+        const result = JSON.parse(resultJson);
+        
+        if (result.success) {
+          showSuccessAlert(result.message || 'Lưu khảo sát thành công');
+        } else {
+          showErrorAlert(result.message || 'Có lỗi xảy ra khi lưu khảo sát');
+        }
+        
+        // Xóa thông báo sau khi hiển thị
+        localStorage.removeItem('surveySubmissionResult');
+      } catch (error) {
+        console.error('Lỗi khi xử lý thông báo khảo sát:', error);
+        localStorage.removeItem('surveySubmissionResult');
+      }
+    };
+    
+    // Cho phép trang render trước khi hiển thị thông báo
+    setTimeout(checkSubmissionResult, 500);
   }, []);
 
   if (loading) {

@@ -20,6 +20,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
 import { login } from '../../services/authService';
+import { submitSurveyResult } from '../../services/surveyService';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -43,6 +44,52 @@ const Login = () => {
     }
   }, [authAlert, authMessage]);
 
+  // Hàm xử lý gửi dữ liệu khảo sát đã lưu
+  const handlePendingSurveySubmission = async () => {
+    try {
+      // Kiểm tra xem có dữ liệu khảo sát đang chờ không
+      const storedData = localStorage.getItem('pendingSurveySubmission');
+      if (!storedData) return false;
+      
+      // Parse dữ liệu đã lưu
+      const surveyData = JSON.parse(storedData);
+      
+      // Lấy thông tin cần thiết
+      const { surveyId, selectedOptionIds } = surveyData;
+      
+      if (!surveyId || !selectedOptionIds) {
+        throw new Error('Dữ liệu khảo sát không đầy đủ');
+      }
+      
+      // Gửi kết quả khảo sát đến server
+      await submitSurveyResult(surveyId, selectedOptionIds);
+      
+      // Xóa dữ liệu đã lưu sau khi gửi thành công
+      localStorage.removeItem('pendingSurveySubmission');
+      
+      // Lưu thông báo thành công vào localStorage để hiển thị ở trang SurveysList
+      localStorage.setItem('surveySubmissionResult', JSON.stringify({
+        success: true,
+        message: 'Lưu khảo sát thành công'
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Lỗi khi gửi dữ liệu khảo sát:', error);
+      
+      // Lưu thông báo lỗi vào localStorage để hiển thị ở trang SurveysList
+      localStorage.setItem('surveySubmissionResult', JSON.stringify({
+        success: false,
+        message: 'Có lỗi xảy ra khi lưu khảo sát'
+      }));
+      
+      // Xóa dữ liệu đã lưu để tránh gửi lại lần sau
+      localStorage.removeItem('pendingSurveySubmission');
+      
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -58,6 +105,9 @@ const Login = () => {
       const userData = await login({ username, password });
       
       showSuccessAlert('Đăng nhập thành công!');
+      
+      // Kiểm tra và gửi kết quả khảo sát đã lưu (nếu có)
+      await handlePendingSurveySubmission();
       
       // Check if there's a redirect URL in sessionStorage
       const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');

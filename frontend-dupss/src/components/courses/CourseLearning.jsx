@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Paper, List, ListItem, ListItemText, 
          ListItemButton, ListItemIcon, Collapse, Checkbox,
-         IconButton, styled, Breadcrumbs, Link } from '@mui/material';
+         IconButton, styled, Breadcrumbs, Link, Button, Alert } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
@@ -10,6 +10,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import api from '../../services/authService';
 
 // Main container layout
@@ -121,6 +122,22 @@ const BreadcrumbContainer = styled(Box)(({ theme }) => ({
   borderBottom: '1px solid #e0e0e0',
 }));
 
+// Progress Info container
+const ProgressInfoContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: '#f5f8ff',
+  borderBottom: '1px solid #e0e0e0',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: theme.spacing(2),
+  [theme.breakpoints.down('md')]: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  }
+}));
+
 // Helper function to extract YouTube video ID
 const getYoutubeId = (url) => {
   const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
@@ -151,6 +168,7 @@ function CourseLearning() {
   const [currentVideo, setCurrentVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
+  const [courseProgress, setCourseProgress] = useState(0);
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const progressTrackingRef = useRef(false);
@@ -178,6 +196,8 @@ function CourseLearning() {
         const response = await api.get(`/courses/detail/${id}`);
 
         setCourse(response.data);
+        // Lấy giá trị progress từ API response
+        setCourseProgress(response.data.progress || 0);
         
         // Map response data to component state
         const mappedModules = response.data.modules.map(module => ({
@@ -305,7 +325,7 @@ function CourseLearning() {
       
       // Directly update module state to avoid unnecessary re-renders
       setModules(prevModules => {
-        return prevModules.map(module => {
+        let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
             if (video.id === videoId) {
               return { ...video, completed: true };
@@ -315,6 +335,10 @@ function CourseLearning() {
           
           return { ...module, videoUrl: updatedVideos };
         });
+        
+        // Cập nhật tiến độ sau khi đánh dấu video
+        updateProgressAfterVideoChange(updatedModules);
+        return updatedModules;
       });
       
       // Use functional update for currentVideo state, only update completed property
@@ -338,7 +362,7 @@ function CourseLearning() {
       
       // Use functional update to avoid unnecessary player recreation
       setModules(prevModules => {
-        return prevModules.map(module => {
+        let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
             if (video.id === videoId) {
               return { ...video, completed: !isCompleted };
@@ -348,6 +372,10 @@ function CourseLearning() {
           
           return { ...module, videoUrl: updatedVideos };
         });
+        
+        // Cập nhật tiến độ sau khi thay đổi trạng thái video
+        updateProgressAfterVideoChange(updatedModules);
+        return updatedModules;
       });
       
       // If current video is the marked video, only update completed status, keep player unchanged
@@ -361,6 +389,22 @@ function CourseLearning() {
     } catch (error) {
       console.error('Error updating video watch status:', error);
     }
+  };
+
+  // Hàm cập nhật tiến độ sau khi thay đổi trạng thái video
+  const updateProgressAfterVideoChange = (currentModules) => {
+    let totalVideos = 0;
+    let completedVideos = 0;
+    
+    currentModules.forEach(module => {
+      module.videoUrl.forEach(video => {
+        totalVideos++;
+        if (video.completed) completedVideos++;
+      });
+    });
+    
+    const newProgress = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+    setCourseProgress(newProgress);
   };
 
   // Optimize createPlayer function to ensure player correctly fills container
@@ -503,6 +547,18 @@ function CourseLearning() {
     return `${completed} / ${total}`;
   };
 
+  const handleSurveyClick = () => {
+    // Tạm thời không xử lý vì chưa có trang khảo sát
+    console.log('Survey button clicked');
+    alert('Chức năng này sẽ được phát triển trong tương lai!');
+  };
+
+  // Format progress với 2 chữ số thập phân
+  const formatProgress = (progress) => {
+    if (progress === undefined || progress === null) return '0.00';
+    return progress.toFixed(2);
+  };
+
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
       <Typography>Đang tải...</Typography>
@@ -536,6 +592,34 @@ function CourseLearning() {
           <Typography sx={{ color: '#0056b3', fontWeight: 500 }}>Bài giảng</Typography>
         </Breadcrumbs>
       </BreadcrumbContainer>
+
+      {/* Progress Info Section */}
+      <ProgressInfoContainer>
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+            Tiến độ hiện tại: <span style={{ color: courseProgress >= 100 ? '#27ae60' : '#0056b3' }}>{formatProgress(courseProgress)}%</span>
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#505050' }}>
+            Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm khảo sát để có thể hoàn thành khóa học
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={<AssignmentIcon />}
+          disabled={courseProgress < 100}
+          onClick={handleSurveyClick}
+          sx={{ 
+            fontWeight: 'bold',
+            bgcolor: courseProgress >= 100 ? '#27ae60' : undefined,
+            '&:hover': {
+              bgcolor: courseProgress >= 100 ? '#219653' : undefined,
+            }
+          }}
+        >
+          Làm khảo sát
+        </Button>
+      </ProgressInfoContainer>
     
       <PageContainer>
         {/* Video Panel - Left side */}
