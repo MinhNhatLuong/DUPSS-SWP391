@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -26,6 +27,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
     
+
+    @Async
+
     @Override
     public void sendAppointmentConfirmation(Appointment appointment) {
         try {
@@ -50,6 +54,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
     
+    @Async
     @Override
     public void sendAppointmentStatusUpdate(Appointment appointment, String previousStatus) {
         try {
@@ -74,8 +79,9 @@ public class EmailServiceImpl implements EmailService {
             // Không throw exception để không ảnh hưởng đến luồng chính
         }
     }
-
     //send mail welcome
+    @Async
+    @Override
     public void sendWelcomeEmail(String toEmail, String userName) throws MessagingException, UnsupportedEncodingException {
         Context context = new Context();
         context.setVariable("userName", userName);
@@ -92,7 +98,10 @@ public class EmailServiceImpl implements EmailService {
 
         mailSender.send(message);
     }
+
     
+    @Async
+    @Override
     public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         try {
             log.info("Bắt đầu gửi email đến: {}, với tiêu đề: {}", to, subject);
@@ -126,6 +135,8 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    @Async
+    @Override
     public void sendEnrollmentSuccessEmail(String toEmail, String userName,
                                            String courseTitle, int duration,
                                            String instructor, String enrollDate) throws MessagingException, UnsupportedEncodingException {

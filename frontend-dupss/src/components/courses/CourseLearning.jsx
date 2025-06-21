@@ -15,8 +15,11 @@ import api from '../../services/authService';
 // Main container layout
 const PageContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  height: 'calc(100vh - 64px)', // Adjust based on your header height
+  height: 'calc(100vh - 112px)', // 调整高度，考虑了Breadcrumb高度
   overflow: 'hidden',
+  backgroundColor: '#fff',
+  border: '1px solid #e0e0e0',
+  borderTop: 'none',
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     height: 'auto',
@@ -30,18 +33,24 @@ const VideoPanel = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   overflowY: 'auto',
+  height: '100%',
   [theme.breakpoints.down('md')]: {
     flex: '1 1 auto',
+    height: '60vh',
   }
 }));
 
-// Sidebar panel
+// Sidebar panel - 调整样式以确保与视频区域完美衔接
 const SidebarPanel = styled(Box)(({ theme }) => ({
   flex: '0 0 30%',
   maxWidth: '30%',
   borderLeft: '1px solid #e0e0e0',
   display: 'flex',
   flexDirection: 'column',
+  height: '100%',
+  margin: 0,
+  padding: 0,
+  backgroundColor: '#fdfdfd',
   [theme.breakpoints.down('md')]: {
     flex: '1 1 auto',
     maxWidth: '100%',
@@ -90,8 +99,8 @@ const SectionInfo = styled(Typography)(({ theme }) => ({
 const VideoContainer = styled(Box)(({ theme }) => ({
   position: 'relative', 
   width: '100%',
-  paddingBottom: '56.25%', // 16:9 aspect ratio
-  height: 0, 
+  height: '100%',
+  paddingBottom: 0,
   overflow: 'hidden',
   marginBottom: 0,
 }));
@@ -339,7 +348,7 @@ function CourseLearning() {
     );
   };
 
-  // 播放状态变化时的回调
+  // 修改视频播放状态变化时的回调，添加更详细的注释
   const onPlayerStateChange = (event) => {
     // 当视频正在播放时(YT.PlayerState.PLAYING = 1)
     if (event.data === 1 && !progressTrackingRef.current) {
@@ -377,13 +386,13 @@ function CourseLearning() {
     }
   };
 
-  // 添加静默更新函数，避免重新加载视频
+  // 优化静默更新函数，确保不触发播放器重新创建
   const silentMarkVideoComplete = async (videoId) => {
     try {
       // 调用API标记视频为已观看
       await api.post(`/courses/videos/watched/${videoId}?watched=true`);
       
-      // 直接更新状态，但不触发播放器重新创建
+      // 直接更新模块状态，避免不必要的重渲染
       setModules(prevModules => {
         return prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
@@ -397,16 +406,20 @@ function CourseLearning() {
         });
       });
       
-      // 只更新当前视频的completed状态，不替换整个currentVideo对象
+      // 使用函数式更新currentVideo状态，只更新completed属性
       if (currentVideo && currentVideo.id === videoId) {
-        setCurrentVideo(prev => ({ ...prev, completed: true }));
+        setCurrentVideo(prev => {
+          // 确保我们不是创建一个全新的对象，而只是更新属性
+          if (prev.completed) return prev; // 如果已经是completed，不做任何改变
+          return { ...prev, completed: true };
+        });
       }
     } catch (error) {
       console.error('Error silently updating video watch status:', error);
     }
   };
 
-  // 恢复handleVideoCompletion函数用于手动标记/取消标记
+  // 优化手动标记/取消标记函数，避免视频重载
   const handleVideoCompletion = async (videoId, isCompleted) => {
     try {
       // 调用API更新视频观看状态
@@ -426,16 +439,20 @@ function CourseLearning() {
         });
       });
       
-      // 如果当前视频是被标记的视频，只更新completed状态
+      // 如果当前视频是被标记的视频，只更新completed状态，保持播放器不变
       if (currentVideo && currentVideo.id === videoId) {
-        setCurrentVideo(prev => ({ ...prev, completed: !isCompleted }));
+        setCurrentVideo(prev => {
+          // 如果状态没有变化，直接返回原对象
+          if (prev.completed === !isCompleted) return prev;
+          return { ...prev, completed: !isCompleted };
+        });
       }
     } catch (error) {
       console.error('Error updating video watch status:', error);
     }
   };
 
-  // 修改createPlayer函数，使用current player state
+  // 优化createPlayer函数，确保播放器正确填充容器
   const createPlayer = useCallback(async () => {
     if (!currentVideo) return;
     
@@ -445,6 +462,17 @@ function CourseLearning() {
       // 保存当前播放器的状态（如果存在）
       let currentTime = 0;
       let wasPlaying = false;
+      
+      // 检查是否真的需要重新创建播放器
+      const videoId = getYoutubeId(currentVideo.url);
+      const currentPlayerVideoId = playerRef.current && playerRef.current.getVideoData ? 
+        playerRef.current.getVideoData().video_id : null;
+      
+      // 如果当前播放的就是这个视频，不需要重新创建播放器
+      if (playerRef.current && currentPlayerVideoId === videoId) {
+        console.log('Same video is already playing, not recreating player');
+        return;
+      }
       
       if (playerRef.current) {
         try {
@@ -456,11 +484,24 @@ function CourseLearning() {
         }
       }
       
-      const videoId = getYoutubeId(currentVideo.url);
-      
       if (!videoId || !videoPlayerContainerRef.current) return;
       
-      playerRef.current = new window.YT.Player(videoPlayerContainerRef.current, {
+      // 创建容器元素
+      const playerContainer = document.createElement('div');
+      playerContainer.id = 'youtube-player-' + Date.now();
+      playerContainer.style.width = '100%';
+      playerContainer.style.height = '100%';
+      
+      // 清除现有内容
+      while (videoPlayerContainerRef.current.firstChild) {
+        videoPlayerContainerRef.current.removeChild(videoPlayerContainerRef.current.firstChild);
+      }
+      
+      // 添加新容器
+      videoPlayerContainerRef.current.appendChild(playerContainer);
+      
+      // 创建YouTube播放器并设置为填充整个容器
+      playerRef.current = new window.YT.Player(playerContainer.id, {
         videoId: videoId,
         playerVars: {
           autoplay: wasPlaying ? 1 : 0,
@@ -471,12 +512,14 @@ function CourseLearning() {
         events: {
           onStateChange: onPlayerStateChange,
           onReady: onPlayerReady
-        }
+        },
+        height: '100%',
+        width: '100%'
       });
     } catch (error) {
       console.error('Error creating YouTube player:', error);
     }
-  }, [currentVideo]);
+  }, [currentVideo?.url]); // 仅依赖URL，而不是整个currentVideo对象
 
   // 播放器准备就绪时的回调
   const onPlayerReady = (event) => {
@@ -484,16 +527,24 @@ function CourseLearning() {
     console.log('Player ready');
   };
 
-  // 更新处理视频选择的函数，在选择新视频时重新创建播放器
+  // 优化视频选择函数，避免重复选择同一视频引起重载
   const handleSelectVideo = (video) => {
+    // 如果选择的是当前正在播放的视频，不做任何操作
+    if (currentVideo && currentVideo.id === video.id) {
+      console.log('Same video selected, no action needed');
+      return;
+    }
+    
     setCurrentVideo(video);
     progressTrackingRef.current = false;
   };
 
-  // 当currentVideo变化时创建新的播放器，但增加判断以避免不必要的重新渲染
+  // 当currentVideo变化时创建新的播放器，增加判断以避免不必要的重新渲染
   useEffect(() => {
     // 只有当视频URL变化时才重新创建播放器
-    if (currentVideo && (!playerRef.current || playerRef.current.getVideoUrl() !== currentVideo.url)) {
+    if (currentVideo && (!playerRef.current || 
+        (playerRef.current.getVideoData && playerRef.current.getVideoData().video_id !== getYoutubeId(currentVideo.url)))
+    ) {
       createPlayer();
     }
     
@@ -579,12 +630,19 @@ function CourseLearning() {
         {/* Video Panel - Left side */}
         <VideoPanel>
           {currentVideo ? (
-            <Box sx={{ width: '100%', height: '100%' }}>
+            <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
               {/* Video Player */}
               <VideoContainer>
                 <Box 
                   ref={videoPlayerContainerRef}
-                  sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                  sx={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    width: '100%', 
+                    height: '100%',
+                    border: 0
+                  }}
                 />
               </VideoContainer>
             </Box>

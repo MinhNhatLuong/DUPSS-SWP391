@@ -39,7 +39,7 @@ public class Appointment {
     private Topic topic;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "consultant_id", nullable = false)
+    @JoinColumn(name = "consultant_id", nullable = true)
     private Consultant consultant;
 
     @Column(name = "is_guest", nullable = false)

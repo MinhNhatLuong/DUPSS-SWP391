@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Typography, Button, Grid, Paper, Divider, 
-         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar } from '@mui/material';
+         List, ListItem, ListItemIcon, ListItemText, Avatar, Chip, styled, Alert, Snackbar, CircularProgress } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -60,7 +60,7 @@ const FeatureItem = styled(ListItem)(({ theme }) => ({
 const EnrollButton = styled(Button)(({ theme, status }) => ({
   width: '100%',
   padding: '15px',
-  backgroundColor: status === 'IN_PROGRESS' ? '#3498db' : '#27ae60',
+  backgroundColor: '#3498db',
   color: 'white',
   border: 'none',
   borderRadius: '4px',
@@ -70,7 +70,7 @@ const EnrollButton = styled(Button)(({ theme, status }) => ({
   transition: 'background-color 0.3s ease',
   marginTop: theme.spacing(1),
   '&:hover': {
-    backgroundColor: status === 'IN_PROGRESS' ? '#2980b9' : '#219653',
+    backgroundColor: '#2980b9',
   },
 }));
 
@@ -101,6 +101,7 @@ function CourseDetail() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     // 检查是否有通过导航传递的状态
@@ -158,12 +159,15 @@ function CourseDetail() {
         navigate('/login', { 
           state: { 
             showAuthAlert: true, 
-            authMessage: 'Cần đăng nhập để có thể đăng ký khóa học!',
+            authMessage: 'Cần đăng nhập để có thể tham gia khóa học!',
             returnUrl: `/courses/${id}` 
           } 
         });
         return;
       }
+      
+      // Set processing state to true
+      setIsProcessing(true);
       
       // Call API to enroll in the course
       try {
@@ -171,7 +175,7 @@ function CourseDetail() {
         await api.post(`/courses/${id}/enroll`);
 
         // Show success message
-        showAlert('Đăng ký khóa học thành công!', 'success');
+        showAlert('Tham gia khóa học thành công!', 'success');
         
         // Reload the page to refresh course status
         setTimeout(() => {
@@ -180,11 +184,14 @@ function CourseDetail() {
       } catch (err) {
         if (err.response && err.response.status === 400) {
           // Show error message if user already enrolled
-          showAlert('Bạn đã đăng ký khóa học này!', 'error');
+          showAlert('Bạn đã tham gia khóa học này!', 'error');
         } else {
-          showAlert('Đã có lỗi xảy ra khi đăng ký khóa học!', 'error');
+          showAlert('Đã có lỗi xảy ra khi tham gia khóa học!', 'error');
         }
         console.error('Enrollment error:', err);
+        
+        // Set processing state to false on error
+        setIsProcessing(false);
       }
     } else {
       // Navigate to course learning page
@@ -207,7 +214,7 @@ function CourseDetail() {
       case 'COMPLETED':
         return 'TIẾP TỤC KHÓA HỌC';
       default:
-        return 'ĐĂNG KÝ KHÓA HỌC';
+        return 'THAM GIA KHÓA HỌC';
     }
   };
 
@@ -230,11 +237,29 @@ function CourseDetail() {
         autoHideDuration={6000} 
         onClose={handleAlertClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ 
+          '& .MuiPaper-root': { 
+            width: '400px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }
+        }}
       >
         <Alert 
           onClose={handleAlertClose} 
           severity={alertSeverity} 
-          sx={{ width: '100%' }}
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            fontSize: '1.1rem',
+            fontWeight: 500,
+            padding: '16px 20px',
+            '& .MuiAlert-icon': {
+              fontSize: '24px'
+            },
+            '& .MuiAlert-message': {
+              fontSize: '1.1rem'
+            }
+          }}
         >
           {alertMessage}
         </Alert>
@@ -313,8 +338,25 @@ function CourseDetail() {
               <EnrollButton 
                 status={course.status !== 'COMPLETED' ? course.status : 'IN_PROGRESS'}
                 onClick={handleEnrollClick}
+                disabled={isProcessing && course.status === 'NOT_ENROLLED'}
+                sx={{
+                  position: 'relative'
+                }}
               >
-                {getButtonText()}
+                {isProcessing && course.status === 'NOT_ENROLLED' ? (
+                  <>
+                    <CircularProgress 
+                      size={24} 
+                      sx={{ 
+                        color: 'white',
+                        position: 'absolute',
+                        left: '50%',
+                        marginLeft: '-12px'
+                      }}
+                    />
+                    <span style={{ visibility: 'hidden' }}>{getButtonText()}</span>
+                  </>
+                ) : getButtonText()}
               </EnrollButton>
 
               {course.status === 'COMPLETED' && (

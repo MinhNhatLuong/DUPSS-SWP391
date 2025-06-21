@@ -18,7 +18,8 @@ import {
   InputAdornment,
   Paper,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { 
@@ -219,7 +220,7 @@ const Profile = () => {
     }
 
     try {
-      // Hiển thị trạng thái đang xử lý
+      // Set processing state to true for button loading indicator
       setIsProcessing(true);
 
       // Sử dụng FormData thay vì JSON
@@ -266,7 +267,7 @@ const Profile = () => {
 
       console.log('Status code:', response.status);
       
-      // Ẩn trạng thái đang xử lý
+      // Set processing state to false
       setIsProcessing(false);
       
       if (response.status === 200) {
@@ -422,31 +423,25 @@ const Profile = () => {
                   />
                   
                   {/* Date of Birth */}
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <DatePicker
-                      label="Ngày sinh"
-                      value={birthDate ? parse(birthDate, 'yyyy-MM-dd', new Date()) : null}
-                      onChange={(newDate) => {
-                        const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
-                        handleBirthDateChange({ target: { name: 'birthDate', value: formattedDate } });
-                      }}
-                      format="dd/MM/yyyy"
-                      slotProps={{
-                        textField: {
-                          sx: { flex: 1 },
-                          id: "birthDate",
-                          name: "birthDate",
-                          InputProps: {
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <CalendarIcon />
-                              </InputAdornment>
-                            )
-                          }
-                        }
-                      }}
-                    />
-                  </LocalizationProvider>
+                  <TextField
+                    label="Ngày sinh"
+                    type="date"
+                    value={birthDate || ''}
+                    onChange={handleBirthDateChange}
+                    id="birthDate"
+                    name="birthDate"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarIcon />
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={{ flex: 1 }}
+                  />
                 </Box>
                 
                 {/* Gender and Address on the same row */}
@@ -495,7 +490,8 @@ const Profile = () => {
               <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                 <Button 
                   type="submit" 
-                  variant="contained" 
+                  variant="contained"
+                  disabled={isProcessing}
                   sx={{ 
                     py: 1.5,
                     px: 5,
@@ -503,35 +499,31 @@ const Profile = () => {
                     backgroundColor: '#1976d2',
                     '&:hover': {
                       backgroundColor: '#1565c0',
-                    }
+                    },
+                    position: 'relative',
+                    fontWeight: 600
                   }}
                 >
-                  Lưu thông tin
+                  {isProcessing ? (
+                    <>
+                      <CircularProgress 
+                        size={24} 
+                        sx={{ 
+                          color: 'white',
+                          position: 'absolute',
+                          left: '50%',
+                          marginLeft: '-12px'
+                        }}
+                      />
+                      <span style={{ visibility: 'hidden' }}>Lưu thông tin</span>
+                    </>
+                  ) : 'Lưu thông tin'}
                 </Button>
               </Box>
             </Box>
           </Grid>
         </Grid>
       </Paper>
-
-      {/* Alert thông báo đang xử lý */}
-      <Snackbar 
-        open={isProcessing} 
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontWeight: 500,
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý!
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

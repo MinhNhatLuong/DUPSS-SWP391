@@ -61,4 +61,14 @@ public interface AppointmentService {
      * Lấy danh sách cuộc hẹn của một tư vấn viên đã được tư vấn thành công hoặc đã hủy
      */
     List<AppointmentResponseDto> getCompletedOrCanceledAppointmentsByConsultantId(Long consultantId);
+    
+    /**
+     * Lấy danh sách cuộc hẹn chưa được phân công cho tư vấn viên
+     */
+    List<AppointmentResponseDto> getUnassignedAppointments();
+    
+    /**
+     * Tư vấn viên nhận cuộc hẹn chưa được phân công
+     */
+    AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
 } 

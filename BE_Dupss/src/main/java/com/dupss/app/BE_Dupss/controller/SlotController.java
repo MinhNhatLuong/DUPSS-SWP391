@@ -126,7 +126,3 @@ public class SlotController {
     }  
 }
 
-//Lịch sử API: lấy danh sách các apoiment của một tư vấn viên đã được tư vấn thành công (vd: sattus = "COMPLETED")
-//list slot: sau khi ăng ký lịch thành công thì có api get all slot của một tư vấn viên
-// manager gán topic cho consultant : update consultant
-//

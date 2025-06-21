@@ -9,7 +9,8 @@ import {
   Grid,
   InputAdornment,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import { 
   Person as PersonIcon,
@@ -185,7 +186,7 @@ const AppointmentForm = () => {
     
     if (validateForm()) {
       try {
-        // Show processing alert
+        // Set processing state to true for button loading indicator
         setIsProcessing(true);
         
         // Format the data for API
@@ -202,7 +203,7 @@ const AppointmentForm = () => {
         // Submit the appointment
         const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
         
-        // Hide processing alert
+        // Set processing state to false
         setIsProcessing(false);
         
         // Handle success
@@ -213,7 +214,7 @@ const AppointmentForm = () => {
         });
         handleReset();
       } catch (error) {
-        // Hide processing alert
+        // Set processing state to false on error
         setIsProcessing(false);
         
         // Handle error
@@ -315,38 +316,34 @@ const AppointmentForm = () => {
           {/* Date and Time Row */}
           <Box sx={{ display: 'flex', width: '100%', gap: 2 }}>
             {/* Appointment Date */}
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Ngày hẹn"
-                value={formData.appointmentDate ? parse(formData.appointmentDate, 'yyyy-MM-dd', new Date()) : null}
-                onChange={(newDate) => {
-                  const formattedDate = newDate ? format(newDate, 'yyyy-MM-dd') : '';
-                  setFormData({
-                    ...formData,
-                    appointmentDate: formattedDate
-                  });
-                }}
-                format="dd/MM/yyyy"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                    id: "appointmentDate",
-                    name: "appointmentDate",
-                    error: !!errors.appointmentDate,
-                    helperText: errors.appointmentDate,
-                    InputProps: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CalendarIconX />
-                        </InputAdornment>
-                      )
-                    },
-                    sx: { flex: 1 }
-                  }
-                }}
-              />
-            </LocalizationProvider>
+            <TextField
+              label="Ngày hẹn"
+              type="date"
+              fullWidth
+              required
+              id="appointmentDate"
+              name="appointmentDate"
+              value={formData.appointmentDate || ''}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  appointmentDate: e.target.value
+                });
+              }}
+              error={!!errors.appointmentDate}
+              helperText={errors.appointmentDate}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarIconX />
+                  </InputAdornment>
+                )
+              }}
+              sx={{ flex: 1 }}
+            />
             
             {/* Appointment Time */}
             <TextField
@@ -411,21 +408,38 @@ const AppointmentForm = () => {
             type="submit"
             variant="contained"
             color="primary"
+            disabled={isProcessing}
             sx={{ 
               flex: 2, 
               py: 1.5,
-              bgcolor: '#3498db',
+              bgcolor: '#1976d2',
               '&:hover': {
-                bgcolor: '#2980b9'
-              }
+                bgcolor: '#3f8dda'
+              },
+              position: 'relative',
+              fontWeight: 600
             }}
           >
-            Đặt lịch hẹn
+            {isProcessing ? (
+              <>
+                <CircularProgress 
+                  size={24} 
+                  sx={{ 
+                    color: 'white',
+                    position: 'absolute',
+                    left: '50%',
+                    marginLeft: '-12px'
+                  }}
+                />
+                <span style={{ visibility: 'hidden' }}>Đặt lịch hẹn</span>
+              </>
+            ) : 'Đặt lịch hẹn'}
           </Button>
           <Button
             type="button"
             variant="outlined"
             onClick={handleReset}
+            disabled={isProcessing}
             sx={{ 
               flex: 1, 
               py: 1.5,
@@ -435,7 +449,8 @@ const AppointmentForm = () => {
               '&:hover': {
                 bgcolor: '#e5e7eb',
                 borderColor: '#d1d5db'
-              }
+              },
+              fontWeight: 600
             }}
           >
             Xóa form
@@ -469,34 +484,6 @@ const AppointmentForm = () => {
           }}
         >
           {alert.message}
-        </Alert>
-      </Snackbar>
-
-      {/* Processing notification */}
-      <Snackbar 
-        open={isProcessing} 
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          severity="warning"
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px',
-            backgroundColor: '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          Đang xử lý...
         </Alert>
       </Snackbar>
     </Paper>

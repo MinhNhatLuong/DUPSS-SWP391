@@ -24,4 +24,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
      * Tìm các cuộc hẹn của một tư vấn viên với trạng thái đã hoàn thành hoặc đã hủy
      */
     List<Appointment> findByConsultantAndStatusIn(Consultant consultant, List<String> statuses);
+    
+    /**
+     * Tìm các cuộc hẹn chưa được phân công cho tư vấn viên nào
+     */
+    List<Appointment> findByConsultantIsNull();
+    
+    /**
+     * Tìm các cuộc hẹn chưa được phân công với trạng thái cụ thể
+     */
+    List<Appointment> findByConsultantIsNullAndStatus(String status);
 } 
