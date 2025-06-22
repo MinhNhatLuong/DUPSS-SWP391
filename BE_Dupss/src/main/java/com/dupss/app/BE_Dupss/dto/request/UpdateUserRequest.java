@@ -27,9 +27,9 @@ public class UpdateUserRequest {
 
     private MultipartFile avatar;
     private String gender;
-//    @MinAge(value = 13, message = "Người dùng phải từ 13 tuổi trở lên")
+    @MinAge(value = 13, message = "Người dùng phải từ 13 tuổi trở lên")
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private Date yob;
+    private LocalDate yob;
 
     @Email(message = "Email must be valid!!")
     private String email;

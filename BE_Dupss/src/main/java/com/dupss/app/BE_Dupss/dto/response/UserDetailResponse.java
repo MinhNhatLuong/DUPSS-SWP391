@@ -19,7 +19,7 @@ public class UserDetailResponse {
     private String fullName;
     private String gender;
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private Date yob;
+    private LocalDate yob;
     private String avatar;
     private String address;
     private String role;
