@@ -14,7 +14,6 @@ import Schedule from './pages/consultant/Schedule';
 import BookingRequests from './pages/consultant/BookingRequests';
 import ConsultantProfile from './pages/consultant/Profile';
 import History from './pages/consultant/History';
-import RegisterSlots from './pages/consultant/RegisterSlots';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
@@ -161,7 +160,6 @@ function App() {
                       <Route path="dashboard" element={<ConsultantDashboard />} />
                       <Route path="schedule" element={<Schedule />} />
                       <Route path="requests" element={<BookingRequests />} />
-                      <Route path="register-slots" element={<RegisterSlots />} />
                       <Route path="profile" element={<ConsultantProfile />} />
                       <Route path="history" element={<History />} />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
