@@ -302,7 +302,7 @@ public class CourseEnrollmentService {
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
         return CourseEnrollmentResponse.builder()
-                .id(enrollment.getId())
+                .courseId(enrollment.getCourse().getId())
                 .courseTitle(enrollment.getCourse().getTitle())
                 .username(enrollment.getUser().getUsername())
                 .enrollmentDate(enrollment.getEnrollmentDate())
