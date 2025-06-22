@@ -14,7 +14,7 @@ import {
   Alert
 } from '@mui/material';
 import api from '../../services/authService';
-import { isAuthenticated } from '../../services/authService';
+import { isAuthenticated, getUserData } from '../../services/authService';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import CourseQuizQuestion from './CourseQuizQuestion';
 import CourseQuizResult from './CourseQuizResult';
@@ -263,7 +263,24 @@ const CourseQuiz = () => {
   };
 
   const handleGetCertificate = () => {
-    navigate(`/courses/${id}/certificate`);
+    // Lấy userId từ token JWT thông qua hàm getUserData
+    const userData = JSON.parse(localStorage.getItem('userData')) || {};
+    const userInfo = getUserData() || {};
+    
+    console.log('User data from localStorage:', userData);
+    console.log('User info from JWT:', userInfo);
+    
+    const userId = userInfo.id || userData.id;
+    
+    if (!userId) {
+      showErrorAlert('Không thể xác định thông tin người dùng. Vui lòng đăng nhập lại!');
+      return;
+    }
+    
+    console.log('Final User ID for certificate:', userId);
+    
+    // Chuyển hướng đến trang chứng chỉ với định dạng đường dẫn đúng
+    navigate(`/courses/${id}/cert/${userId}`);
   };
 
   if (loading) {
