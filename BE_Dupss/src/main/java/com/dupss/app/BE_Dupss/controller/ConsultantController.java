@@ -81,4 +81,16 @@ public class ConsultantController {
         AppointmentResponseDto appointment = appointmentService.claimAppointment(appointmentId, consultantId);
         return ResponseEntity.ok(appointment);
     }
+
+    /**
+     * API lấy danh sách cuộc hẹn của tư vấn viên
+     * Chỉ dành cho tư vấn viên
+     */
+    @GetMapping("/api/consultant/{consultantId}/appointments")
+    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_ADMIN', 'ROLE_MANAGER')")
+    public ResponseEntity<List<AppointmentResponseDto>> getConsultantAppointments(
+            @PathVariable Long consultantId) {
+        List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByConsultantId(consultantId);
+        return ResponseEntity.ok(appointments);
+    }
 }
