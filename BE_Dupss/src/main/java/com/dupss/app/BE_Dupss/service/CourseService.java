@@ -344,6 +344,13 @@ public class CourseService {
             modules = newModules;
         }
 
+        if (request.getQuiz() != null) {
+            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+            quiz.setForCourse(true);
+            surveyRepository.save(quiz);
+            savedCourse.setSurveyQuiz(quiz);
+        }
+
         return mapToCourseResponse(savedCourse, modules, currentUser);
     }
     

@@ -292,7 +292,8 @@ public class SurveyServiceImpl implements SurveyService {
                 .build();
     }
 
-    private boolean evaluate(int score, SurveyCondition condition) {
+    @Override
+    public boolean evaluate(int score, SurveyCondition condition) {
         return switch (condition.getOperator()) {
             case "=" -> score == condition.getValue();
             case ">" -> score > condition.getValue();
@@ -444,7 +445,6 @@ public class SurveyServiceImpl implements SurveyService {
         
         // Trả về response
         SurveyResultResponse response = new SurveyResultResponse();
-        response.setId(savedResult.getId());
         response.setSubmittedAt(savedResult.getSubmittedAt());
         response.setTotalScore(savedResult.getTotalScore());
         response.setAdvice(savedResult.getAdvice());
