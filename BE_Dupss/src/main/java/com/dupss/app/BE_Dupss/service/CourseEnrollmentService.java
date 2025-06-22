@@ -214,7 +214,7 @@ public class CourseEnrollmentService {
         List<Long> selectedOptionIds = request.getSelectedOptionIds();
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(selectedOptionIds);
 
-        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
         int maxScore = quiz.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
                 .mapToInt(q -> q.getOptions().stream()
@@ -235,13 +235,13 @@ public class CourseEnrollmentService {
 
         result.setSelectedOptions(resultOptions);
         result.setSubmittedAt(LocalDateTime.now());
-        result.setTotalScore(totalScore);
-        result.setScore(maxScore);
+        result.setTotalScore(maxScore);
+        result.setScore(userScore);
         surveyResultRepository.save(result);
 
         List<SurveyCondition> conditions = result.getSurvey().getConditions();
         boolean passed = conditions.stream()
-                .allMatch(condition -> surveyService.evaluate(totalScore, condition));
+                .allMatch(condition -> surveyService.evaluate(userScore, condition));
 
         if (passed && enrollment.getProgress() == 100.0) {
                 enrollment.setStatus(EnrollmentStatus.COMPLETED);
@@ -272,8 +272,8 @@ public class CourseEnrollmentService {
 
         // Trả kết quả
         return QuizResultResponse.builder()
-                .totalScore(totalScore)
-                .score(maxScore)
+                .totalScore(maxScore)
+                .score(userScore)
                 .message(passed ? "Chúc Mừng! Bạn đã vượt qua bài kiểm tra." : "Rất tiếc, bạn đã không vượt qua bài kiểm tra.")
                 .submittedAt(result.getSubmittedAt())
                 .build();
