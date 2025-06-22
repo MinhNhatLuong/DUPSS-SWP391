@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class UserDetailResponse {
     private String phone;
     private String fullName;
     private String gender;
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private Date yob;
     private String avatar;
     private String address;
