@@ -646,9 +646,8 @@ function CourseLearning() {
   };
 
   const handleSurveyClick = () => {
-    // Tạm thời không xử lý vì chưa có trang khảo sát
-    console.log('Survey button clicked');
-    alert('Chức năng này sẽ được phát triển trong tương lai!');
+    // Navigate to the quiz page
+    navigate(`/courses/${id}/quiz`);
   };
 
   // Format progress với 2 chữ số thập phân
@@ -698,14 +697,14 @@ function CourseLearning() {
             Tiến độ hiện tại: <span style={{ color: courseProgress >= 100 ? '#27ae60' : '#0056b3' }}>{formatProgress(courseProgress)}%</span>
           </Typography>
           <Typography variant="body2" sx={{ color: '#505050' }}>
-            Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm khảo sát để có thể hoàn thành khóa học
+            Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm kiểm tra để có thể hoàn thành khóa học
           </Typography>
         </Box>
         <Button
           variant="contained"
           color="secondary"
           startIcon={<AssignmentIcon />}
-          disabled={courseProgress < 100}
+          disabled={courseProgress < 100 || (course && course.enrollmentStatus === "COMPLETED")}
           onClick={handleSurveyClick}
           sx={{ 
             fontWeight: 'bold',
@@ -715,7 +714,7 @@ function CourseLearning() {
             }
           }}
         >
-          Làm khảo sát
+          Làm kiểm tra
         </Button>
       </ProgressInfoContainer>
     
