@@ -1,6 +1,5 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
-import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import com.dupss.app.BE_Dupss.entity.EnrollmentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,8 +24,4 @@ public class CourseResponse {
     private Integer enrollmentCount;
     private EnrollmentStatus enrollmentStatus;
     private double progress;
-    private ApprovalStatus status;
-    private String approvedByName;
-    private String rejectedByName;
-    private LocalDateTime approvalDate;
 } 

@@ -13,16 +13,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SurveyManagerResponse {
-    private Long id;
-    private String title;
+    private Long surveyId;
+    private String surveyTitle;
     private String description;
     private String surveyImage;
     private boolean active;
     private boolean forCourse;
     private LocalDateTime createdAt;
-    private String createdByName;
+    private String createdBy;
     private ApprovalStatus status;
-    private String approvedByName;
-    private String rejectedByName;
-    private LocalDateTime approvalDate;
 } 

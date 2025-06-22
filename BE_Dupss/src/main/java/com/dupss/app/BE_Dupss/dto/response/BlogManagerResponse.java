@@ -23,7 +23,4 @@ public class BlogManagerResponse {
     private LocalDate updatedAt;
     private ApprovalStatus status;
     private String tags;
-    private String approvedByName;
-    private String rejectedByName;
-    private LocalDate approvalDate;
 } 
