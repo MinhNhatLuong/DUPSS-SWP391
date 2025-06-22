@@ -133,9 +133,169 @@ public class ManagerController {
                         .forCourse(survey.isForCourse())
                         .createdAt(survey.getCreatedAt())
                         .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
+                        .status(survey.getStatus())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * API lấy tất cả khóa học đang chờ phê duyệt
+     * Chỉ dành cho Manager và Admin
+     */
+    @GetMapping("/courses/pending")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<List<CourseManagerResponse>> getPendingCourses() {
+        List<Course> courses = courseRepository.findByStatus(ApprovalStatus.PENDING);
+        List<CourseManagerResponse> responses = courses.stream()
+                .map(course -> CourseManagerResponse.builder()
+                        .id(course.getId())
+                        .title(course.getTitle())
+                        .description(course.getDescription())
+                        .coverImage(course.getCoverImage())
+                        .content(course.getContent())
+                        .duration(course.getDuration())
+                        .status(course.getStatus())
+                        .createdAt(course.getCreatedAt())
+                        .updatedAt(course.getUpdatedAt())
+                        .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
+                        .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * API lấy tất cả bài viết đang chờ phê duyệt
+     * Chỉ dành cho Manager và Admin
+     */
+    @GetMapping("/blogs/pending")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<List<BlogManagerResponse>> getPendingBlogs() {
+        List<Blog> blogs = blogRepository.findByStatus(ApprovalStatus.PENDING);
+        List<BlogManagerResponse> responses = blogs.stream()
+                .map(blog -> BlogManagerResponse.builder()
+                        .id(blog.getId())
+                        .title(blog.getTitle())
+                        .description(blog.getDescription())
+                        .content(blog.getContent())
+                        .createdAt(blog.getCreatedAt())
+                        .updatedAt(blog.getUpdatedAt())
+                        .status(blog.getStatus())
+                        .tags(blog.getTags())
+                        .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
+                        .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
+                        .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * API lấy tất cả khảo sát đang chờ phê duyệt
+     * Chỉ dành cho Manager và Admin
+     */
+    @GetMapping("/surveys/pending")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<List<SurveyManagerResponse>> getPendingSurveys() {
+        List<Survey> surveys = surveyRepository.findByStatus(ApprovalStatus.PENDING);
+        List<SurveyManagerResponse> responses = surveys.stream()
+                .map(survey -> SurveyManagerResponse.builder()
+                        .surveyId(survey.getId())
+                        .surveyTitle(survey.getTitle())
+                        .description(survey.getDescription())
+                        .surveyImage(survey.getSurveyImage())
+                        .active(survey.isActive())
+                        .forCourse(survey.isForCourse())
+                        .createdAt(survey.getCreatedAt())
+                        .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
+                        .status(survey.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * API phê duyệt khóa học
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/courses/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> approveCourse(@PathVariable Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
+        course.setStatus(ApprovalStatus.APPROVED);
+        courseRepository.save(course);
+        return ResponseEntity.ok(Map.of("message", "Khóa học đã được phê duyệt thành công"));
+    }
+
+    /**
+     * API từ chối khóa học
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/courses/{id}/reject")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> rejectCourse(@PathVariable Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
+        course.setStatus(ApprovalStatus.REJECTED);
+        courseRepository.save(course);
+        return ResponseEntity.ok(Map.of("message", "Khóa học đã bị từ chối"));
+    }
+
+    /**
+     * API phê duyệt bài viết
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/blogs/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> approveBlog(@PathVariable Long id) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
+        blog.setStatus(ApprovalStatus.APPROVED);
+        blogRepository.save(blog);
+        return ResponseEntity.ok(Map.of("message", "Bài viết đã được phê duyệt thành công"));
+    }
+
+    /**
+     * API từ chối bài viết
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/blogs/{id}/reject")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> rejectBlog(@PathVariable Long id) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
+        blog.setStatus(ApprovalStatus.REJECTED);
+        blogRepository.save(blog);
+        return ResponseEntity.ok(Map.of("message", "Bài viết đã bị từ chối"));
+    }
+
+    /**
+     * API phê duyệt khảo sát
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/surveys/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+        survey.setStatus(ApprovalStatus.APPROVED);
+        surveyRepository.save(survey);
+        return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
+    }
+
+    /**
+     * API từ chối khảo sát
+     * Chỉ dành cho Manager và Admin
+     */
+    @PatchMapping("/surveys/{id}/reject")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+        survey.setStatus(ApprovalStatus.REJECTED);
+        surveyRepository.save(survey);
+        return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
     }
 
     @PostMapping("/reports")
@@ -162,12 +322,5 @@ public class ManagerController {
     public ResponseEntity<?> deleteTopic(@PathVariable Long id) {
         topicService.delete(id);
         return ResponseEntity.ok("Topic deleted successfully");
-    }
-
-    @PostMapping(value = "/survey", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request
-                                                       ) throws IOException {
-        SurveyResponse surveyResponse = surveyService.createSurvey(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
     }
 }

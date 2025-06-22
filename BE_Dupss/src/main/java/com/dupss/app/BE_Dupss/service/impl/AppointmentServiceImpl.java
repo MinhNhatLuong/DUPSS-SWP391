@@ -274,7 +274,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setConsultant(consultant);
         } else if (appointment.getConsultant() == null) {
             // Nếu chưa có tư vấn viên, gán tư vấn viên mới
-            appointment.setConsultant(consultant);
+        appointment.setConsultant(consultant);
         }
         
         // Cập nhật trạng thái nếu đang là PENDING

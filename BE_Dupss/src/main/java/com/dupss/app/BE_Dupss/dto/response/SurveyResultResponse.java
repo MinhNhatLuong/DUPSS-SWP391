@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class SurveyResultResponse {
+    private Long id;
     private String surveyName;
     private Integer totalScore;
     private Integer score;

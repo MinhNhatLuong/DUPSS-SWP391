@@ -16,8 +16,12 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Builder
 public class SurveyResponse {
+    private Long id;
     private String title;
-    //    private List<SurveyQuestionDTO> questions;
+    private String description;
+    private String surveyImage;
+    private boolean active;
+    private LocalDateTime createdAt;
     private List<SurveySectionDTO> sections;
     private List<SurveyConditionDTO> conditions;
 
@@ -26,11 +30,13 @@ public class SurveyResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SurveySectionDTO {
+        private Long id;
         private String sectionName;
         private List<SurveyQuestionDTO> questions;
 
         public static SurveySectionDTO fromEntity(SurveySection section) {
             return SurveySectionDTO.builder()
+                    .id(section.getId())
                     .sectionName(section.getSectionName())
                     .questions(
                             section.getQuestions().stream()

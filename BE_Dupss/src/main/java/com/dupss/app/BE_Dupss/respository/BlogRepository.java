@@ -17,6 +17,7 @@ import java.util.List;
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     List<Blog> findByAuthor(User author);
     List<Blog> findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus status);
+    List<Blog> findByStatus(ApprovalStatus status);
     @Query("SELECT b FROM Blog b " +
             "WHERE b.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED " +
             "AND (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

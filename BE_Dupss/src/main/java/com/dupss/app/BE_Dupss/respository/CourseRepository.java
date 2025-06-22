@@ -16,6 +16,7 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByCreator(User creator);
     List<Course> findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus status);
+    List<Course> findByStatus(ApprovalStatus status);
     
 //    @Query("SELECT c FROM Course c JOIN Topic t on c.topic.id = t.id WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
 //            "(:topic IS NULL OR c.topic.id = :topic) OR " +
