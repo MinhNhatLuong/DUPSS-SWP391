@@ -26,7 +26,7 @@ const CourseQuizResult = ({
   const [expanded, setExpanded] = useState(false);
   
   // Determine if the quiz was passed based on the message
-  const isPassed = result.message && result.message.includes('Chúc Mừng');
+  const isPassed = result.message && result.message.includes('Chúc mừng! Bạn đã vượt qua bài kiểm tra.');
   
   // Get color based on result
   const getResultColor = () => {

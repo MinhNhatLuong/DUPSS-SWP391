@@ -755,7 +755,7 @@ const Profile = () => {
                         <TableCell>
                           {course.status === 'COMPLETED' && (
                             <Link 
-                              href={`http://localhost:5173/courses/${course.id}/cert/${user?.id || ''}`}
+                              href={`http://localhost:5173/courses/${course.courseId}/cert/${user?.id || ''}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               sx={{ textDecoration: 'none' }}
@@ -854,6 +854,11 @@ const Profile = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <Box sx={{ p: 2 }}>
+                <Typography variant="body2" color="error">
+                  *Điểm số cao cho thấy bạn nên xem xét việc tìm đến cơ sở điều trị phù hợp.
+                </Typography>
+              </Box>
             </>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -928,7 +933,7 @@ const Profile = () => {
               </TableContainer>
               <Box sx={{ p: 2 }}>
                 <Typography variant="body2" color="error">
-                  *Điểm số cao ở bài khảo sát ASSIST và CRAFFT cho thấy bạn nên xem xét việc tìm đến cơ sở điều trị phù hợp.
+                  *Điểm số cao cho thấy bạn nên xem xét việc tìm đến cơ sở điều trị phù hợp.
                 </Typography>
               </Box>
             </>
