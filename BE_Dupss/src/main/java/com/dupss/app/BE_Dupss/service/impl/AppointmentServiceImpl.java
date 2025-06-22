@@ -60,20 +60,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setGuest(true);
         }
 
-        // Tự động phân công tư vấn viên
-        List<Consultant> availableConsultants = consultantRepository.findByEnabledTrue();
-        if (!availableConsultants.isEmpty()) {
-            // Chọn ngẫu nhiên một tư vấn viên từ danh sách tư vấn viên đang hoạt động
-            Consultant selectedConsultant = availableConsultants.get(random.nextInt(availableConsultants.size()));
-            appointment.setConsultant(selectedConsultant);
+        // Gán cố định consultant ID = 2 làm placeholder
+        // Các consultant thực sự sẽ nhận cuộc hẹn sau thông qua API claimAppointment
+        Optional<Consultant> placeholderConsultant = consultantRepository.findById(2L);
+        if (placeholderConsultant.isPresent()) {
+            appointment.setConsultant(placeholderConsultant.get());
         } else {
-            // Nếu không có tư vấn viên nào đang hoạt động, tạo một tư vấn viên mặc định
-            Optional<Consultant> defaultConsultant = consultantRepository.findById(1L); // Giả sử ID 1 là tư vấn viên mặc định
-            if (defaultConsultant.isPresent()) {
-                appointment.setConsultant(defaultConsultant.get());
-            } else {
-                throw new ResourceNotFoundException("Không tìm thấy tư vấn viên nào trong hệ thống");
-            }
+            throw new ResourceNotFoundException("Không tìm thấy consultant placeholder với ID = 2");
         }
 
         // Lưu vào database
@@ -247,11 +240,10 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getUnassignedAppointments() {
-        // Vì chúng ta đã tự động phân công tư vấn viên khi tạo cuộc hẹn,
-        // nên phương thức này sẽ trả về danh sách trống hoặc các cuộc hẹn mới nhất
+        // Lấy tất cả các cuộc hẹn có trạng thái PENDING và consultant là placeholder (ID = 2)
         List<Appointment> appointments = appointmentRepository.findAll().stream()
-                .filter(a -> "PENDING".equals(a.getStatus()))
-                .limit(10)
+                .filter(a -> "PENDING".equals(a.getStatus()) && 
+                       a.getConsultant() != null && a.getConsultant().getId() == 2L)
                 .collect(Collectors.toList());
         
         return appointments.stream()
@@ -269,12 +261,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
         
         // Kiểm tra và cập nhật tư vấn viên
-        if (appointment.getConsultant() != null && !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
-            // Nếu cuộc hẹn đã có tư vấn viên khác, cho phép thay đổi
+        if (appointment.getConsultant() != null && 
+            !Objects.equals(appointment.getConsultant().getId(), consultantId) && 
+            appointment.getConsultant().getId() != 2L) {
+            // Nếu cuộc hẹn đã có tư vấn viên khác (không phải placeholder), cho phép thay đổi
             appointment.setConsultant(consultant);
-        } else if (appointment.getConsultant() == null) {
-            // Nếu chưa có tư vấn viên, gán tư vấn viên mới
-        appointment.setConsultant(consultant);
+        } else if (appointment.getConsultant() == null || appointment.getConsultant().getId() == 2L) {
+            // Nếu chưa có tư vấn viên hoặc đang là placeholder consultant (ID = 2), gán tư vấn viên mới
+            appointment.setConsultant(consultant);
         }
         
         // Cập nhật trạng thái nếu đang là PENDING
@@ -313,25 +307,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
         
-        // Handle consultant - không nên xảy ra null nhưng vẫn xử lý phòng trường hợp
-        if (appointment.getConsultant() != null) {
+        // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân công" và consultantId = null
+        if (appointment.getConsultant() != null && appointment.getConsultant().getId() != 2L) {
+            // Nếu consultant không phải là placeholder, hiển thị thông tin thực
             responseDto.setConsultantName(appointment.getConsultant().getFullname());
             responseDto.setConsultantId(appointment.getConsultant().getId());
         } else {
+            // Nếu consultant là placeholder (ID = 2) hoặc null, hiển thị "Chưa phân công"
             responseDto.setConsultantName("Chưa phân công");
-            // Nếu consultant null, cố gắng phân công lại
-            try {
-                List<Consultant> availableConsultants = consultantRepository.findByEnabledTrue();
-                if (!availableConsultants.isEmpty()) {
-                    Consultant selectedConsultant = availableConsultants.get(random.nextInt(availableConsultants.size()));
-                    appointment.setConsultant(selectedConsultant);
-                    appointmentRepository.save(appointment);
-                    responseDto.setConsultantName(selectedConsultant.getFullname());
-                    responseDto.setConsultantId(selectedConsultant.getId());
-                }
-            } catch (Exception e) {
-                // Bỏ qua lỗi nếu có, giữ nguyên "Chưa phân công"
-            }
+            responseDto.setConsultantId(null); // Đặt consultantId là null trong response
         }
         
         responseDto.setGuest(appointment.isGuest());
