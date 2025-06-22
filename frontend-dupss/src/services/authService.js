@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_URL } from './apiService';
 
 // Tạo một axios instance với config chung
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_URL,
 });
 
 // Biến để theo dõi trạng thái đang làm mới token
@@ -64,7 +65,7 @@ const refreshToken = async () => {
     }
 
     console.log('Attempting to refresh token...');
-    const response = await axios.post('http://localhost:8080/api/auth/refresh-token', { refreshToken });
+    const response = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
     
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
     
@@ -176,7 +177,7 @@ export default api;
 
 // Các hàm helpers cho authentication
 export const login = async (credentials) => {
-  const response = await axios.post('http://localhost:8080/api/auth/login', credentials);
+  const response = await axios.post(`${API_URL}/auth/login`, credentials);
   const { accessToken, refreshToken } = response.data;
   
   localStorage.setItem('accessToken', accessToken);

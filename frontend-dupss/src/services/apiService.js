@@ -6,8 +6,8 @@ import { showErrorAlert } from '../components/common/AlertNotification';
  * Sử dụng instance api từ authService để tận dụng cơ chế refresh token
  */
 
-// Cấu hình chung
-const API_BASE_URL = 'http://localhost:8080/api';
+// Cấu hình API URL - Dễ dàng thay đổi khi deploy
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // Lưu trữ yêu cầu gọi lại nếu token hết hạn
 const storeRedirectAfterLogin = () => {
