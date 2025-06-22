@@ -197,8 +197,8 @@ function CourseLearning() {
         const response = await api.get(`/courses/detail/${id}`);
 
         setCourse(response.data);
-        // Lấy giá trị progress từ API response
-        setCourseProgress(response.data.progress || 0);
+        // Lấy giá trị progress từ API response, đảm bảo không vượt quá 100%
+        setCourseProgress(Math.min(100, response.data.progress || 0));
         
         // Map response data to component state
         const mappedModules = response.data.modules.map(module => ({
@@ -332,6 +332,26 @@ function CourseLearning() {
   // Optimize silent update function to ensure player is not recreated
   const silentMarkVideoComplete = async (videoId) => {
     try {
+      // Kiểm tra xem video đã được đánh dấu là hoàn thành chưa
+      let videoAlreadyCompleted = false;
+      const currentModules = [...modules];
+      
+      for (const module of currentModules) {
+        for (const video of module.videoUrl) {
+          if (video.id === videoId && video.completed) {
+            videoAlreadyCompleted = true;
+            break;
+          }
+        }
+        if (videoAlreadyCompleted) break;
+      }
+      
+      // Nếu video đã hoàn thành, không cập nhật gì thêm
+      if (videoAlreadyCompleted) {
+        console.log('Video already marked as completed');
+        return;
+      }
+
       // Cập nhật UI trước khi gọi API
       setModules(prevModules => {
         let updatedModules = prevModules.map(module => {
@@ -347,16 +367,13 @@ function CourseLearning() {
         return updatedModules;
       });
       
-      // Cập nhật tiến độ ngay lập tức
+      // Cập nhật tiến độ một cách chính xác
       setVideoStats(prev => {
-        // Nếu video đã được đánh dấu là đã xem trước đó, không thay đổi số lượng
-        if (currentVideo && currentVideo.id === videoId && currentVideo.completed) {
-          return prev;
-        }
         const newCompleted = prev.completed + 1;
-        const newProgress = prev.total > 0 ? (newCompleted / prev.total) * 100 : 0;
+        // Đảm bảo tiến độ không vượt quá 100%
+        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
         setCourseProgress(newProgress);
-        return { ...prev, completed: newCompleted };
+        return { ...prev, completed: Math.min(newCompleted, prev.total) };
       });
       
       // Cập nhật currentVideo nếu cần
@@ -423,8 +440,8 @@ function CourseLearning() {
       // Cập nhật tiến độ tại client
       setVideoStats(prev => {
         const delta = isCompleted ? -1 : 1;
-        const newCompleted = Math.max(0, prev.completed + delta);
-        const newProgress = prev.total > 0 ? (newCompleted / prev.total) * 100 : 0;
+        const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
+        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
         setCourseProgress(newProgress);
         return { ...prev, completed: newCompleted };
       });
@@ -459,8 +476,8 @@ function CourseLearning() {
           
           setVideoStats(prev => {
             const delta = isCompleted ? 1 : -1;
-            const newCompleted = Math.max(0, prev.completed + delta);
-            const newProgress = prev.total > 0 ? (newCompleted / prev.total) * 100 : 0;
+            const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
+            const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
             setCourseProgress(newProgress);
             return { ...prev, completed: newCompleted };
           });
@@ -484,7 +501,7 @@ function CourseLearning() {
     });
     
     setVideoStats({ total: totalVideos, completed: completedVideos });
-    const newProgress = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+    const newProgress = Math.min(100, totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0);
     setCourseProgress(newProgress);
   };
 
@@ -608,7 +625,7 @@ function CourseLearning() {
       });
     });
     
-    return totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
+    return Math.min(100, totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0);
   };
 
   const formatDuration = (seconds) => {

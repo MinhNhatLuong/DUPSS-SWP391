@@ -136,7 +136,27 @@ api.interceptors.response.use(
           sessionStorage.setItem('redirectAfterLogin', currentPath);
         }
         
-        window.location.href = '/login';
+        // Xóa token và thông báo đăng xuất
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        tokenExpiryTime = null;
+        
+        // Phát sự kiện session-expired để các component có thể phản ứng
+        const sessionExpiredEvent = new CustomEvent('session-expired', {
+          detail: { message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' }
+        });
+        document.dispatchEvent(sessionExpiredEvent);
+        
+        // Chuyển đến trang đăng nhập với thông tin phiên hết hạn
+        if (window.location.pathname !== '/login') {
+          // Sử dụng history.replaceState để không thêm vào history stack
+          window.history.replaceState(
+            { sessionExpired: true }, 
+            '', 
+            '/login'
+          );
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
