@@ -215,10 +215,19 @@ public class CourseEnrollmentService {
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(selectedOptionIds);
 
         int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
-        int maxScore = quiz.getSections().stream()
+//        int maxScore = quiz.getSections().stream()
+//                .flatMap(section -> section.getQuestions().stream())
+//                .mapToInt(q -> q.getOptions().stream()
+//                        .mapToInt(SurveyOption::getScore).max().orElse(0))
+//                .sum();
+        int totalScore = quiz.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
-                .mapToInt(q -> q.getOptions().stream()
-                        .mapToInt(SurveyOption::getScore).max().orElse(0))
+                .mapToInt(question ->
+                        question.getOptions().stream()
+                                .mapToInt(SurveyOption::getScore)
+                                .max()
+                                .orElse(0) // Nếu không có option nào, coi điểm là 0
+                )
                 .sum();
 
         // Save kết quả
@@ -235,15 +244,17 @@ public class CourseEnrollmentService {
 
         result.setSelectedOptions(resultOptions);
         result.setSubmittedAt(LocalDateTime.now());
-        result.setTotalScore(maxScore);
+        result.setTotalScore(totalScore);
         result.setScore(userScore);
         surveyResultRepository.save(result);
 
         List<SurveyCondition> conditions = result.getSurvey().getConditions();
         boolean passed = conditions.stream()
                 .allMatch(condition -> surveyService.evaluate(userScore, condition));
+        result.setAdvice("Rất tiếc, bạn đã không vượt qua bài kiểm tra.");
 
         if (passed && enrollment.getProgress() == 100.0) {
+                result.setAdvice("Chúc mừng! Bạn đã vượt qua bài kiểm tra.");
                 enrollment.setStatus(EnrollmentStatus.COMPLETED);
                 enrollment.setCompletionDate(LocalDateTime.now());
 
@@ -272,9 +283,9 @@ public class CourseEnrollmentService {
 
         // Trả kết quả
         return QuizResultResponse.builder()
-                .totalScore(maxScore)
+                .totalScore(totalScore)
                 .score(userScore)
-                .message(passed ? "Chúc Mừng! Bạn đã vượt qua bài kiểm tra." : "Rất tiếc, bạn đã không vượt qua bài kiểm tra.")
+                .message(result.getAdvice())
                 .submittedAt(result.getSubmittedAt())
                 .build();
     }
