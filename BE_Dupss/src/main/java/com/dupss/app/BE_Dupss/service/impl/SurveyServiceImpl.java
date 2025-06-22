@@ -102,6 +102,7 @@ public class SurveyServiceImpl implements SurveyService {
                 .id(savedSurvey.getId())
                 .title(savedSurvey.getTitle())
                 .surveyImage(savedSurvey.getSurveyImage())
+                .active(savedSurvey.isActive())
                 .createdAt(savedSurvey.getCreatedAt())
                 .sections(savedSurvey.getSections().stream()
                         .map(SurveyResponse.SurveySectionDTO::fromEntity)

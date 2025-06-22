@@ -20,6 +20,7 @@ public class SurveyResponse {
     private String title;
     private String description;
     private String surveyImage;
+    private boolean active;
     private LocalDateTime createdAt;
     private List<SurveySectionDTO> sections;
     private List<SurveyConditionDTO> conditions;
