@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,11 +18,14 @@ public class CourseManagerResponse {
     private String title;
     private String description;
     private String coverImage;
+    private String topicName;
     private String content;
     private Integer duration;
-    private ApprovalStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String topicName;
     private String creatorName;
+    private ApprovalStatus status;
+    private String approvedByName;
+    private String rejectedByName;
+    private LocalDateTime approvalDate;
 } 

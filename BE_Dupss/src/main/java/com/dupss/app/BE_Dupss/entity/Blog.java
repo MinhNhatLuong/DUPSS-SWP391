@@ -39,6 +39,16 @@ public class Blog {
     @Column(nullable = false)
     private ApprovalStatus status;
     private String tags;
+    
+    @ManyToOne
+    @JoinColumn(name = "approved_by_id")
+    private User approvedBy;
+    
+    @ManyToOne
+    @JoinColumn(name = "rejected_by_id")
+    private User rejectedBy;
+    
+    private LocalDate approvalDate;
 
     @PrePersist
     public void prePersist() {

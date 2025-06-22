@@ -7,6 +7,7 @@ import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import com.dupss.app.BE_Dupss.entity.Blog;
 import com.dupss.app.BE_Dupss.entity.Course;
 import com.dupss.app.BE_Dupss.entity.Survey;
+import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.BlogRepository;
 import com.dupss.app.BE_Dupss.respository.CourseRepository;
 import com.dupss.app.BE_Dupss.respository.SurveyRepo;
@@ -21,10 +22,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +36,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/manager")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_MANAGER')")
 public class ManagerController {
 
     private final AdminService adminService;
@@ -85,6 +90,9 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .approvedByName(course.getApprovedBy() != null ? course.getApprovedBy().getFullname() : null)
+                        .rejectedByName(course.getRejectedBy() != null ? course.getRejectedBy().getFullname() : null)
+                        .approvalDate(course.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -110,6 +118,9 @@ public class ManagerController {
                         .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
+                        .approvedByName(blog.getApprovedBy() != null ? blog.getApprovedBy().getFullname() : null)
+                        .rejectedByName(blog.getRejectedBy() != null ? blog.getRejectedBy().getFullname() : null)
+                        .approvalDate(blog.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -125,15 +136,18 @@ public class ManagerController {
         List<Survey> surveys = surveyRepository.findAll();
         List<SurveyManagerResponse> responses = surveys.stream()
                 .map(survey -> SurveyManagerResponse.builder()
-                        .surveyId(survey.getId())
-                        .surveyTitle(survey.getTitle())
+                        .id(survey.getId())
+                        .title(survey.getTitle())
                         .description(survey.getDescription())
                         .surveyImage(survey.getSurveyImage())
                         .active(survey.isActive())
                         .forCourse(survey.isForCourse())
                         .createdAt(survey.getCreatedAt())
-                        .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
+                        .createdByName(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
+                        .approvedByName(survey.getApprovedBy() != null ? survey.getApprovedBy().getFullname() : null)
+                        .rejectedByName(survey.getRejectedBy() != null ? survey.getRejectedBy().getFullname() : null)
+                        .approvalDate(survey.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -160,6 +174,9 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .approvedByName(course.getApprovedBy() != null ? course.getApprovedBy().getFullname() : null)
+                        .rejectedByName(course.getRejectedBy() != null ? course.getRejectedBy().getFullname() : null)
+                        .approvalDate(course.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -185,6 +202,9 @@ public class ManagerController {
                         .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
+                        .approvedByName(blog.getApprovedBy() != null ? blog.getApprovedBy().getFullname() : null)
+                        .rejectedByName(blog.getRejectedBy() != null ? blog.getRejectedBy().getFullname() : null)
+                        .approvalDate(blog.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -200,15 +220,18 @@ public class ManagerController {
         List<Survey> surveys = surveyRepository.findByStatus(ApprovalStatus.PENDING);
         List<SurveyManagerResponse> responses = surveys.stream()
                 .map(survey -> SurveyManagerResponse.builder()
-                        .surveyId(survey.getId())
-                        .surveyTitle(survey.getTitle())
+                        .id(survey.getId())
+                        .title(survey.getTitle())
                         .description(survey.getDescription())
                         .surveyImage(survey.getSurveyImage())
                         .active(survey.isActive())
                         .forCourse(survey.isForCourse())
                         .createdAt(survey.getCreatedAt())
-                        .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
+                        .createdByName(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
+                        .approvedByName(survey.getApprovedBy() != null ? survey.getApprovedBy().getFullname() : null)
+                        .rejectedByName(survey.getRejectedBy() != null ? survey.getRejectedBy().getFullname() : null)
+                        .approvalDate(survey.getApprovalDate())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -220,10 +243,12 @@ public class ManagerController {
      */
     @PatchMapping("/courses/{id}/approve")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveCourse(@PathVariable Long id) {
+    public ResponseEntity<?> approveCourse(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
         course.setStatus(ApprovalStatus.APPROVED);
+        course.setApprovedBy(manager);
+        course.setApprovalDate(LocalDateTime.now());
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã được phê duyệt thành công"));
     }
@@ -234,10 +259,12 @@ public class ManagerController {
      */
     @PatchMapping("/courses/{id}/reject")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectCourse(@PathVariable Long id) {
+    public ResponseEntity<?> rejectCourse(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
         course.setStatus(ApprovalStatus.REJECTED);
+        course.setRejectedBy(manager);
+        course.setApprovalDate(LocalDateTime.now());
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã bị từ chối"));
     }
@@ -248,10 +275,12 @@ public class ManagerController {
      */
     @PatchMapping("/blogs/{id}/approve")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveBlog(@PathVariable Long id) {
+    public ResponseEntity<?> approveBlog(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
         blog.setStatus(ApprovalStatus.APPROVED);
+        blog.setApprovedBy(manager);
+        blog.setApprovalDate(LocalDate.now());
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã được phê duyệt thành công"));
     }
@@ -262,10 +291,12 @@ public class ManagerController {
      */
     @PatchMapping("/blogs/{id}/reject")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectBlog(@PathVariable Long id) {
+    public ResponseEntity<?> rejectBlog(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
         blog.setStatus(ApprovalStatus.REJECTED);
+        blog.setRejectedBy(manager);
+        blog.setApprovalDate(LocalDate.now());
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã bị từ chối"));
     }
@@ -276,10 +307,12 @@ public class ManagerController {
      */
     @PatchMapping("/surveys/{id}/approve")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
+    public ResponseEntity<?> approveSurvey(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
         survey.setStatus(ApprovalStatus.APPROVED);
+        survey.setApprovedBy(manager);
+        survey.setApprovalDate(LocalDateTime.now());
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
     }
@@ -290,10 +323,12 @@ public class ManagerController {
      */
     @PatchMapping("/surveys/{id}/reject")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
+    public ResponseEntity<?> rejectSurvey(@PathVariable Long id, @AuthenticationPrincipal User manager) {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
         survey.setStatus(ApprovalStatus.REJECTED);
+        survey.setRejectedBy(manager);
+        survey.setApprovalDate(LocalDateTime.now());
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
     }
@@ -329,5 +364,50 @@ public class ManagerController {
     public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request) throws IOException {
         SurveyResponse surveyResponse = surveyService.createSurvey(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
+    }
+
+    @GetMapping("/blogs")
+    public ResponseEntity<List<BlogManagerResponse>> getAllBlogs() {
+        return ResponseEntity.ok(blogService.getAllBlogsForManager());
+    }
+
+    @PutMapping("/blogs/{id}/approve")
+    public ResponseEntity<BlogManagerResponse> approveBlog(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(blogService.updateBlogStatus(id, ApprovalStatus.APPROVED, manager));
+    }
+
+    @PutMapping("/blogs/{id}/reject")
+    public ResponseEntity<BlogManagerResponse> rejectBlog(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(blogService.updateBlogStatus(id, ApprovalStatus.REJECTED, manager));
+    }
+
+    @GetMapping("/courses")
+    public ResponseEntity<List<CourseManagerResponse>> getAllCourses() {
+        return ResponseEntity.ok(courseService.getAllCoursesForManager());
+    }
+
+    @PutMapping("/courses/{id}/approve")
+    public ResponseEntity<CourseManagerResponse> approveCourse(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(courseService.updateCourseStatus(id, ApprovalStatus.APPROVED, manager));
+    }
+
+    @PutMapping("/courses/{id}/reject")
+    public ResponseEntity<CourseManagerResponse> rejectCourse(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(courseService.updateCourseStatus(id, ApprovalStatus.REJECTED, manager));
+    }
+
+    @GetMapping("/surveys")
+    public ResponseEntity<List<SurveyManagerResponse>> getAllSurveys() {
+        return ResponseEntity.ok(surveyService.getAllSurveysForManager());
+    }
+
+    @PutMapping("/surveys/{id}/approve")
+    public ResponseEntity<SurveyManagerResponse> approveSurvey(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(surveyService.updateSurveyStatus(id, ApprovalStatus.APPROVED, manager));
+    }
+
+    @PutMapping("/surveys/{id}/reject")
+    public ResponseEntity<SurveyManagerResponse> rejectSurvey(@PathVariable Long id, @AuthenticationPrincipal User manager) {
+        return ResponseEntity.ok(surveyService.updateSurveyStatus(id, ApprovalStatus.REJECTED, manager));
     }
 }
