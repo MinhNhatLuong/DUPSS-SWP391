@@ -34,6 +34,8 @@ public class CourseService {
     private final TopicRepo topicRepository;
     private final CloudinaryService cloudinaryService;
     private final WatchedVideoRepo watchedVideoRepository;
+    private final SurveyService surveyService;
+    private final SurveyRepo surveyRepository;
 
     @Transactional
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
@@ -94,6 +96,13 @@ public class CourseService {
 
             }
             moduleRepository.saveAll(modules);
+        }
+
+        if (request.getQuiz() != null) {
+            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+            quiz.setForCourse(true);
+            surveyRepository.save(quiz);
+            savedCourse.setSurveyQuiz(quiz);
         }
         
         return mapToCourseResponse(savedCourse, modules, currentUser);
@@ -353,6 +362,20 @@ public class CourseService {
                 progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
             }
         }
+
+        SurveyResponse quizResponse = null;
+        if (course.getSurveyQuiz() != null) {
+            quizResponse = SurveyResponse.builder()
+                    .title(course.getSurveyQuiz().getTitle())
+                    .sections(course.getSurveyQuiz().getSections().stream()
+                            .map(SurveyResponse.SurveySectionDTO::fromEntity)
+                            .collect(Collectors.toList()))
+                    .conditions(course.getSurveyQuiz().getConditions().stream()
+                            .map(SurveyResponse.SurveyConditionDTO::fromEntity)
+                            .collect(Collectors.toList()))
+                    .build();
+        }
+
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
@@ -360,6 +383,7 @@ public class CourseService {
                 .updatedAt(course.getUpdatedAt())
                 .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
+                .quiz(quizResponse)
                 .enrollmentCount((int) enrollmentCount)
                 .enrollmentStatus(enrollmentStatus)
                 .progress(progress)

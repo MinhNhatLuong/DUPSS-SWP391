@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.service;
 
+import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
 import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
@@ -17,8 +18,10 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +37,9 @@ public class CourseEnrollmentService {
     private final WatchedVideoRepo watchedVideoRepository;
     private final VideoCourseRepo videoCourseRepository;
     private final CertificateRepo certificateRepository;
+    private final SurveyOptionRepo surveyOptionRepository;
+    private final SurveyResultRepo surveyResultRepository;
+    private final SurveyService surveyService;
 
     @Transactional
     public CourseEnrollmentResponse enrollCourse(Long courseId) throws MessagingException, UnsupportedEncodingException {
@@ -165,32 +171,115 @@ public class CourseEnrollmentService {
         long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
         long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course);
 
-        double progress = (watchedVideos * 100.0) / totalVideos;
+        if (totalVideos == 0) throw new RuntimeException("Khóa học này không có video nào");
+
+        double videoProgress = (watchedVideos * 1.0) / totalVideos;
+        double progress = videoProgress * 80.0;
+
         enrollment.setProgress(progress);
 
-        if (progress >= 100) {
-            enrollment.setStatus(EnrollmentStatus.COMPLETED);
-            enrollment.setCompletionDate(LocalDateTime.now());
-            boolean certificateExists = certificateRepository.existsByUserAndCourse(user, course);
+        enrollmentRepository.save(enrollment);
+    }
 
-            if (!certificateExists) {
-                Certificate certificate = new Certificate();
-                certificate.setUser(user);
-                certificate.setCourse(course);
-                certificate.setIssuedDate(LocalDateTime.now());
-                certificateRepository.save(certificate);
-            }
-            emailService.sendCourseCompletionEmail(
-                    user.getEmail(),
-                    user.getFullname(),
-                    course.getTitle(),
-                    course.getDuration(),
-                    course.getCreator().getFullname(),
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            );
+    @Transactional
+    public QuizResultResponse submitCourseQuiz(Long courseId, SurveyResultRequest request) throws MessagingException, UnsupportedEncodingException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        Survey quiz = course.getSurveyQuiz();
+        if (quiz == null) {
+            throw new RuntimeException("This course does not have a final quiz.");
         }
 
-        enrollmentRepository.save(enrollment);
+        // Check đã enroll chưa
+        CourseEnrollment enrollment = enrollmentRepository.findByUserAndCourse(user, course)
+                .orElseThrow(() -> new RuntimeException("You are not enrolled in this course"));
+
+        // Check đã xem hết video chưa
+        long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
+        long watchedVideos = watchedVideoRepository.countByUserAndVideo_CourseModule_Course_AndWatchedTrue(user, course);
+        if (watchedVideos < totalVideos) {
+            throw new RuntimeException("Bạn cần xem hết tất cả video trước khi làm bài kiểm tra.");
+        }
+
+        // Chấm điểm quiz
+        List<Long> selectedOptionIds = request.getSelectedOptionIds();
+        List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(selectedOptionIds);
+
+        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+        int maxScore = quiz.getSections().stream()
+                .flatMap(section -> section.getQuestions().stream())
+                .mapToInt(q -> q.getOptions().stream()
+                        .mapToInt(SurveyOption::getScore).max().orElse(0))
+                .sum();
+
+        double scorePercent = (totalScore * 100.0) / maxScore;
+
+        // Save kết quả
+        SurveyResult result = new SurveyResult();
+        result.setUser(user);
+        result.setSurvey(quiz);
+
+        List<SurveyResultOption> resultOptions = selectedOptions.stream().map(option -> {
+            SurveyResultOption sro = new SurveyResultOption();
+            sro.setSurveyOption(option);
+            sro.setSurveyResult(result);
+            return sro;
+        }).collect(Collectors.toList());
+
+        result.setSelectedOptions(resultOptions);
+        result.setSubmittedAt(LocalDateTime.now());
+        result.setTotalScore(totalScore);
+        surveyResultRepository.save(result);
+
+        if (scorePercent >= 70.0) {
+            enrollment.setFinalQuizPassed(true);
+
+            double progress = enrollment.getProgress() + 20.0;
+            if (progress > 100.0) {
+                progress = 100.0; // Đảm bảo không vượt quá 100%
+            }
+            enrollment.setProgress(progress);
+
+            if (progress >= 100) {
+                enrollment.setStatus(EnrollmentStatus.COMPLETED);
+                enrollment.setCompletionDate(LocalDateTime.now());
+
+                boolean certificateExists = certificateRepository.existsByUserAndCourse(user, course);
+
+                if (!certificateExists) {
+                    Certificate certificate = new Certificate();
+                    certificate.setUser(user);
+                    certificate.setCourse(course);
+                    certificate.setIssuedDate(LocalDateTime.now());
+                    certificateRepository.save(certificate);
+                }
+            }
+            if(enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
+                emailService.sendCourseCompletionEmail(
+                        user.getEmail(),
+                        user.getFullname(),
+                        course.getTitle(),
+                        course.getDuration(),
+                        course.getCreator().getFullname(),
+                        LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                );
+            }
+
+            enrollmentRepository.save(enrollment);
+        }
+
+        // Trả kết quả
+        return QuizResultResponse.builder()
+                .totalScore(totalScore)
+                .scorePercent(scorePercent)
+                .message(scorePercent >= 70 ? "Chúc mừng bạn đã vượt qua bài kiểm tra!" : "Bạn chưa đạt, vui lòng thử lại.")
+                .build();
     }
 
     public CertificateResponse getCertificateResponse(Long courseId, Long userId) {

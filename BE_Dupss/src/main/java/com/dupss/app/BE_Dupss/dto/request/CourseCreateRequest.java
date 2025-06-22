@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,13 +22,15 @@ public class CourseCreateRequest {
 
     private String description;
 
-    
     private MultipartFile coverImage;
     
     private String content;
-    
+
     @Positive(message = "Thời lượng khóa học phải lớn hơn 0")
     private Integer duration;
-    
+
     private List<CourseModuleRequest> modules;
+
+    @Valid
+    private SurveyCreateRequest quiz;
 } 

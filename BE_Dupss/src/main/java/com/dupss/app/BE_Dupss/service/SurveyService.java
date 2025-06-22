@@ -5,6 +5,8 @@ import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResultResponse;
+import com.dupss.app.BE_Dupss.entity.Survey;
+import com.dupss.app.BE_Dupss.entity.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,4 +18,5 @@ public interface SurveyService {
     SurveyResponse getSurveyDetails(Long surveyId);
     SurveyResultResponse submitSurveyResult(SurveyResultRequest request);
     List<SurveyResultResponse> getSubmittedSurveys();
+    Survey createAndSaveSurveyEntity(SurveyCreateRequest request, User author) throws IOException;
 }

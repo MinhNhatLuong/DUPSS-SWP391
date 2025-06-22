@@ -20,6 +20,7 @@ public class CourseResponse {
     private LocalDateTime updatedAt;
     private String creator;
     private List<CourseModuleResponse> modules;
+    private SurveyResponse quiz;
     private Integer enrollmentCount;
     private EnrollmentStatus enrollmentStatus;
     private double progress;

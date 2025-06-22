@@ -22,8 +22,7 @@ public class CourseModuleRequest {
     private String content;
 
     private List<VideoCourse> videos;
-    
-    private Integer duration;
+
     
     @PositiveOrZero(message = "Thứ tự module không được âm")
     private Integer orderIndex;

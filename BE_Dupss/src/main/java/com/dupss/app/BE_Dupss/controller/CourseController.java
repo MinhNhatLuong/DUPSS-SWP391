@@ -2,10 +2,8 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
-import com.dupss.app.BE_Dupss.dto.response.CertificateResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseDetailPublicResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseEnrollmentResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
+import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
+import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.Certificate;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
@@ -77,6 +75,13 @@ public class CourseController {
     public ResponseEntity<?> markVideoWatched(@PathVariable Long videoId, @RequestParam boolean watched) throws MessagingException, UnsupportedEncodingException {
         courseEnrollmentService.markVideoAsWatched(videoId, watched);
         return ResponseEntity.ok("Video watched status and progress updated");
+    }
+
+    @PostMapping("/courses/{courseId}/quiz/submit")
+    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    public ResponseEntity<QuizResultResponse> submitFinalQuiz(@PathVariable Long courseId, @RequestBody SurveyResultRequest request) throws MessagingException, UnsupportedEncodingException {
+        QuizResultResponse res = courseEnrollmentService.submitCourseQuiz(courseId, request);
+        return ResponseEntity.ok(res);
     }
     
     @PutMapping("/enrolled/{enrollmentId}/progress")

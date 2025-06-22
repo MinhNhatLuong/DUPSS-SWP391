@@ -23,6 +23,8 @@ public class CourseEnrollment {
     @JoinColumn(name = "course_id")
     private Course course;
 
+    private boolean finalQuizPassed = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EnrollmentStatus status;
