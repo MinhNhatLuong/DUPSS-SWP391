@@ -195,6 +195,7 @@ public class SurveyServiceImpl implements SurveyService {
                     response.setSurveyTitle(survey.getTitle());
                     response.setDescription(survey.getDescription());
                     response.setSurveyImage(survey.getSurveyImage());
+                    response.setForCourse(survey.isForCourse());
                     return response;
                 })
                 .collect(Collectors.toList());
