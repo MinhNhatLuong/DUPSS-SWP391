@@ -14,6 +14,11 @@ import Schedule from './pages/consultant/Schedule';
 import BookingRequests from './pages/consultant/BookingRequests';
 import ConsultantProfile from './pages/consultant/Profile';
 import History from './pages/consultant/History';
+import HeaderStaff from './layout/HeaderStaff';
+import StaffDashboard from './pages/staff/Dashboard';
+import CreateBlog from './pages/staff/CreateBlog';
+import CreateCourse from './pages/staff/CreateCourse';
+import CreateSurvey from './pages/staff/CreateSurvey';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
@@ -163,6 +168,28 @@ function App() {
                       <Route path="profile" element={<ConsultantProfile />} />
                       <Route path="history" element={<History />} />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
+                    </Routes>
+                  </main>
+                </>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Staff Routes */}
+          <Route
+            path="/staff/*"
+            element={
+              <ProtectedRoute requiredRole="ROLE_STAFF">
+                <>
+                  <HeaderStaff userName={userInfo?.fullName || 'Staff'} />
+                  <main className="content">
+                    <Routes>
+                      <Route path="dashboard" element={<StaffDashboard />} />
+                      <Route path="create-blog" element={<CreateBlog />} />
+                      <Route path="create-course" element={<CreateCourse />} />
+                      <Route path="create-survey" element={<CreateSurvey />} />
+                      <Route path="profile" element={<ConsultantProfile />} />
+                      <Route path="*" element={<Navigate to="/staff/dashboard" replace />} />
                     </Routes>
                   </main>
                 </>
