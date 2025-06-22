@@ -19,4 +19,8 @@ public interface SurveyService {
     SurveyResultResponse submitSurveyResult(SurveyResultRequest request);
     List<SurveyResultResponse> getSubmittedSurveys();
     Survey createAndSaveSurveyEntity(SurveyCreateRequest request, User author) throws IOException;
+    List<SurveyResponse> getAllSurveys();
+    SurveyResponse getSurveyById(Long id);
+    SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);
+
 }

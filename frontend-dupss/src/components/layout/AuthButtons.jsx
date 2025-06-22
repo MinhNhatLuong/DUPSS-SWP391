@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Typography, Menu, MenuItem, Button } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -27,6 +27,7 @@ const AuthButtons = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     checkAuthStatus();
@@ -43,20 +44,49 @@ const AuthButtons = () => {
       }
     };
 
-    // Register event listener
-    document.addEventListener('user-profile-updated', handleProfileUpdate);
+    // Lắng nghe sự kiện phiên đăng nhập hết hạn
+    const handleSessionExpired = () => {
+      console.log('Session expired event received');
+      setIsLoggedIn(false);
+      setUserData(null);
+    };
 
-    // Unregister event listener when component unmounts
+    // Register event listeners
+    document.addEventListener('user-profile-updated', handleProfileUpdate);
+    document.addEventListener('session-expired', handleSessionExpired);
+
+    // Unregister event listeners when component unmounts
     return () => {
       document.removeEventListener('user-profile-updated', handleProfileUpdate);
+      document.removeEventListener('session-expired', handleSessionExpired);
     };
   }, []);
+
+  // Kiểm tra trạng thái đăng nhập mỗi khi URL thay đổi
+  useEffect(() => {
+    // Kiểm tra token mỗi khi URL thay đổi
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      setIsLoggedIn(false);
+      setUserData(null);
+    }
+    
+    // Nếu đang ở trang đăng nhập, đảm bảo rằng trạng thái đăng nhập được reset
+    if (location.pathname === '/login') {
+      const sessionExpired = location.state?.sessionExpired;
+      if (sessionExpired) {
+        setIsLoggedIn(false);
+        setUserData(null);
+      }
+    }
+  }, [location]);
 
   const checkAuthStatus = async () => {
     const accessToken = localStorage.getItem('accessToken');
     
     if (!accessToken) {
       setIsLoggedIn(false);
+      setUserData(null);
       return;
     }
 

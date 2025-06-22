@@ -34,6 +34,7 @@ const Login = () => {
   const authAlert = location.state?.showAuthAlert;
   const authMessage = location.state?.authMessage;
   const returnUrl = location.state?.returnUrl;
+  const sessionExpired = location.state?.sessionExpired;
 
   useEffect(() => {
     document.title = "Đăng Nhập - DUPSS";
@@ -42,7 +43,24 @@ const Login = () => {
     if (authAlert && authMessage) {
       showErrorAlert(authMessage);
     }
-  }, [authAlert, authMessage]);
+    
+    // Hiển thị thông báo phiên hết hạn nếu được chuyển hướng từ sự kiện session-expired
+    if (sessionExpired) {
+      showErrorAlert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+    
+    // Lắng nghe sự kiện phiên hết hạn
+    const handleSessionExpired = (event) => {
+      // Không hiển thị thông báo ở đây vì đã được xử lý trong authService.js
+      console.log('Login page received session expired event');
+    };
+    
+    document.addEventListener('session-expired', handleSessionExpired);
+    
+    return () => {
+      document.removeEventListener('session-expired', handleSessionExpired);
+    };
+  }, [authAlert, authMessage, sessionExpired]);
 
   // Hàm xử lý gửi dữ liệu khảo sát đã lưu
   const handlePendingSurveySubmission = async () => {

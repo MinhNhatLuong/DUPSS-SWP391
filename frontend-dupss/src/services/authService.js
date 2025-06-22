@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_URL } from './apiService';
 
 // Tạo một axios instance với config chung
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_URL,
 });
 
 // Biến để theo dõi trạng thái đang làm mới token
@@ -64,7 +65,7 @@ const refreshToken = async () => {
     }
 
     console.log('Attempting to refresh token...');
-    const response = await axios.post('http://localhost:8080/api/auth/refresh-token', { refreshToken });
+    const response = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
     
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
     
@@ -135,7 +136,27 @@ api.interceptors.response.use(
           sessionStorage.setItem('redirectAfterLogin', currentPath);
         }
         
-        window.location.href = '/login';
+        // Xóa token và thông báo đăng xuất
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        tokenExpiryTime = null;
+        
+        // Phát sự kiện session-expired để các component có thể phản ứng
+        const sessionExpiredEvent = new CustomEvent('session-expired', {
+          detail: { message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' }
+        });
+        document.dispatchEvent(sessionExpiredEvent);
+        
+        // Chuyển đến trang đăng nhập với thông tin phiên hết hạn
+        if (window.location.pathname !== '/login') {
+          // Sử dụng history.replaceState để không thêm vào history stack
+          window.history.replaceState(
+            { sessionExpired: true }, 
+            '', 
+            '/login'
+          );
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -176,7 +197,7 @@ export default api;
 
 // Các hàm helpers cho authentication
 export const login = async (credentials) => {
-  const response = await axios.post('http://localhost:8080/api/auth/login', credentials);
+  const response = await axios.post(`${API_URL}/auth/login`, credentials);
   const { accessToken, refreshToken } = response.data;
   
   localStorage.setItem('accessToken', accessToken);

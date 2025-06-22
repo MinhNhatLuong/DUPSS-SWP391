@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +21,5 @@ public class SurveyManagerResponse {
     private boolean forCourse;
     private LocalDateTime createdAt;
     private String createdBy;
+    private ApprovalStatus status;
 } 

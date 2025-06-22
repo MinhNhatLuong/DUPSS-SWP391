@@ -169,6 +169,7 @@ function CourseLearning() {
   const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
   const [courseProgress, setCourseProgress] = useState(0);
+  const [videoStats, setVideoStats] = useState({ total: 0, completed: 0 });
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const progressTrackingRef = useRef(false);
@@ -196,8 +197,8 @@ function CourseLearning() {
         const response = await api.get(`/courses/detail/${id}`);
 
         setCourse(response.data);
-        // Lấy giá trị progress từ API response
-        setCourseProgress(response.data.progress || 0);
+        // Lấy giá trị progress từ API response, đảm bảo không vượt quá 100%
+        setCourseProgress(Math.min(100, response.data.progress || 0));
         
         // Map response data to component state
         const mappedModules = response.data.modules.map(module => ({
@@ -211,6 +212,17 @@ function CourseLearning() {
           })),
           isExpanded: false // Default all sections are closed
         }));
+
+        // Tính toán và lưu trữ số lượng video và số video đã xem
+        let totalCount = 0;
+        let completedCount = 0;
+        mappedModules.forEach(module => {
+          module.videoUrl.forEach(video => {
+            totalCount++;
+            if (video.completed) completedCount++;
+          });
+        });
+        setVideoStats({ total: totalCount, completed: completedCount });
 
         // Find first section with unwatched videos
         let sectionWithUnwatchedVideo = null;
@@ -320,10 +332,27 @@ function CourseLearning() {
   // Optimize silent update function to ensure player is not recreated
   const silentMarkVideoComplete = async (videoId) => {
     try {
-      // Call API to mark video as watched
-      await api.post(`/courses/videos/watched/${videoId}?watched=true`);
+      // Kiểm tra xem video đã được đánh dấu là hoàn thành chưa
+      let videoAlreadyCompleted = false;
+      const currentModules = [...modules];
       
-      // Directly update module state to avoid unnecessary re-renders
+      for (const module of currentModules) {
+        for (const video of module.videoUrl) {
+          if (video.id === videoId && video.completed) {
+            videoAlreadyCompleted = true;
+            break;
+          }
+        }
+        if (videoAlreadyCompleted) break;
+      }
+      
+      // Nếu video đã hoàn thành, không cập nhật gì thêm
+      if (videoAlreadyCompleted) {
+        console.log('Video already marked as completed');
+        return;
+      }
+
+      // Cập nhật UI trước khi gọi API
       setModules(prevModules => {
         let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
@@ -335,32 +364,64 @@ function CourseLearning() {
           
           return { ...module, videoUrl: updatedVideos };
         });
-        
-        // Cập nhật tiến độ sau khi đánh dấu video
-        updateProgressAfterVideoChange(updatedModules);
         return updatedModules;
       });
       
-      // Use functional update for currentVideo state, only update completed property
+      // Cập nhật tiến độ một cách chính xác
+      setVideoStats(prev => {
+        const newCompleted = prev.completed + 1;
+        // Đảm bảo tiến độ không vượt quá 100%
+        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
+        setCourseProgress(newProgress);
+        return { ...prev, completed: Math.min(newCompleted, prev.total) };
+      });
+      
+      // Cập nhật currentVideo nếu cần
       if (currentVideo && currentVideo.id === videoId) {
         setCurrentVideo(prev => {
-          // Ensure we're not creating a completely new object, just updating properties
-          if (prev.completed) return prev; // If already completed, don't change anything
+          if (prev.completed) return prev;
           return { ...prev, completed: true };
         });
       }
+      
+      // Gọi API (không chờ đợi kết quả)
+      api.post(`/courses/videos/watched/${videoId}?watched=true`)
+        .catch(error => {
+          console.error('Error silently updating video watch status:', error);
+          // Hoàn tác UI nếu API lỗi
+          setModules(prevModules => {
+            let updatedModules = prevModules.map(module => {
+              const updatedVideos = module.videoUrl.map(video => {
+                if (video.id === videoId) {
+                  return { ...video, completed: false };
+                }
+                return video;
+              });
+              return { ...module, videoUrl: updatedVideos };
+            });
+            return updatedModules;
+          });
+          
+          if (currentVideo && currentVideo.id === videoId) {
+            setCurrentVideo(prev => ({ ...prev, completed: false }));
+          }
+          
+          setVideoStats(prev => {
+            const newCompleted = Math.max(0, prev.completed - 1);
+            const newProgress = prev.total > 0 ? (newCompleted / prev.total) * 100 : 0;
+            setCourseProgress(newProgress);
+            return { ...prev, completed: newCompleted };
+          });
+        });
     } catch (error) {
-      console.error('Error silently updating video watch status:', error);
+      console.error('Error updating video state:', error);
     }
   };
 
   // Optimize manual mark/unmark function to avoid video reload
   const handleVideoCompletion = async (videoId, isCompleted) => {
     try {
-      // Call API to update video watch status
-      await api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`);
-      
-      // Use functional update to avoid unnecessary player recreation
+      // Cập nhật UI ngay lập tức
       setModules(prevModules => {
         let updatedModules = prevModules.map(module => {
           const updatedVideos = module.videoUrl.map(video => {
@@ -373,25 +434,61 @@ function CourseLearning() {
           return { ...module, videoUrl: updatedVideos };
         });
         
-        // Cập nhật tiến độ sau khi thay đổi trạng thái video
-        updateProgressAfterVideoChange(updatedModules);
         return updatedModules;
       });
       
-      // If current video is the marked video, only update completed status, keep player unchanged
+      // Cập nhật tiến độ tại client
+      setVideoStats(prev => {
+        const delta = isCompleted ? -1 : 1;
+        const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
+        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
+        setCourseProgress(newProgress);
+        return { ...prev, completed: newCompleted };
+      });
+      
       if (currentVideo && currentVideo.id === videoId) {
         setCurrentVideo(prev => {
-          // If status hasn't changed, return the original object
-          if (prev.completed === !isCompleted) return prev;
           return { ...prev, completed: !isCompleted };
         });
       }
+      
+      // Gọi API (không chờ đợi kết quả)
+      api.post(`/courses/videos/watched/${videoId}?watched=${!isCompleted}`)
+        .catch(error => {
+          console.error('Error updating video watch status:', error);
+          // Hoàn tác UI nếu API lỗi
+          setModules(prevModules => {
+            let updatedModules = prevModules.map(module => {
+              const updatedVideos = module.videoUrl.map(video => {
+                if (video.id === videoId) {
+                  return { ...video, completed: isCompleted };
+                }
+                return video;
+              });
+              return { ...module, videoUrl: updatedVideos };
+            });
+            return updatedModules;
+          });
+          
+          if (currentVideo && currentVideo.id === videoId) {
+            setCurrentVideo(prev => ({ ...prev, completed: isCompleted }));
+          }
+          
+          setVideoStats(prev => {
+            const delta = isCompleted ? 1 : -1;
+            const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
+            const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
+            setCourseProgress(newProgress);
+            return { ...prev, completed: newCompleted };
+          });
+        });
     } catch (error) {
-      console.error('Error updating video watch status:', error);
+      console.error('Error handling video completion:', error);
     }
   };
 
-  // Hàm cập nhật tiến độ sau khi thay đổi trạng thái video
+  // Thay thế hàm cập nhật tiến độ bằng hàm mới tính toán tiến độ từ state
+  // Giữ lại hàm này để tương thích với các phần còn lại của code
   const updateProgressAfterVideoChange = (currentModules) => {
     let totalVideos = 0;
     let completedVideos = 0;
@@ -403,7 +500,8 @@ function CourseLearning() {
       });
     });
     
-    const newProgress = totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0;
+    setVideoStats({ total: totalVideos, completed: completedVideos });
+    const newProgress = Math.min(100, totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0);
     setCourseProgress(newProgress);
   };
 
@@ -527,7 +625,7 @@ function CourseLearning() {
       });
     });
     
-    return totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
+    return Math.min(100, totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0);
   };
 
   const formatDuration = (seconds) => {
