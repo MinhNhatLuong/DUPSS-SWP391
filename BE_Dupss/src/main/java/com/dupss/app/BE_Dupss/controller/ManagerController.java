@@ -7,9 +7,11 @@ import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import com.dupss.app.BE_Dupss.entity.Blog;
 import com.dupss.app.BE_Dupss.entity.Course;
 import com.dupss.app.BE_Dupss.entity.Survey;
+import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.BlogRepository;
 import com.dupss.app.BE_Dupss.respository.CourseRepository;
 import com.dupss.app.BE_Dupss.respository.SurveyRepo;
+import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.AdminService;
 import com.dupss.app.BE_Dupss.service.BlogService;
 import com.dupss.app.BE_Dupss.service.CourseService;
@@ -21,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,6 +46,7 @@ public class ManagerController {
     private final CourseRepository courseRepository;
     private final BlogRepository blogRepository;
     private final SurveyRepo surveyRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/dashboard")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -85,6 +90,7 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -110,6 +116,7 @@ public class ManagerController {
                         .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
+                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -134,6 +141,7 @@ public class ManagerController {
                         .createdAt(survey.getCreatedAt())
                         .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
+                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -160,6 +168,7 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -185,6 +194,7 @@ public class ManagerController {
                         .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
+                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -209,6 +219,7 @@ public class ManagerController {
                         .createdAt(survey.getCreatedAt())
                         .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
+                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -223,7 +234,15 @@ public class ManagerController {
     public ResponseEntity<?> approveCourse(@PathVariable Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         course.setStatus(ApprovalStatus.APPROVED);
+        course.setCheckedBy(currentUser);
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã được phê duyệt thành công"));
     }
@@ -237,7 +256,15 @@ public class ManagerController {
     public ResponseEntity<?> rejectCourse(@PathVariable Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         course.setStatus(ApprovalStatus.REJECTED);
+        course.setCheckedBy(currentUser);
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã bị từ chối"));
     }
@@ -251,7 +278,15 @@ public class ManagerController {
     public ResponseEntity<?> approveBlog(@PathVariable Long id) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         blog.setStatus(ApprovalStatus.APPROVED);
+        blog.setCheckedBy(currentUser);
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã được phê duyệt thành công"));
     }
@@ -265,7 +300,15 @@ public class ManagerController {
     public ResponseEntity<?> rejectBlog(@PathVariable Long id) {
         Blog blog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         blog.setStatus(ApprovalStatus.REJECTED);
+        blog.setCheckedBy(currentUser);
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã bị từ chối"));
     }
@@ -279,7 +322,15 @@ public class ManagerController {
     public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         survey.setStatus(ApprovalStatus.APPROVED);
+        survey.setCheckedBy(currentUser);
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
     }
@@ -293,7 +344,15 @@ public class ManagerController {
     public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+        
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        
         survey.setStatus(ApprovalStatus.REJECTED);
+        survey.setCheckedBy(currentUser);
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
     }

@@ -114,9 +114,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getAppointmentsByConsultantId(Long consultantId) {
-        Consultant consultant = consultantRepository.findById(consultantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
-        List<Appointment> appointments = appointmentRepository.findByConsultant(consultant);
+        Optional<Consultant> consultantOptional = consultantRepository.findById(consultantId);
+        if (consultantOptional.isEmpty()) {
+            return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
+        }
+        
+        List<Appointment> appointments = appointmentRepository.findByConsultant(consultantOptional.get());
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -224,14 +227,16 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getCompletedOrCanceledAppointmentsByConsultantId(Long consultantId) {
-        Consultant consultant = consultantRepository.findById(consultantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
+        Optional<Consultant> consultantOptional = consultantRepository.findById(consultantId);
+        if (consultantOptional.isEmpty()) {
+            return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
+        }
         
         // Danh sách các trạng thái cần lấy: COMPLETED và CANCELED
         List<String> statuses = List.of("COMPLETED", "CANCELED");
         
         // Lấy danh sách các cuộc hẹn có trạng thái là COMPLETED hoặc CANCELED
-        List<Appointment> appointments = appointmentRepository.findByConsultantAndStatusIn(consultant, statuses);
+        List<Appointment> appointments = appointmentRepository.findByConsultantAndStatusIn(consultantOptional.get(), statuses);
         
         return appointments.stream()
                 .map(this::mapToResponseDto)

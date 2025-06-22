@@ -24,4 +24,5 @@ public class CourseManagerResponse {
     private LocalDateTime updatedAt;
     private String topicName;
     private String creatorName;
+    private String checkedBy;
 } 
