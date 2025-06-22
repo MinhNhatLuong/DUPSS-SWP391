@@ -21,6 +21,7 @@ public class SurveyResponse {
     private String description;
     private String surveyImage;
     private boolean active;
+    private boolean forCourse;
     private LocalDateTime createdAt;
     private List<SurveySectionDTO> sections;
     private List<SurveyConditionDTO> conditions;

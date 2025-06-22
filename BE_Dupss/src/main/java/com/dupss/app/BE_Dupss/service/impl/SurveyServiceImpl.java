@@ -387,6 +387,7 @@ public class SurveyServiceImpl implements SurveyService {
                 .description(survey.getDescription())
                 .surveyImage(survey.getSurveyImage())
                 .active(survey.isActive())
+                .forCourse(survey.isForCourse())
                 .createdAt(survey.getCreatedAt())
                 .sections(survey.getSections().stream()
                         .map(section -> SurveyResponse.SurveySectionDTO.builder()
