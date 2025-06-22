@@ -21,7 +21,6 @@ import {
   AccountCircle,
   Logout,
   Settings,
-  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
@@ -48,8 +47,7 @@ const HeaderConsultant = ({ userName }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/consultant/dashboard' },
     { text: 'Lịch làm việc', icon: <CalendarMonthIcon />, path: '/consultant/schedule' },
-    { text: 'Booking Requests', icon: <AssignmentIcon />, path: '/consultant/requests' },
-    { text: 'Đăng ký thời gian tư vấn', icon: <AccessTimeIcon />, path: '/consultant/register-slots' },
+    { text: 'Yêu  cầu tư vấn', icon: <AssignmentIcon />, path: '/consultant/requests' },
     { text: 'Lịch sử', icon: <HistoryIcon />, path: '/consultant/history' },
   ];
 

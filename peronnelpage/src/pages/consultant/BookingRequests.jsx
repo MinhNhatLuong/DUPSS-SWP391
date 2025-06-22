@@ -65,7 +65,7 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
+      const response = await axios.get(`/api/appointments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -356,7 +356,7 @@ export default function BookingRequests() {
     <Box sx={{ p: 3, backgroundColor: '#f5f7fa', minHeight: 'calc(100vh - 64px)' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" fontWeight="bold" color="text.primary">
-          Yêu cầu tư vấn
+          Tất cả yêu cầu tư vấn đang chờ
         </Typography>
       </Box>
 
@@ -368,7 +368,7 @@ export default function BookingRequests() {
         </Grid>
       ) : requests.length === 0 ? (
         <Alert severity="warning" sx={{ mt: 2 }}>
-          Hiện tại, bạn đang chưa có yêu cầu tư vấn nào!
+          Hiện tại, không có yêu cầu tư vấn nào đang chờ xử lý trong hệ thống!
         </Alert>
       ) : (
         <>
