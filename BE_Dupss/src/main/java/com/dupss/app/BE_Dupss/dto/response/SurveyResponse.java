@@ -25,10 +25,6 @@ public class SurveyResponse {
     private LocalDateTime createdAt;
     private List<SurveySectionDTO> sections;
     private List<SurveyConditionDTO> conditions;
-    private ApprovalStatus status;
-    private String approvedByName;
-    private String rejectedByName;
-    private LocalDateTime approvalDate;
 
     @Data
     @Builder
