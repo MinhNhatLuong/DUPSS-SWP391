@@ -291,6 +291,7 @@ public class CourseEnrollmentService {
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
         return CourseEnrollmentResponse.builder()
+                .id(enrollment.getId())
                 .courseTitle(enrollment.getCourse().getTitle())
                 .username(enrollment.getUser().getUsername())
                 .enrollmentDate(enrollment.getEnrollmentDate())
