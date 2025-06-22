@@ -37,6 +37,16 @@ public class Course {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApprovalStatus status;
+    
+    @ManyToOne
+    @JoinColumn(name = "approved_by_id")
+    private User approvedBy;
+    
+    @ManyToOne
+    @JoinColumn(name = "rejected_by_id")
+    private User rejectedBy;
+    
+    private LocalDateTime approvalDate;
 
     @OneToOne
     @JoinColumn(name = "quiz_id")
