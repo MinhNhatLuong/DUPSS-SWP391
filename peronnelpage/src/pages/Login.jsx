@@ -158,6 +158,8 @@ const Login = ({ updateUserInfo }) => {
       navigate('/manager/dashboard');
     } else if (role.includes('ROLE_CONSULTANT') || role === 'consultant') {
       navigate('/consultant/dashboard');
+    } else if (role.includes('ROLE_STAFF') || role === 'staff') {
+      navigate('/staff/dashboard');
     } else if (role.includes('ROLE_MEMBER')) {
       // Không cho phép member đăng nhập vào hệ thống
       setError('Bạn không có quyền truy cập vào hệ thống này!');
