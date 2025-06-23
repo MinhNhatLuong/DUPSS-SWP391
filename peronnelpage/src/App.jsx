@@ -13,13 +13,14 @@ import HeaderConsultant from './layout/HeaderConsultant';
 import ConsultantDashboard from './pages/consultant/Dashboard';
 import Schedule from './pages/consultant/Schedule';
 import BookingRequests from './pages/consultant/BookingRequests';
-import ConsultantProfile from './pages/consultant/Profile';
+
 import History from './pages/consultant/History';
 import HeaderStaff from './layout/HeaderStaff';
 import StaffDashboard from './pages/staff/Dashboard';
 import CreateBlog from './pages/staff/CreateBlog';
 import CreateCourse from './pages/staff/CreateCourse';
 import CreateSurvey from './pages/staff/CreateSurvey';
+import ProfilePage from './pages/ProfilePage';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
@@ -125,6 +126,7 @@ function App() {
                   <main className="content">
                     <Routes>
                       <Route path="dashboard" element={<AdminPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
                       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -147,6 +149,7 @@ function App() {
                       <Route path="content-review" element={<ContentReview />} />
                       <Route path="history" element={<HistoryManager />} />
                       <Route path="topics" element={<Topic />} />
+                      <Route path="profile" element={<ProfilePage />} />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -167,7 +170,7 @@ function App() {
                       <Route path="dashboard" element={<ConsultantDashboard />} />
                       <Route path="schedule" element={<Schedule />} />
                       <Route path="requests" element={<BookingRequests />} />
-                      <Route path="profile" element={<ConsultantProfile />} />
+                      <Route path="profile" element={<ProfilePage />} />
                       <Route path="history" element={<History />} />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
                     </Routes>
@@ -190,7 +193,7 @@ function App() {
                       <Route path="create-blog" element={<CreateBlog />} />
                       <Route path="create-course" element={<CreateCourse />} />
                       <Route path="create-survey" element={<CreateSurvey />} />
-                      <Route path="profile" element={<ConsultantProfile />} />
+                      <Route path="profile" element={<ProfilePage />} />
                       <Route path="*" element={<Navigate to="/staff/dashboard" replace />} />
                     </Routes>
                   </main>

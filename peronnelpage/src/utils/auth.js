@@ -9,12 +9,8 @@ export const logout = async (callback) => {
     const accessToken = localStorage.getItem('accessToken');
     
     if (accessToken) {
-      // Gọi API logout
-      await axios.post('/api/auth/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
+      // Gọi API logout - truyền accessToken trong request body
+      await axios.post('/api/auth/logout', { accessToken });
     }
   } catch (error) {
     console.error('Logout error:', error);
