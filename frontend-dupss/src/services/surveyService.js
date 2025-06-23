@@ -19,6 +19,39 @@ export const fetchSurveyById = async (id) => {
     // Log API response để debug
     console.log('API response for survey:', JSON.stringify(data, null, 2));
     
+    // Sắp xếp các điều kiện để đảm bảo đánh giá chính xác
+    let sortedConditions = [];
+    
+    if (data.conditions && Array.isArray(data.conditions)) {
+      // Sắp xếp theo thứ tự ưu tiên: = trước, sau đó là >=, >, <=, <
+      // Trong mỗi nhóm toán tử, sắp xếp >=, > theo thứ tự giảm dần của giá trị
+      // và sắp xếp <=, < theo thứ tự tăng dần của giá trị
+      
+      // Nhóm điều kiện theo toán tử
+      const equalConditions = data.conditions.filter(c => c.operator === '=');
+      const gteConditions = data.conditions.filter(c => c.operator === '>=')
+        .sort((a, b) => b.value - a.value); // Sắp xếp giảm dần
+      const gtConditions = data.conditions.filter(c => c.operator === '>')
+        .sort((a, b) => b.value - a.value); // Sắp xếp giảm dần
+      const lteConditions = data.conditions.filter(c => c.operator === '<=')
+        .sort((a, b) => a.value - b.value); // Sắp xếp tăng dần
+      const ltConditions = data.conditions.filter(c => c.operator === '<')
+        .sort((a, b) => a.value - b.value); // Sắp xếp tăng dần
+      
+      // Kết hợp các nhóm điều kiện theo thứ tự ưu tiên
+      sortedConditions = [
+        ...equalConditions,
+        ...gteConditions,
+        ...gtConditions,
+        ...lteConditions,
+        ...ltConditions
+      ];
+      
+      console.log('Sorted conditions:', JSON.stringify(sortedConditions, null, 2));
+    } else {
+      sortedConditions = data.conditions || [];
+    }
+    
     // Chuyển đổi dữ liệu từ API để phù hợp với cấu trúc hiện tại
     const transformedData = {
       title: data.title,
@@ -35,7 +68,7 @@ export const fetchSurveyById = async (id) => {
           }))
         }))
       },
-      conditions: data.conditions
+      conditions: sortedConditions
     };
     
     console.log('Transformed survey data:', JSON.stringify(transformedData, null, 2));

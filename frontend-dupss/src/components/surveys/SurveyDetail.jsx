@@ -114,38 +114,43 @@ const SurveyDetail = () => {
       });
     });
 
-    // Find result message based on score
+    console.log('Total Score:', totalScore);
+    console.log('Conditions:', JSON.stringify(survey.conditions, null, 2));
+
+    // Find result message based on score - đánh giá theo thứ tự ưu tiên
     let resultMessage = null;
     
-    // Check conditions
+    // Điều kiện đã được sắp xếp theo thứ tự ưu tiên từ API service
+    // Chỉ cần lặp qua và tìm điều kiện đầu tiên phù hợp
     for (const condition of survey.conditions) {
-      if (condition.operator === '=') {
-        if (totalScore === condition.value) {
-          resultMessage = condition;
+      let isMatch = false;
+      
+      switch (condition.operator) {
+        case '=':
+          isMatch = totalScore === condition.value;
           break;
-        }
-      } else if (condition.operator === '<=') {
-        if (totalScore <= condition.value) {
-          resultMessage = condition;
+        case '>=':
+          isMatch = totalScore >= condition.value;
           break;
-        }
-      } else if (condition.operator === '>=') {
-        if (totalScore >= condition.value) {
-          resultMessage = condition;
+        case '>':
+          isMatch = totalScore > condition.value;
           break;
-        }
-      } else if (condition.operator === '<') {
-        if (totalScore < condition.value) {
-          resultMessage = condition;
+        case '<=':
+          isMatch = totalScore <= condition.value;
           break;
-        }
-      } else if (condition.operator === '>') {
-        if (totalScore > condition.value) {
-          resultMessage = condition;
+        case '<':
+          isMatch = totalScore < condition.value;
           break;
-        }
+      }
+      
+      if (isMatch) {
+        console.log(`Matched condition: ${condition.operator} ${condition.value} => ${condition.message}`);
+        resultMessage = condition;
+        break;
       }
     }
+
+    console.log('Final Result Message:', resultMessage);
 
     setResult({
       score: totalScore,

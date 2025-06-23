@@ -214,13 +214,13 @@ const CourseQuizResult = ({
                               let highlightColor = '';
                               
                               if (isPassed) {
-                                // If passed, show all correct/incorrect answers
+                                // If passed, show all correct answers and user selections
                                 showHighlight = isCorrect || isSelected;
-                                highlightColor = isCorrect ? '#4caf50' : '#f44336';
+                                highlightColor = isCorrect ? '#4caf50' : (isSelected ? '#f44336' : '');
                               } else {
-                                // If failed, only show the selected answer's correctness
+                                // If failed, only highlight what the user selected
                                 showHighlight = isSelected;
-                                highlightColor = isCorrect ? '#4caf50' : '#f44336';
+                                highlightColor = isSelected ? (isCorrect ? '#4caf50' : '#f44336') : '';
                               }
                               
                               return (
@@ -230,15 +230,40 @@ const CourseQuizResult = ({
                                     py: 0.5,
                                     bgcolor: showHighlight ? `${highlightColor}20` : 'transparent',
                                     borderLeft: showHighlight ? `4px solid ${highlightColor}` : 'none',
-                                    borderRadius: 1
+                                    borderRadius: 1,
+                                    position: 'relative',
+                                    pl: isSelected ? 4 : 2 // Thêm padding trái nếu là đáp án đã chọn
                                   }}
                                 >
+                                  {isSelected && (
+                                    <Box 
+                                      sx={{ 
+                                        position: 'absolute', 
+                                        left: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '18px',
+                                        color: highlightColor,
+                                        fontWeight: 'bold'
+                                      }}
+                                    >
+                                      ➤
+                                    </Box>
+                                  )}
                                   <ListItemText 
-                                    primary={option.optionText}
-                                    sx={{
-                                      color: showHighlight ? highlightColor : 'inherit',
-                                      fontWeight: isSelected ? 600 : 400
-                                    }}
+                                    primary={
+                                      <Typography
+                                        sx={{
+                                          color: showHighlight ? highlightColor : 'inherit',
+                                          fontWeight: isSelected ? 600 : 400,
+                                          display: 'flex',
+                                          alignItems: 'center'
+                                        }}
+                                      >
+                                        {option.optionText}
+                                      </Typography>
+                                    }
                                   />
                                 </ListItem>
                               );
