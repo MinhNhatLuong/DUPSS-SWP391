@@ -6,6 +6,7 @@ import Dashboard from './pages/manager/Dashboard';
 import EmployeeManagement from './pages/manager/EmployeeManagement';
 import ContentReview from './pages/manager/ContentReview';
 import Topic from './pages/manager/Topic';
+import HistoryManager from './pages/manager/HistoryManager';
 import Login from './pages/Login';
 import AdminPage from './pages/admin/AdminPage';
 import HeaderConsultant from './layout/HeaderConsultant';
@@ -144,6 +145,7 @@ function App() {
                       <Route path="dashboard" element={<Dashboard />} />
                       <Route path="employees" element={<EmployeeManagement />} />
                       <Route path="content-review" element={<ContentReview />} />
+                      <Route path="history" element={<HistoryManager />} />
                       <Route path="topics" element={<Topic />} />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
                     </Routes>

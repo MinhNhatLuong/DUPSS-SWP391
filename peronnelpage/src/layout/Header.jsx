@@ -28,6 +28,7 @@ const Header = ({ userName }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const userInfo = getUserInfo();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -37,11 +38,22 @@ const Header = ({ userName }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    // Sử dụng hàm logout từ auth.js và chuyển callback để điều hướng
-    logout(() => {
+  const handleLogout = async () => {
+    // Đặt trạng thái đang logout
+    setLoggingOut(true);
+    
+    try {
+      // Sử dụng hàm logout từ auth.js và chuyển callback để điều hướng
+      await logout(() => {
+        navigate('/login');
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Nếu có lỗi, vẫn chuyển hướng về trang login
       navigate('/login');
-    });
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   const menuItems = [
@@ -121,11 +133,11 @@ const Header = ({ userName }) => {
             Profile
           </MenuItem>
           <Divider />
-          <MenuItem onClick={handleLogout}>
+          <MenuItem onClick={handleLogout} disabled={loggingOut}>
             <ListItemIcon>
               <Logout fontSize="small" />
             </ListItemIcon>
-            Logout
+            {loggingOut ? 'Logging out...' : 'Logout'}
           </MenuItem>
         </Menu>
       </Toolbar>

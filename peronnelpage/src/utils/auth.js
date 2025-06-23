@@ -4,15 +4,30 @@ import axios from 'axios';
  * Xóa token khỏi localStorage và đăng xuất người dùng
  * @param {function} callback - Hàm callback sẽ được gọi sau khi đăng xuất (tùy chọn)
  */
-export const logout = (callback) => {
-  // Xóa tất cả token lưu trong localStorage
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('userInfo');
-  
-  // Gọi callback nếu có
-  if (typeof callback === 'function') {
-    callback();
+export const logout = async (callback) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    
+    if (accessToken) {
+      // Gọi API logout
+      await axios.post('/api/auth/logout', {}, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    // Xóa thông tin người dùng và token khỏi localStorage bất kể API call thành công hay thất bại
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userInfo');
+    
+    // Thực hiện callback để chuyển hướng người dùng
+    if (callback && typeof callback === 'function') {
+      callback();
+    }
   }
 };
 
