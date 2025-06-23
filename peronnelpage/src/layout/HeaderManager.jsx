@@ -21,6 +21,7 @@ import {
   Logout,
   Settings,
   Topic as TopicIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
@@ -29,6 +30,7 @@ const HeaderManager = ({ userName }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const userInfo = getUserInfo();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -38,17 +40,29 @@ const HeaderManager = ({ userName }) => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    // Sử dụng hàm logout từ auth.js và chuyển callback để điều hướng
-    logout(() => {
+  const handleLogout = async () => {
+    // Đặt trạng thái đang logout
+    setLoggingOut(true);
+    
+    try {
+      // Sử dụng hàm logout từ auth.js và chuyển callback để điều hướng
+      await logout(() => {
+        navigate('/login');
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Nếu có lỗi, vẫn chuyển hướng về trang login
       navigate('/login');
-    });
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/manager/dashboard' },
     { text: 'Nhân viên', icon: <PeopleIcon />, path: '/manager/employees' },
     { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
+    { text: 'History', icon: <HistoryIcon />, path: '/manager/history' },
     { text: 'Topics', icon: <TopicIcon />, path: '/manager/topics' },
   ];
 
@@ -125,11 +139,11 @@ const HeaderManager = ({ userName }) => {
             Profile
           </MenuItem>
           <Divider />
-          <MenuItem onClick={handleLogout}>
+          <MenuItem onClick={handleLogout} disabled={loggingOut}>
             <ListItemIcon>
               <Logout fontSize="small" />
             </ListItemIcon>
-            Logout
+            {loggingOut ? 'Logging out...' : 'Logout'}
           </MenuItem>
         </Menu>
       </Toolbar>

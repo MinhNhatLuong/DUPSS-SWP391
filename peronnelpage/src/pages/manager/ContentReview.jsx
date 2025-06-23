@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -16,36 +16,60 @@ import {
   TextField,
   Chip,
   Grid,
+  CircularProgress,
+  Alert,
+  Snackbar,
 } from '@mui/material';
-import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
-
-// Mock data for demonstration
-const mockContent = [
-  {
-    id: 1,
-    title: 'Introduction to React Hooks',
-    type: 'course',
-    author: 'John Doe',
-    status: 'pending',
-    createdAt: '2024-03-15',
-    content: 'This course covers the basics of React Hooks...',
-  },
-  {
-    id: 2,
-    title: 'Best Practices in UI Design',
-    type: 'blog',
-    author: 'Jane Smith',
-    status: 'pending',
-    createdAt: '2024-03-14',
-    content: 'Learn about the fundamental principles of UI design...',
-  },
-];
+import { Check as CheckIcon, Close as CloseIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import axios from 'axios';
 
 const ContentReview = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedContent, setSelectedContent] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [surveys, setSurveys] = useState([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [previewDialog, setPreviewDialog] = useState({ open: false, content: '' });
+  const [processingAction, setProcessingAction] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, [selectedTab]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      if (selectedTab === 0) {
+        const response = await axios.get('/api/manager/courses/pending', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCourses(response.data);
+      } else if (selectedTab === 1) {
+        const response = await axios.get('/api/manager/blogs/pending', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setBlogs(response.data);
+      } else if (selectedTab === 2) {
+        const response = await axios.get('/api/manager/surveys/pending', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSurveys(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err.response?.data?.message || err.message || 'Error fetching data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -54,25 +78,224 @@ const ContentReview = () => {
   const handleReview = (content) => {
     setSelectedContent(content);
     setOpenDialog(true);
-  };
-
-  const handleApprove = () => {
-    // TODO: Implement approval logic
-    console.log('Approving content:', selectedContent.id);
-    setOpenDialog(false);
     setComment('');
   };
 
-  const handleReject = () => {
-    // TODO: Implement rejection logic
-    console.log('Rejecting content:', selectedContent.id, 'with comment:', comment);
-    setOpenDialog(false);
-    setComment('');
+  const handleApprove = async () => {
+    setProcessingAction(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      let endpoint;
+
+      if (selectedTab === 0) {
+        // Course
+        endpoint = `/api/manager/courses/${selectedContent.id}/approve`;
+      } else if (selectedTab === 1) {
+        // Blog
+        endpoint = `/api/manager/blogs/${selectedContent.id}/approve`;
+      } else if (selectedTab === 2) {
+        // Survey
+        endpoint = `/api/manager/surveys/${selectedContent.surveyId}/approve`;
+      }
+
+      await axios.patch(endpoint, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      // Remove the approved item from the list
+      if (selectedTab === 0) {
+        setCourses(courses.filter(c => c.id !== selectedContent.id));
+      } else if (selectedTab === 1) {
+        setBlogs(blogs.filter(b => b.id !== selectedContent.id));
+      } else if (selectedTab === 2) {
+        setSurveys(surveys.filter(s => s.surveyId !== selectedContent.surveyId));
+      }
+
+      setSnackbar({
+        open: true,
+        message: 'Content approved successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error approving content:', err);
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || err.message || 'Error approving content',
+        severity: 'error'
+      });
+    } finally {
+      setOpenDialog(false);
+      setProcessingAction(false);
+    }
   };
 
-  const filteredContent = mockContent.filter(
-    (content) => content.type === (selectedTab === 0 ? 'course' : 'blog')
-  );
+  const handleReject = async () => {
+    if (!comment.trim()) {
+      setSnackbar({
+        open: true,
+        message: 'Comment is required for rejection',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    setProcessingAction(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      let endpoint;
+
+      if (selectedTab === 0) {
+        // Course
+        endpoint = `/api/manager/courses/${selectedContent.id}/reject`;
+      } else if (selectedTab === 1) {
+        // Blog
+        endpoint = `/api/manager/blogs/${selectedContent.id}/reject`;
+      } else if (selectedTab === 2) {
+        // Survey
+        endpoint = `/api/manager/surveys/${selectedContent.surveyId}/reject`;
+      }
+
+      await axios.patch(endpoint, { comment }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+      });
+
+      // Remove the rejected item from the list
+      if (selectedTab === 0) {
+        setCourses(courses.filter(c => c.id !== selectedContent.id));
+      } else if (selectedTab === 1) {
+        setBlogs(blogs.filter(b => b.id !== selectedContent.id));
+      } else if (selectedTab === 2) {
+        setSurveys(surveys.filter(s => s.surveyId !== selectedContent.surveyId));
+      }
+
+      setSnackbar({
+        open: true,
+        message: 'Content rejected successfully',
+        severity: 'info'
+      });
+    } catch (err) {
+      console.error('Error rejecting content:', err);
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || err.message || 'Error rejecting content',
+        severity: 'error'
+      });
+    } finally {
+      setOpenDialog(false);
+      setProcessingAction(false);
+    }
+  };
+
+  const handlePreviewBlog = (content) => {
+    setPreviewDialog({
+      open: true,
+      content: content.content
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getContentByType = () => {
+    if (selectedTab === 0) {
+      return courses;
+    } else if (selectedTab === 1) {
+      return blogs;
+    } else {
+      return surveys;
+    }
+  };
+
+  const renderContent = () => {
+    const content = getContentByType();
+
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      );
+    }
+
+    if (content.length === 0) {
+      return (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          No pending {selectedTab === 0 ? 'courses' : selectedTab === 1 ? 'blogs' : 'surveys'} to review.
+        </Alert>
+      );
+    }
+
+    return (
+      <Grid container spacing={3}>
+        {content.map((item) => {
+          const isSurvey = selectedTab === 2;
+          const id = isSurvey ? item.surveyId : item.id;
+          const title = isSurvey ? item.surveyTitle : item.title;
+          const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
+          const createdAt = formatDate(item.createdAt);
+          
+          return (
+            <Grid item xs={12} md={6} lg={4} key={id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" gutterBottom noWrap>
+                    {title}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Author: {authorName}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Created: {createdAt}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 2, mb: 2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                    {item.description}
+                  </Typography>
+                  <Chip
+                    label={item.status}
+                    color="warning"
+                    size="small"
+                  />
+                </CardContent>
+                <CardActions>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => handleReview(item)}
+                  >
+                    Review
+                  </Button>
+                  {selectedTab === 1 && (
+                    <Button
+                      size="small"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewBlog(item)}
+                    >
+                      Preview
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+    );
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -89,80 +312,95 @@ const ContentReview = () => {
         >
           <Tab label="Courses" />
           <Tab label="Blogs" />
+          <Tab label="Surveys" />
         </Tabs>
       </Paper>
 
-      <Grid container spacing={3}>
-        {filteredContent.map((content) => (
-          <Grid item xs={12} md={6} key={content.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {content.title}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Author: {content.author}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Created: {content.createdAt}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 2 }}>
-                  {content.content}
-                </Typography>
-                <Chip
-                  label={content.status}
-                  color={content.status === 'pending' ? 'warning' : 'default'}
-                  size="small"
-                  sx={{ mt: 2 }}
-                />
-              </CardContent>
-              <CardActions>
-                <Button
-                  startIcon={<CheckIcon />}
-                  color="success"
-                  onClick={() => handleReview(content)}
-                >
-                  Approve
-                </Button>
-                <Button
-                  startIcon={<CloseIcon />}
-                  color="error"
-                  onClick={() => handleReview(content)}
-                >
-                  Reject
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {renderContent()}
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      {/* Review Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={() => !processingAction && setOpenDialog(false)} 
+        maxWidth="md" 
+        fullWidth
+      >
         <DialogTitle>
-          Review Content: {selectedContent?.title}
+          Review {selectedTab === 0 ? 'Course' : selectedTab === 1 ? 'Blog' : 'Survey'}: {selectedContent?.title || selectedContent?.surveyTitle}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body1" gutterBottom>
-              {selectedContent?.content}
-            </Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Comments (required for rejection)"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              sx={{ mt: 2 }}
-            />
-          </Box>
+        <DialogContent dividers>
+          {selectedContent && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                <strong>Author:</strong> {selectedTab === 0 ? selectedContent.creatorName : 
+                  selectedTab === 1 ? selectedContent.authorName : selectedContent.createdBy}
+              </Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                <strong>Created at:</strong> {formatDate(selectedContent.createdAt)}
+              </Typography>
+              {selectedTab === 0 && (
+                <Typography variant="subtitle1" gutterBottom>
+                  <strong>Topic:</strong> {selectedContent.topicName}
+                </Typography>
+              )}
+              {selectedTab === 1 && (
+                <Typography variant="subtitle1" gutterBottom>
+                  <strong>Topic:</strong> {selectedContent.topic}
+                </Typography>
+              )}
+              
+              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Description</Typography>
+              <Typography variant="body1" paragraph>
+                {selectedContent.description}
+              </Typography>
+              
+              {selectedTab === 0 && (
+                <>
+                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Content</Typography>
+                  <Typography variant="body1">
+                    {selectedContent.content}
+                  </Typography>
+                </>
+              )}
+              
+              {selectedTab === 1 && (
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => handlePreviewBlog(selectedContent)}
+                    sx={{ mb: 2 }}
+                  >
+                    Preview Blog Content
+                  </Button>
+                </Box>
+              )}
+              
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Comments (required for rejection)"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                sx={{ mt: 2 }}
+                disabled={processingAction}
+              />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={() => setOpenDialog(false)}
+            disabled={processingAction}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleReject}
             color="error"
-            disabled={!comment}
+            disabled={!comment.trim() || processingAction}
+            startIcon={processingAction ? <CircularProgress size={20} /> : <CloseIcon />}
           >
             Reject
           </Button>
@@ -170,11 +408,51 @@ const ContentReview = () => {
             onClick={handleApprove}
             color="success"
             variant="contained"
+            disabled={processingAction}
+            startIcon={processingAction ? <CircularProgress size={20} /> : <CheckIcon />}
           >
             Approve
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Blog Preview Dialog */}
+      <Dialog
+        open={previewDialog.open}
+        onClose={() => setPreviewDialog({ ...previewDialog, open: false })}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          Blog Preview
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ mt: 1 }}>
+            <div dangerouslySetInnerHTML={{ __html: previewDialog.content }} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewDialog({ ...previewDialog, open: false })}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
