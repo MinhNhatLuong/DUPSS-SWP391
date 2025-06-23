@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -28,8 +28,29 @@ const HeaderStaff = ({ userName }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const userInfo = getUserInfo();
+  const [userInfo, setUserInfo] = useState(getUserInfo());
   const [loggingOut, setLoggingOut] = useState(false);
+  
+  // Listen for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = (event) => {
+      // Update the user info from the event data
+      const updatedInfo = event.detail;
+      setUserInfo(prevInfo => ({
+        ...prevInfo,
+        fullName: updatedInfo.fullName || prevInfo?.fullName,
+        avatar: updatedInfo.avatar || prevInfo?.avatar
+      }));
+    };
+    
+    // Add event listener
+    document.addEventListener('user-profile-updated', handleProfileUpdate);
+    
+    // Clean up the event listener when component unmounts
+    return () => {
+      document.removeEventListener('user-profile-updated', handleProfileUpdate);
+    };
+  }, []);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
