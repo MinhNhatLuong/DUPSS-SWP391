@@ -5,6 +5,7 @@ import {
   Paper, 
   Typography, 
   Card, 
+  CardHeader,
   CardContent,
   Button,
   Menu,
@@ -15,7 +16,14 @@ import {
   Tooltip,
   Chip,
   Stack,
-  useTheme
+  useTheme,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Badge
 } from '@mui/material';
 import { 
   BarChart, 
@@ -30,98 +38,119 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  AreaChart,
-  Area
+  Cell
 } from 'recharts';
 import { 
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  Assignment as AssignmentIcon,
   People as PeopleIcon,
   School as SchoolIcon,
+  Article as ArticleIcon,
   Poll as PollIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon,
+  Notifications as NotificationsIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  FactCheck as FactCheckIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-
-// Mock data - sẽ được thay thế bằng dữ liệu thực từ API
-const mockData = {
-  enrollments: [
-    { month: 'Jan', enrollments: 65, courses: 40, surveys: 25 },
-    { month: 'Feb', enrollments: 59, courses: 35, surveys: 24 },
-    { month: 'Mar', enrollments: 80, courses: 50, surveys: 30 },
-    { month: 'Apr', enrollments: 81, courses: 52, surveys: 29 },
-    { month: 'May', enrollments: 56, courses: 35, surveys: 21 },
-    { month: 'Jun', enrollments: 55, courses: 34, surveys: 21 },
-    { month: 'Jul', enrollments: 70, courses: 45, surveys: 25 },
-    { month: 'Aug', enrollments: 90, courses: 60, surveys: 30 },
-    { month: 'Sep', enrollments: 110, courses: 75, surveys: 35 },
-    { month: 'Oct', enrollments: 95, courses: 65, surveys: 30 },
-    { month: 'Nov', enrollments: 85, courses: 55, surveys: 30 },
-    { month: 'Dec', enrollments: 100, courses: 65, surveys: 35 },
-  ],
-  
-  contentDistribution: [
-    { name: 'Courses', value: 45, color: '#0088FE' },
-    { name: 'Blogs', value: 30, color: '#00C49F' },
-    { name: 'Surveys', value: 25, color: '#FFBB28' },
-  ],
-  
-  userActivity: [
-    { name: 'Mon', visitors: 120, activeUsers: 80 },
-    { name: 'Tue', visitors: 140, activeUsers: 95 },
-    { name: 'Wed', visitors: 160, activeUsers: 110 },
-    { name: 'Thu', visitors: 150, activeUsers: 105 },
-    { name: 'Fri', visitors: 170, activeUsers: 120 },
-    { name: 'Sat', visitors: 190, activeUsers: 130 },
-    { name: 'Sun', visitors: 210, activeUsers: 150 },
-  ],
-  
-  appointmentStatus: [
-    { name: 'Completed', value: 63, color: '#4caf50' },
-    { name: 'Pending', value: 22, color: '#ff9800' },
-    { name: 'Cancelled', value: 15, color: '#f44336' },
-  ]
-};
+import { useNavigate } from 'react-router-dom';
+import { format, subDays, subMonths, parseISO } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const Dashboard = () => {
   const theme = useTheme();
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [data, setData] = useState(mockData);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [stats, setStats] = useState({
-    totalEnrollments: 1234,
-    certificatesIssued: 856,
-    surveyParticipation: 92,
-    pendingReviews: 12,
-    totalUsers: 2500,
-    completedAppointments: 328,
-    totalCourses: 45,
-    totalBlogs: 72
-  });
+  
+  // State for data from API
+  const [staffCount, setStaffCount] = useState(0);
+  const [consultantCount, setConsultantCount] = useState(0);
+  const [surveysStats, setSurveysStats] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [coursesStats, setCoursesStats] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [blogsStats, setBlogsStats] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [surveysCreatedDaily, setSurveysCreatedDaily] = useState([]);
+  const [coursesCreatedMonthly, setCoursesCreatedMonthly] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [newReportsCount, setNewReportsCount] = useState(0);
 
   useEffect(() => {
-    // Mô phỏng tải dữ liệu khi component mount
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    
-    // Thực tế sẽ gọi API ở đây
-    // fetchDashboardData();
+    fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Thay thế bằng các API thực tế
-      // const response = await axios.get('/api/manager/dashboard');
-      // setData(response.data);
-      // setStats(response.data.stats);
+      // Using Promise.all to fetch data in parallel
+      const [
+        staffResponse,
+        consultantsResponse,
+        surveysAllResponse,
+        surveysPendingResponse,
+        coursesAllResponse,
+        coursesPendingResponse,
+        blogsAllResponse,
+        blogsPendingResponse,
+        activitiesResponse,
+        reportsResponse
+      ] = await Promise.all([
+        axios.get('/api/manager/staff'),
+        axios.get('/api/manager/consultants'),
+        axios.get('/api/manager/surveys/all'),
+        axios.get('/api/manager/surveys/pending'),
+        axios.get('/api/manager/courses/all'),
+        axios.get('/api/manager/courses/pending'),
+        axios.get('/api/manager/blogs/all'),
+        axios.get('/api/manager/blogs/pending'),
+        axios.get('/api/manager/activities?limit=10'),
+        axios.get('/api/manager/reports')
+      ]);
+
+      // Process staff & consultants count
+      setStaffCount(staffResponse.data.length);
+      setConsultantCount(consultantsResponse.data.length);
+
+      // Process surveys stats
+      const allSurveys = surveysAllResponse.data;
+      const pendingSurveys = surveysPendingResponse.data;
+      setSurveysStats({
+        pending: pendingSurveys.length,
+        approved: allSurveys.filter(s => s.status === 'APPROVED').length,
+        rejected: allSurveys.filter(s => s.status === 'REJECTED').length
+      });
+
+      // Process courses stats
+      const allCourses = coursesAllResponse.data;
+      const pendingCourses = coursesPendingResponse.data;
+      setCoursesStats({
+        pending: pendingCourses.length,
+        approved: allCourses.filter(c => c.status === 'APPROVED').length,
+        rejected: allCourses.filter(c => c.status === 'REJECTED').length
+      });
+
+      // Process blogs stats
+      const allBlogs = blogsAllResponse.data;
+      const pendingBlogs = blogsPendingResponse.data;
+      setBlogsStats({
+        pending: pendingBlogs.length,
+        approved: allBlogs.filter(b => b.status === 'APPROVED').length,
+        rejected: allBlogs.filter(b => b.status === 'REJECTED').length
+      });
+
+      // Process activities
+      setRecentActivities(activitiesResponse.data);
+
+      // Process reports count
+      setNewReportsCount(reportsResponse.data.filter(r => r.status === 'NEW').length);
+
+      // Generate surveys created daily data for last 30 days
+      generateSurveysCreatedDailyData(allSurveys);
+
+      // Generate courses created monthly data for last 6 months
+      generateCoursesCreatedMonthlyData(allCourses);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -129,12 +158,66 @@ const Dashboard = () => {
     }
   };
 
-  const handleRefresh = () => {
+  // Generate daily survey creation data for the last 30 days
+  const generateSurveysCreatedDailyData = (surveys) => {
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = subDays(new Date(), i);
+      return {
+        date: format(date, 'dd/MM'),
+        fullDate: date,
+        count: 0
+      };
+    }).reverse();
+
+    // Count surveys created on each day
+    surveys.forEach(survey => {
+      const createdAt = parseISO(survey.createdAt);
+      const dayIndex = last30Days.findIndex(day => 
+        format(day.fullDate, 'dd/MM') === format(createdAt, 'dd/MM')
+      );
+      if (dayIndex !== -1) {
+        last30Days[dayIndex].count++;
+      }
+    });
+
+    setSurveysCreatedDaily(last30Days.map(day => ({
+      date: day.date,
+      count: day.count
+    })));
+  };
+
+  // Generate monthly course creation data for the last 6 months
+  const generateCoursesCreatedMonthlyData = (courses) => {
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const date = subMonths(new Date(), i);
+      return {
+        month: format(date, 'MMM', { locale: vi }),
+        fullDate: date,
+        count: 0
+      };
+    }).reverse();
+
+    // Count courses created in each month
+    courses.forEach(course => {
+      const createdAt = parseISO(course.createdAt);
+      const monthIndex = last6Months.findIndex(month => 
+        format(month.fullDate, 'MM/yyyy') === format(createdAt, 'MM/yyyy')
+      );
+      if (monthIndex !== -1) {
+        last6Months[monthIndex].count++;
+      }
+    });
+
+    setCoursesCreatedMonthly(last6Months.map(month => ({
+      month: month.month,
+      count: month.count
+    })));
+  };
+
+  const handleRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-    // fetchDashboardData();
+    await fetchDashboardData();
+    setRefreshing(false);
   };
 
   const handleExportClick = (event) => {
@@ -146,19 +229,20 @@ const Dashboard = () => {
   };
 
   const handleExport = (format) => {
-    // Thực hiện xuất báo cáo
     console.log(`Exporting to ${format}`);
-    // Thực tế sẽ gọi API để xuất báo cáo
-    // window.location.href = `/api/manager/reports/export?format=${format}`;
     handleExportClose();
   };
 
-  // Card hiển thị thống kê với biểu tượng và phần trăm thay đổi
-  const StatCard = ({ title, value, icon, change, color }) => (
-    <Card sx={{ height: '100%', boxShadow: 2, borderRadius: 1 }}>
+  const handleViewReports = () => {
+    navigate('/manager/reports');
+  };
+
+  // Card component for displaying counts with icons
+  const StatCard = ({ title, value, icon, color }) => (
+    <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography color="textSecondary" variant="body2">
+          <Typography color="textSecondary" variant="body1" fontWeight={500}>
             {title}
           </Typography>
           <Box sx={{ 
@@ -169,22 +253,81 @@ const Dashboard = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            {icon}
+            {React.cloneElement(icon, { sx: { color: 'white' } })}
           </Box>
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           {value}
         </Typography>
-        {change !== undefined && (
-          <Chip 
-            icon={change >= 0 ? <TrendingUpIcon fontSize="small" /> : <TrendingDownIcon fontSize="small" />}
-            label={`${Math.abs(change).toFixed(1)}%`}
-            color={change >= 0 ? 'success' : 'error'}
-            size="small"
-          />
-        )}
       </CardContent>
     </Card>
+  );
+
+  // Card component for displaying status statistics
+  const StatusCard = ({ title, stats, icon, colors, total }) => (
+    <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Typography color="textSecondary" variant="body1" fontWeight={500}>
+            {title}
+          </Typography>
+          <Box sx={{ 
+            p: 1, 
+            borderRadius: '50%', 
+            backgroundColor: theme.palette.primary.main, 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {React.cloneElement(icon, { sx: { color: 'white' } })}
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+            {total}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-around', gap: 1 }}>
+          <Chip 
+            icon={<CheckIcon />} 
+            label={`${stats.approved} Approved`} 
+            color="success" 
+            variant="outlined"
+            sx={{ flexGrow: 1, justifyContent: 'center' }}
+          />
+          <Chip 
+            icon={<CloseIcon />} 
+            label={`${stats.rejected} Rejected`} 
+            color="error" 
+            variant="outlined"
+            sx={{ flexGrow: 1, justifyContent: 'center' }}
+          />
+          <Chip 
+            icon={<PendingIcon />} 
+            label={`${stats.pending} Pending`} 
+            color="warning" 
+            variant="outlined"
+            sx={{ flexGrow: 1, justifyContent: 'center' }}
+          />
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  // Add the PendingIcon component that was missing
+  const PendingIcon = () => (
+    <Box
+      component="span"
+      sx={{
+        width: 24,
+        height: 24,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <span style={{ fontWeight: 'bold' }}>...</span>
+    </Box>
   );
 
   if (loading) {
@@ -227,196 +370,211 @@ const Dashboard = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={2}>
-        {/* Thẻ thống kê hàng đầu - tương tự như hình ảnh */}
-        <Grid item xs={12} md={3}>
+      <Grid container spacing={3}>
+        {/* Staff and Consultant Count Cards */}
+        <Grid item xs={12} md={6} lg={3}>
           <StatCard 
-            title="Total Enrollments" 
-            value={stats.totalEnrollments} 
-            icon={<SchoolIcon sx={{ color: 'white' }} />}
-            change={5.2}
+            title="Total Staff" 
+            value={staffCount} 
+            icon={<PeopleIcon />}
             color="primary"
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={6} lg={3}>
           <StatCard 
-            title="Certificates Issued" 
-            value={stats.certificatesIssued} 
-            icon={<AssignmentIcon sx={{ color: 'white' }} />}
-            change={3.8}
+            title="Total Consultants" 
+            value={consultantCount} 
+            icon={<PeopleIcon />}
             color="success"
           />
         </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard 
-            title="Survey Participation" 
-            value={`${stats.surveyParticipation}%`} 
-            icon={<PollIcon sx={{ color: 'white' }} />}
-            change={-1.4}
-            color="warning"
+
+        {/* Reports Quick-Link Card */}
+        <Grid item xs={12} md={6} lg={6}>
+          <Card sx={{ height: '100%', boxShadow: 3, borderRadius: 2 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Badge badgeContent={newReportsCount} color="error" 
+                    sx={{ '& .MuiBadge-badge': { fontSize: '1rem', height: '1.5rem', minWidth: '1.5rem' } }}>
+                    <FactCheckIcon sx={{ fontSize: '2rem', color: theme.palette.warning.main, mr: 2 }} />
+                  </Badge>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      New Reports
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {newReportsCount} reports require your attention
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button 
+                  variant="contained" 
+                  color="warning" 
+                  endIcon={<ArrowForwardIcon />}
+                  onClick={handleViewReports}
+                >
+                  View Reports
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Content Status Cards */}
+        <Grid item xs={12} md={4}>
+          <StatusCard 
+            title="Surveys" 
+            stats={surveysStats} 
+            icon={<PollIcon />}
+            colors={{
+              approved: 'success',
+              rejected: 'error',
+              pending: 'warning'
+            }}
+            total={surveysStats.approved + surveysStats.rejected + surveysStats.pending}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard 
-            title="Pending Reviews" 
-            value={stats.pendingReviews} 
-            icon={<AssessmentIcon sx={{ color: 'white' }} />}
-            change={-8.5}
-            color="error"
+        <Grid item xs={12} md={4}>
+          <StatusCard 
+            title="Courses" 
+            stats={coursesStats} 
+            icon={<SchoolIcon />}
+            colors={{
+              approved: 'success',
+              rejected: 'error',
+              pending: 'warning'
+            }}
+            total={coursesStats.approved + coursesStats.rejected + coursesStats.pending}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatusCard 
+            title="Blogs" 
+            stats={blogsStats} 
+            icon={<ArticleIcon />}
+            colors={{
+              approved: 'success',
+              rejected: 'error',
+              pending: 'warning'
+            }}
+            total={blogsStats.approved + blogsStats.rejected + blogsStats.pending}
           />
         </Grid>
 
-        {/* Biểu đồ enrollment - làm cho nó lớn hơn, chiếm toàn bộ chiều rộng màn hình */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 3, borderRadius: 1, boxShadow: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Monthly Enrollments & Content
+        {/* Charts */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Surveys Created (Last 30 Days)
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={data.enrollments}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={surveysCreatedDaily}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <RechartsTooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  name="Surveys Created" 
+                  stroke={theme.palette.primary.main} 
+                  strokeWidth={2} 
+                  dot={{ r: 3 }} 
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Courses Created (Last 6 Months)
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={coursesCreatedMonthly}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
                 <RechartsTooltip />
-                <Legend />
-                <Bar dataKey="enrollments" name="Total Enrollments" fill="#1976d2" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="courses" name="Course Enrollments" fill="#4caf50" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="surveys" name="Survey Participants" fill="#ff9800" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  name="Courses Created" 
+                  stroke={theme.palette.success.main} 
+                  strokeWidth={2} 
+                  dot={{ r: 3 }} 
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
           </Paper>
         </Grid>
-
-        {/* Thống kê phụ - bố trí theo hàng ngang */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 1, boxShadow: 2, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Content Distribution
+        
+        {/* Recent Activities */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Recent Manager Activities
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data.contentDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {data.contentDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip formatter={(value, name) => [`${value}%`, name]} />
-                </PieChart>
-              </ResponsiveContainer>
-              <Box sx={{ width: '100%', mt: 2 }}>
-                {data.contentDistribution.map((entry) => (
-                  <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box 
-                      component="span" 
-                      sx={{ 
-                        width: 12, 
-                        height: 12, 
-                        borderRadius: '50%', 
-                        backgroundColor: entry.color,
-                        display: 'inline-block',
-                        mr: 1
-                      }} 
-                    />
-                    <Typography variant="body2" sx={{ flexGrow: 1 }}>{entry.name}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{entry.value}%</Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 1, boxShadow: 2, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Weekly User Activity
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={data.userActivity}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <RechartsTooltip />
-                <Legend />
-                <Area 
-                  type="monotone" 
-                  dataKey="visitors" 
-                  name="Total Visitors" 
-                  stroke="#1976d2" 
-                  fill="#1976d2" 
-                  fillOpacity={0.2}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="activeUsers" 
-                  name="Active Users" 
-                  stroke="#4caf50" 
-                  fill="#4caf50" 
-                  fillOpacity={0.2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 1, boxShadow: 2, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Appointment Status
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data.appointmentStatus}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {data.appointmentStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip formatter={(value, name) => [`${value}%`, name]} />
-                </PieChart>
-              </ResponsiveContainer>
-              <Box sx={{ width: '100%', mt: 2 }}>
-                {data.appointmentStatus.map((entry) => (
-                  <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box 
-                      component="span" 
-                      sx={{ 
-                        width: 12, 
-                        height: 12, 
-                        borderRadius: '50%', 
-                        backgroundColor: entry.color,
-                        display: 'inline-block',
-                        mr: 1
-                      }} 
-                    />
-                    <Typography variant="body2" sx={{ flexGrow: 1 }}>{entry.name}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{entry.value}%</Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date & Time</TableCell>
+                    <TableCell>User</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Action</TableCell>
+                    <TableCell>Target ID</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentActivities.length > 0 ? (
+                    recentActivities.map((activity, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{format(parseISO(activity.timestamp), 'dd/MM/yyyy HH:mm')}</TableCell>
+                        <TableCell>{activity.userName}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={activity.type} 
+                            size="small"
+                            color={
+                              activity.type === 'COURSE' ? 'primary' :
+                              activity.type === 'BLOG' ? 'secondary' :
+                              'default'
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={activity.action}
+                            size="small"
+                            color={
+                              activity.action === 'APPROVE' ? 'success' :
+                              activity.action === 'REJECT' ? 'error' :
+                              'default'
+                            }
+                            icon={activity.action === 'APPROVE' ? <CheckIcon /> : <CloseIcon />}
+                          />
+                        </TableCell>
+                        <TableCell>{activity.targetId}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No recent activities
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Paper>
         </Grid>
       </Grid>
