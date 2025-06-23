@@ -35,7 +35,7 @@ public class User implements UserDetails {
     private String fullname;
     private String avatar;
     private String gender;
-    private Date yob;
+    private LocalDate yob;
     @Column(nullable = false)
     private String email;
     private String phone;

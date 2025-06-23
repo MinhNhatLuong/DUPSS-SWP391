@@ -23,4 +23,5 @@ public class BlogManagerResponse {
     private LocalDate updatedAt;
     private ApprovalStatus status;
     private String tags;
+    private String checkedBy;
 } 

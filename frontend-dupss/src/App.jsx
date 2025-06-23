@@ -14,6 +14,7 @@ import CoursesList from './components/courses/CoursesList';
 import CourseDetail from './components/courses/CourseDetail';
 import CourseLearning from './components/courses/CourseLearning';
 import CourseCertificate from './components/courses/CourseCertificate';
+import CourseQuiz from './components/courses/CourseQuiz';
 import SurveysList from './components/surveys/SurveysList';
 import SurveyDetail from './components/surveys/SurveyDetail';
 import AlertNotification from './components/common/AlertNotification';
@@ -82,6 +83,11 @@ function App() {
         <Route path="/courses/:id/learn" element={
           <Layout>
             <CourseLearning />
+          </Layout>
+        } />
+        <Route path="/courses/:id/quiz" element={
+          <Layout>
+            <CourseQuiz />
           </Layout>
         } />
         <Route path="/courses/:courseId/cert/:userId" element={

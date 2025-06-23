@@ -14,4 +14,5 @@ public class SurveySummaryResponse {
     private String surveyTitle;
     private String description;
     private String surveyImage;
+    private boolean forCourse;
 }

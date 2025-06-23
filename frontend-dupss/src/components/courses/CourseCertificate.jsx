@@ -1,39 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Typography, Button, Alert, Container, Paper } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Typography, Button, Alert, Container, Paper, CircularProgress } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
+import axios from 'axios';
+import { showErrorAlert } from '../common/AlertNotification';
 
 const CourseCertificate = () => {
   const { courseId, userId } = useParams();
+  const navigate = useNavigate();
   const [certificate, setCertificate] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showAlert, setShowAlert] = useState(false);
   const certificateRef = useRef(null);
 
-  // Mock data - sẽ thay thế bằng API call sau này
   useEffect(() => {
-    // Đây là dữ liệu giả
-    const mockData = {
-      courseTitle: "Kỹ Năng Từ Chối Ma Túy Trong Cuộc Sống Hằng Ngày",
-      userFullname: "Nguyễn Văn A"
+    const fetchCertificateData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://localhost:8080/api/public/course/${courseId}/cert/${userId}`);
+        setCertificate(response.data);
+      } catch (error) {
+        console.error("Error fetching certificate data:", error);
+        if (error.response && error.response.status === 400) {
+          showErrorAlert("Chứng chỉ không tồn tại!");
+          // Chuyển hướng về trang khóa học sau 3 giây
+          setTimeout(() => {
+            navigate(`/courses/${courseId}`);
+          }, 3000);
+        } else {
+          showErrorAlert("Đã xảy ra lỗi khi tải chứng chỉ. Vui lòng thử lại sau!");
+        }
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setCertificate(mockData);
-    
-    // Trong tương lai, sẽ gọi API ở đây
-    // const fetchCertificateData = async () => {
-    //   try {
-    //     const response = await fetch(`/api/courses/${courseId}/certificate/${userId}`);
-    //     const data = await response.json();
-    //     setCertificate(data);
-    //   } catch (error) {
-    //     console.error("Error fetching certificate data:", error);
-    //   }
-    // };
-    // 
-    // fetchCertificateData();
-  }, [courseId, userId]);
+    fetchCertificateData();
+  }, [courseId, userId, navigate]);
 
   // Xử lý tải xuống chứng chỉ
   const handleDownload = () => {
@@ -58,8 +63,28 @@ const CourseCertificate = () => {
     setTimeout(() => setShowAlert(false), 3000);
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   if (!certificate) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Đang tải...</Typography></Box>;
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography>Không tìm thấy chứng chỉ hoặc đã xảy ra lỗi.</Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          sx={{ mt: 2 }}
+          onClick={() => navigate(`/courses/${courseId}`)}
+        >
+          Quay lại khóa học
+        </Button>
+      </Box>
+    );
   }
 
   // Tính toán fontSize dựa vào độ dài của tên khóa học
@@ -128,7 +153,7 @@ const CourseCertificate = () => {
               fontSize: '2rem'
             }}
           >
-            {certificate.userFullname}
+            {certificate.username}
           </Typography>
           
           <Typography 

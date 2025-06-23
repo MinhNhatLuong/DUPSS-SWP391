@@ -15,10 +15,10 @@ public class CourseUpdateRequest {
     private String title;
     private String description;
     private Long topicId;
-    private String targetAudience;
     private MultipartFile coverImage;
     private String content;
     private Integer duration;
     private ApprovalStatus status;
     private List<CourseModuleRequest> modules;
+    private SurveyCreateRequest quiz;
 }

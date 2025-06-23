@@ -48,6 +48,10 @@ public class Course {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+    
+    @ManyToOne
+    @JoinColumn(name = "checked_by_id")
+    private User checkedBy;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

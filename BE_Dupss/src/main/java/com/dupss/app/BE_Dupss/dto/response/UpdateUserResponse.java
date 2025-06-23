@@ -22,7 +22,7 @@ public class UpdateUserResponse {
     private String username;
     private String fullname;
     private String avatar;
-    private Date yob;
+    private LocalDate yob;
     private String gender;
 
     private String email;

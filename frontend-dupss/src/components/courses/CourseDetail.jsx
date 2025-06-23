@@ -232,13 +232,20 @@ function CourseDetail() {
   
   // Handle certificate button click
   const handleCertificateClick = () => {
-    if (!userId) {
+    // Lấy userId từ token JWT thông qua hàm getUserData
+    const userInfo = getUserData();
+    
+    console.log('User info from JWT:', userInfo);
+    
+    if (!userInfo || !userInfo.id) {
       showAlert('Vui lòng đăng nhập để xem chứng chỉ', 'error');
       return;
     }
     
+    console.log('Final User ID for certificate:', userInfo.id);
+    
     // Điều hướng đến trang chứng chỉ với courseId và userId
-    navigate(`/courses/${id}/cert/${userId}`);
+    navigate(`/courses/${id}/cert/${userInfo.id}`);
   };
 
   // Get button text based on enrollment status

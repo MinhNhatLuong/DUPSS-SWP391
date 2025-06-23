@@ -173,8 +173,7 @@ public class CourseEnrollmentService {
 
         if (totalVideos == 0) throw new RuntimeException("Khóa học này không có video nào");
 
-        double videoProgress = (watchedVideos * 1.0) / totalVideos;
-        double progress = videoProgress * 80.0;
+        double progress = (watchedVideos * 100.0) / totalVideos;
 
         enrollment.setProgress(progress);
 
@@ -193,12 +192,12 @@ public class CourseEnrollmentService {
 
         Survey quiz = course.getSurveyQuiz();
         if (quiz == null) {
-            throw new RuntimeException("This course does not have a final quiz.");
+            throw new RuntimeException("Khóa học này không có bài kiểm tra nào.");
         }
 
         // Check đã enroll chưa
         CourseEnrollment enrollment = enrollmentRepository.findByUserAndCourse(user, course)
-                .orElseThrow(() -> new RuntimeException("You are not enrolled in this course"));
+                .orElseThrow(() -> new RuntimeException("Bạn chưa đăng ký khóa học này."));
 
         // Check đã xem hết video chưa
         long totalVideos = videoCourseRepository.countByCourseModule_Course(course);
@@ -207,18 +206,29 @@ public class CourseEnrollmentService {
             throw new RuntimeException("Bạn cần xem hết tất cả video trước khi làm bài kiểm tra.");
         }
 
+        if (enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
+            throw new RuntimeException("Bạn đã hoàn thành khóa học này. Không thể nộp lại bài kiểm tra.");
+        }
+
         // Chấm điểm quiz
         List<Long> selectedOptionIds = request.getSelectedOptionIds();
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(selectedOptionIds);
 
-        int totalScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
-        int maxScore = quiz.getSections().stream()
+        int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
+//        int maxScore = quiz.getSections().stream()
+//                .flatMap(section -> section.getQuestions().stream())
+//                .mapToInt(q -> q.getOptions().stream()
+//                        .mapToInt(SurveyOption::getScore).max().orElse(0))
+//                .sum();
+        int totalScore = quiz.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
-                .mapToInt(q -> q.getOptions().stream()
-                        .mapToInt(SurveyOption::getScore).max().orElse(0))
+                .mapToInt(question ->
+                        question.getOptions().stream()
+                                .mapToInt(SurveyOption::getScore)
+                                .max()
+                                .orElse(0) // Nếu không có option nào, coi điểm là 0
+                )
                 .sum();
-
-        double scorePercent = (totalScore * 100.0) / maxScore;
 
         // Save kết quả
         SurveyResult result = new SurveyResult();
@@ -235,18 +245,16 @@ public class CourseEnrollmentService {
         result.setSelectedOptions(resultOptions);
         result.setSubmittedAt(LocalDateTime.now());
         result.setTotalScore(totalScore);
+        result.setScore(userScore);
         surveyResultRepository.save(result);
 
-        if (scorePercent >= 70.0) {
-            enrollment.setFinalQuizPassed(true);
+        List<SurveyCondition> conditions = result.getSurvey().getConditions();
+        boolean passed = conditions.stream()
+                .allMatch(condition -> surveyService.evaluate(userScore, condition));
+        result.setAdvice("Rất tiếc, bạn đã không vượt qua bài kiểm tra.");
 
-            double progress = enrollment.getProgress() + 20.0;
-            if (progress > 100.0) {
-                progress = 100.0; // Đảm bảo không vượt quá 100%
-            }
-            enrollment.setProgress(progress);
-
-            if (progress >= 100) {
+        if (passed && enrollment.getProgress() == 100.0) {
+                result.setAdvice("Chúc mừng! Bạn đã vượt qua bài kiểm tra.");
                 enrollment.setStatus(EnrollmentStatus.COMPLETED);
                 enrollment.setCompletionDate(LocalDateTime.now());
 
@@ -259,7 +267,6 @@ public class CourseEnrollmentService {
                     certificate.setIssuedDate(LocalDateTime.now());
                     certificateRepository.save(certificate);
                 }
-            }
             if(enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
                 emailService.sendCourseCompletionEmail(
                         user.getEmail(),
@@ -277,8 +284,9 @@ public class CourseEnrollmentService {
         // Trả kết quả
         return QuizResultResponse.builder()
                 .totalScore(totalScore)
-                .scorePercent(scorePercent)
-                .message(scorePercent >= 70 ? "Chúc mừng bạn đã vượt qua bài kiểm tra!" : "Bạn chưa đạt, vui lòng thử lại.")
+                .score(userScore)
+                .message(result.getAdvice())
+                .submittedAt(result.getSubmittedAt())
                 .build();
     }
 
@@ -294,6 +302,7 @@ public class CourseEnrollmentService {
     
     private CourseEnrollmentResponse mapToEnrollmentResponse(CourseEnrollment enrollment) {
         return CourseEnrollmentResponse.builder()
+                .courseId(enrollment.getCourse().getId())
                 .courseTitle(enrollment.getCourse().getTitle())
                 .username(enrollment.getUser().getUsername())
                 .enrollmentDate(enrollment.getEnrollmentDate())
@@ -352,15 +361,6 @@ public class CourseEnrollmentService {
                 .orderIndex(module.getOrderIndex())
                 .createdAt(module.getCreatedAt())
                 .updatedAt(module.getUpdatedAt())
-                .build();
-    }
-    
-    private UserDetailResponse mapToUserDetailResponse(User user) {
-        return UserDetailResponse.builder()
-                .email(user.getEmail())
-                .fullName(user.getUsername())
-                .avatar(user.getAddress())
-                .role(user.getRole().name())
                 .build();
     }
 } 

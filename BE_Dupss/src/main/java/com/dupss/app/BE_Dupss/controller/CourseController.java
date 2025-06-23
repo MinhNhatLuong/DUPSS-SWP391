@@ -77,7 +77,7 @@ public class CourseController {
         return ResponseEntity.ok("Video watched status and progress updated");
     }
 
-    @PostMapping("/courses/{courseId}/quiz/submit")
+    @PostMapping("/{courseId}/quiz/submit")
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
     public ResponseEntity<QuizResultResponse> submitFinalQuiz(@PathVariable Long courseId, @RequestBody SurveyResultRequest request) throws MessagingException, UnsupportedEncodingException {
         QuizResultResponse res = courseEnrollmentService.submitCourseQuiz(courseId, request);

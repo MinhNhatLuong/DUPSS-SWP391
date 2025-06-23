@@ -161,6 +161,8 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(message);
     }
 
+    @Async
+    @Override
     public void sendCourseCompletionEmail(String toEmail,
                                           String userName,
                                           String courseTitle,

@@ -155,7 +155,7 @@ api.interceptors.response.use(
             '', 
             '/login'
           );
-          window.location.href = '/login';
+        window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       } finally {
@@ -230,10 +230,13 @@ export const getUserData = () => {
   const decodedToken = parseJwt(token);
   if (!decodedToken) return null;
   
+  // Log token để debug
+  console.log('Decoded token:', decodedToken);
+  
   return {
-    id: decodedToken.sub || decodedToken.id,
-    username: decodedToken.preferred_username || decodedToken.username,
+    id: decodedToken.userId, // Lấy userId từ token
+    username: decodedToken.sub || decodedToken.username,
     email: decodedToken.email,
-    roles: decodedToken.roles || []
+    roles: decodedToken.authorities || decodedToken.roles || []
   };
 }; 
