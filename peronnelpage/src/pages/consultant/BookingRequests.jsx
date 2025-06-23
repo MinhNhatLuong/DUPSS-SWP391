@@ -40,10 +40,8 @@ export default function BookingRequests() {
   const [totalPages, setTotalPages] = useState(1);
   const requestsPerPage = 12;
   
-  // Dialog xác nhận hủy
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null, loading: false });
-  // Thêm state cho loading nút chấp thuận
-  const [approving, setApproving] = useState(false);
+  // Thêm state cho loading nút nhận cuộc hẹn
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -65,17 +63,14 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.get(`/api/appointments`, {
+      const response = await axios.get(`/api/consultant/appointments/unassigned`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
-      // Lọc ra các yêu cầu có trạng thái PENDING
-      const pendingRequests = response.data.filter(req => req.status === 'PENDING');
-      
-      setRequests(pendingRequests);
-      setTotalPages(Math.ceil(pendingRequests.length / requestsPerPage));
+      setRequests(response.data);
+      setTotalPages(Math.ceil(response.data.length / requestsPerPage));
       setError(null);
     } catch (err) {
       console.error('Error fetching booking requests:', err);
@@ -96,10 +91,10 @@ export default function BookingRequests() {
 
   const handleClose = () => setOpen(false);
 
-  const handleApprove = async () => {
+  const handleClaim = async () => {
     try {
       // Bật trạng thái loading
-      setApproving(true);
+      setClaiming(true);
       
       // Hiển thị thông báo đang xử lý
       setSnackbar({ 
@@ -113,8 +108,8 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Cập nhật status từ PENDING sang CONFIRMED
-      await axios.patch(`/api/appointments/${selected.id}/status?status=CONFIRMED&consultantId=${userInfo.id}`, {}, {
+      // Sử dụng API claim cuộc hẹn
+      const response = await axios.post(`/api/consultant/${userInfo.id}/appointments/${selected.id}/claim`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -126,7 +121,7 @@ export default function BookingRequests() {
       // Hiển thị thông báo thành công
       setSnackbar({ 
         open: true, 
-        message: 'Yêu cầu chấp thuận đã xử lý xong!', 
+        message: 'Yêu cầu đã được nhận thành công!', 
         severity: 'success' 
       });
       
@@ -134,95 +129,21 @@ export default function BookingRequests() {
       NotificationService.notify({
         type: 'info',
         message: 'Yêu cầu tư vấn mới',
-        description: `Bạn đã chấp thuận yêu cầu tư vấn của ${selected.customerName}`
+        description: `Bạn đã nhận yêu cầu tư vấn của ${selected.customerName}`
       });
       
       // Đóng dialog và reset trạng thái loading
       setOpen(false);
-      setApproving(false);
+      setClaiming(false);
     } catch (err) {
-      console.error('Error approving request:', err);
+      console.error('Error claiming request:', err);
       setSnackbar({ 
         open: true, 
-        message: 'Không thể chấp thuận yêu cầu: ' + (err.response?.data?.message || err.message), 
+        message: 'Không thể nhận yêu cầu: ' + (err.response?.data?.message || err.message), 
         severity: 'error' 
       });
       // Reset trạng thái loading khi có lỗi
-      setApproving(false);
-    }
-  };
-
-  const handleDeny = async () => {
-    // Mở dialog xác nhận hủy
-    setConfirmDialog({ 
-      open: true, 
-      appointmentId: selected.id 
-    });
-  };
-  
-  // Xử lý hủy yêu cầu sau khi xác nhận
-  const handleConfirmDeny = async () => {
-    try {
-      // Bật trạng thái loading
-      setConfirmDialog(prev => ({ ...prev, loading: true }));
-      
-      // Hiển thị thông báo đang xử lý
-      setSnackbar({ 
-        open: true, 
-        message: 'Đang xử lý yêu cầu hủy...', 
-        severity: 'warning' 
-      });
-      
-      const userInfo = getUserInfo();
-      if (!userInfo || !userInfo.id) {
-        throw new Error('Không tìm thấy thông tin người dùng');
-      }
-
-      // Sử dụng API để hủy cuộc hẹn tùy theo loại người dùng
-      if (selected.guest) {
-        // Nếu người đặt lịch là khách (guest) không đăng nhập
-        await axios.post(`/api/appointments/${confirmDialog.appointmentId}/cancel/guest?email=${encodeURIComponent(selected.email)}`, {}, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-      } else {
-        // Nếu người đặt lịch là user đã đăng nhập
-        // Lấy userId của người đặt lịch, không phải consultant
-        const userId = selected.userId || selected.user?.id;
-        if (!userId) {
-          console.error('Không tìm thấy userId của người đặt lịch trong yêu cầu:', selected);
-          throw new Error('Không tìm thấy thông tin người đặt lịch');
-        }
-        
-        await axios.post(`/api/appointments/${confirmDialog.appointmentId}/cancel/user/${userId}`, {}, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-      }
-
-      // Cập nhật danh sách yêu cầu
-      setRequests(prev => prev.filter(r => r.id !== confirmDialog.appointmentId));
-      
-      // Hiển thị thông báo từ chối
-      setSnackbar({ 
-        open: true, 
-        message: 'Yêu cầu tư vấn đã bị từ chối!', 
-        severity: 'info' 
-      });
-      
-      // Đóng các dialog
-      setConfirmDialog({ open: false, appointmentId: null, loading: false });
-      setDialog({ open: false, appt: null });
-    } catch (err) {
-      console.error('Error denying request:', err);
-      setSnackbar({ 
-        open: true, 
-        message: 'Không thể từ chối yêu cầu: ' + (err.response?.data?.message || err.message), 
-        severity: 'error' 
-      });
-      setConfirmDialog({ open: false, appointmentId: null, loading: false });
+      setClaiming(false);
     }
   };
 
@@ -552,16 +473,13 @@ export default function BookingRequests() {
           <Button 
             variant="contained" 
             color="success" 
-            onClick={handleApprove}
-            disabled={approving}
-            startIcon={approving ? <CircularProgress size={20} color="inherit" /> : null}
+            onClick={handleClaim}
+            disabled={claiming}
+            startIcon={claiming ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {approving ? 'Đang xử lý...' : 'Chấp thuận'}
+            {claiming ? 'Đang xử lý...' : 'Nhận yêu cầu'}
           </Button>
-          <Button variant="outlined" color="error" onClick={handleDeny} disabled={approving}>
-            Từ chối
-          </Button>
-          <Button onClick={handleClose} disabled={approving}>Đóng</Button>
+          <Button onClick={handleClose} disabled={claiming}>Đóng</Button>
         </DialogActions>
       </Dialog>
 
@@ -575,42 +493,6 @@ export default function BookingRequests() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-      
-      {/* Dialog xác nhận hủy yêu cầu */}
-      <Dialog
-        open={confirmDialog.open}
-        onClose={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, loading: false })}
-        aria-labelledby="confirm-dialog-title"
-      >
-        <DialogTitle id="confirm-dialog-title">
-          Xác nhận từ chối yêu cầu
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            Bạn có chắc chắn muốn từ chối yêu cầu tư vấn này không?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setConfirmDialog({ open: false, appointmentId: null, loading: false })} 
-            color="primary"
-            disabled={confirmDialog.loading}
-          >
-            Hủy bỏ
-          </Button>
-          <Button 
-            onClick={handleConfirmDeny} 
-            color="error" 
-            variant="contained"
-            disabled={confirmDialog.loading}
-            startIcon={confirmDialog.loading ? 
-              <CircularProgress size={20} color="inherit" /> : null
-            }
-          >
-            {confirmDialog.loading ? 'Đang xử lý...' : 'Từ chối yêu cầu'}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 } 

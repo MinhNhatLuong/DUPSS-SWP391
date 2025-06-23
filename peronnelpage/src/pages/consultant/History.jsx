@@ -94,7 +94,7 @@ export default function History() {
           throw new Error('Không tìm thấy thông tin người dùng');
         }
 
-        const response = await axios.get(`http://localhost:8080/api/appointments/consultant/${userInfo.id}/history`, {
+        const response = await axios.get(`/api/appointments/consultant/${userInfo.id}/history`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
@@ -197,8 +197,8 @@ export default function History() {
           </TableContainer>
         </Box>
       ) : appointments.length === 0 ? (
-        <Alert severity="warning" sx={{ mt: 2 }}>
-          Lịch sử cuộc hẹn của bạn đang không có gì!
+        <Alert severity="info" sx={{ mt: 2 }}>
+          Bạn đang không có lịch sử cuộc hẹn nào.
         </Alert>
       ) : (
         <>

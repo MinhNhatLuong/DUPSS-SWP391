@@ -78,11 +78,25 @@ export default function ConsultantDashboard() {
         }
       });
 
+      // Lấy danh sách cuộc hẹn đang chờ (chưa được phân công)
+      const pendingResponse = await axios.get(`/api/consultant/appointments/unassigned`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
       // Kết hợp cả hai danh sách để có đầy đủ dữ liệu
       const allAppointments = [...appointmentsResponse.data, ...historyResponse.data];
       
       if (allAppointments.length > 0) {
-        calculateStats(allAppointments);
+        calculateStats(allAppointments, pendingResponse.data.length);
+      } else {
+        setStats({
+          week: 0,
+          month: 0,
+          quarter: 0,
+          pending: pendingResponse.data.length
+        });
       }
     } catch (err) {
       console.error('Error fetching statistics:', err);
@@ -90,7 +104,7 @@ export default function ConsultantDashboard() {
     }
   };
 
-  const calculateStats = (appointments) => {
+  const calculateStats = (appointments, pendingCount) => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday of current week
@@ -118,15 +132,13 @@ export default function ConsultantDashboard() {
        const apptDate = parseDateString(appt.appointmentDate);
        return apptDate >= startOfQuarter && (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
      });
-     
-     const pendingAppointments = appointments.filter(appt => appt.status === 'PENDING');
     
     // Update stats
     setStats({
       week: weekAppointments.length,
       month: monthAppointments.length,
       quarter: quarterAppointments.length,
-      pending: pendingAppointments.length
+      pending: pendingCount
     });
     
          // Calculate week data (appointments per day of current week)
@@ -287,7 +299,7 @@ export default function ConsultantDashboard() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Request chờ duyệt
+                Request chờ phân công
               </Typography>
               <Typography variant="h5">{stats.pending}</Typography>
             </CardContent>
