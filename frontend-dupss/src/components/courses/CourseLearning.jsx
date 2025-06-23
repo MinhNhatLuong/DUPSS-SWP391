@@ -305,6 +305,32 @@ function CourseLearning() {
         }
         
         try {
+          // Kiểm tra lại xem video hiện tại có tồn tại và đã được hoàn thành chưa
+          if (!currentVideo) {
+            clearInterval(progressInterval);
+            progressTrackingRef.current = false;
+            return;
+          }
+          
+          // Tìm video hiện tại trong modules để kiểm tra trạng thái mới nhất
+          let isCurrentlyCompleted = false;
+          for (const module of modules) {
+            for (const video of module.videoUrl) {
+              if (video.id === currentVideo.id && video.completed) {
+                isCurrentlyCompleted = true;
+                break;
+              }
+            }
+            if (isCurrentlyCompleted) break;
+          }
+          
+          // Nếu video đã được đánh dấu hoàn thành từ trước, dừng theo dõi
+          if (isCurrentlyCompleted) {
+            clearInterval(progressInterval);
+            progressTrackingRef.current = false;
+            return;
+          }
+          
           const currentTime = playerRef.current.getCurrentTime();
           const duration = playerRef.current.getDuration();
           const progress = (currentTime / duration) * 100;
@@ -367,14 +393,29 @@ function CourseLearning() {
         return updatedModules;
       });
       
-      // Cập nhật tiến độ một cách chính xác
-      setVideoStats(prev => {
-        const newCompleted = prev.completed + 1;
-        // Đảm bảo tiến độ không vượt quá 100%
-        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
-        setCourseProgress(newProgress);
-        return { ...prev, completed: Math.min(newCompleted, prev.total) };
+      // Đếm số lượng video hoàn thành hiện tại
+      let totalVideos = 0;
+      let completedVideos = 0;
+      
+      currentModules.forEach(module => {
+        module.videoUrl.forEach(video => {
+          totalVideos++;
+          if (video.completed || video.id === videoId) completedVideos++;
+        });
       });
+      
+      // Đảm bảo không vượt quá tổng số video
+      completedVideos = Math.min(completedVideos, totalVideos);
+      
+      // Cập nhật tiến độ một cách chính xác
+      const newProgress = Math.min(100, totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0);
+      
+      // Cập nhật state
+      setVideoStats({ 
+        total: totalVideos, 
+        completed: completedVideos 
+      });
+      setCourseProgress(newProgress);
       
       // Cập nhật currentVideo nếu cần
       if (currentVideo && currentVideo.id === videoId) {
@@ -406,12 +447,25 @@ function CourseLearning() {
             setCurrentVideo(prev => ({ ...prev, completed: false }));
           }
           
-          setVideoStats(prev => {
-            const newCompleted = Math.max(0, prev.completed - 1);
-            const newProgress = prev.total > 0 ? (newCompleted / prev.total) * 100 : 0;
-            setCourseProgress(newProgress);
-            return { ...prev, completed: newCompleted };
+          // Tính lại số video đã hoàn thành
+          let newTotalVideos = 0;
+          let newCompletedVideos = 0;
+          
+          prevModules.forEach(module => {
+            module.videoUrl.forEach(video => {
+              newTotalVideos++;
+              if (video.completed && video.id !== videoId) newCompletedVideos++;
+            });
           });
+          
+          const correctedProgress = Math.min(100, newTotalVideos > 0 ? 
+            (newCompletedVideos / newTotalVideos) * 100 : 0);
+            
+          setVideoStats({
+            total: newTotalVideos,
+            completed: newCompletedVideos
+          });
+          setCourseProgress(correctedProgress);
         });
     } catch (error) {
       console.error('Error updating video state:', error);
@@ -437,14 +491,34 @@ function CourseLearning() {
         return updatedModules;
       });
       
-      // Cập nhật tiến độ tại client
-      setVideoStats(prev => {
-        const delta = isCompleted ? -1 : 1;
-        const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
-        const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
-        setCourseProgress(newProgress);
-        return { ...prev, completed: newCompleted };
+      // Tính toán lại tiến độ từ dữ liệu hiện tại
+      let totalVideos = 0;
+      let completedVideos = 0;
+      
+      // Sử dụng một bản sao của modules hiện tại và cập nhật trạng thái của video đang xử lý
+      const currentModules = [...modules];
+      for (const module of currentModules) {
+        for (const video of module.videoUrl) {
+          totalVideos++;
+          
+          if ((video.id === videoId && !isCompleted) || (video.id !== videoId && video.completed)) {
+            completedVideos++;
+          }
+        }
+      }
+      
+      // Đảm bảo không vượt quá tổng số video
+      completedVideos = Math.min(completedVideos, totalVideos);
+      
+      // Cập nhật tiến độ một cách chính xác
+      const newProgress = Math.min(100, totalVideos > 0 ? (completedVideos / totalVideos) * 100 : 0);
+      
+      // Cập nhật state
+      setVideoStats({ 
+        total: totalVideos, 
+        completed: completedVideos 
       });
+      setCourseProgress(newProgress);
       
       if (currentVideo && currentVideo.id === videoId) {
         setCurrentVideo(prev => {
@@ -474,13 +548,25 @@ function CourseLearning() {
             setCurrentVideo(prev => ({ ...prev, completed: isCompleted }));
           }
           
-          setVideoStats(prev => {
-            const delta = isCompleted ? 1 : -1;
-            const newCompleted = Math.max(0, Math.min(prev.total, prev.completed + delta));
-            const newProgress = Math.min(100, prev.total > 0 ? (newCompleted / prev.total) * 100 : 0);
-            setCourseProgress(newProgress);
-            return { ...prev, completed: newCompleted };
+          // Tính lại tiến độ chính xác
+          let newTotalVideos = 0;
+          let newCompletedVideos = 0;
+          
+          prevModules.forEach(module => {
+            module.videoUrl.forEach(video => {
+              newTotalVideos++;
+              if (video.completed) newCompletedVideos++;
+            });
           });
+          
+          const correctedProgress = Math.min(100, newTotalVideos > 0 ? 
+            (newCompletedVideos / newTotalVideos) * 100 : 0);
+            
+          setVideoStats({
+            total: newTotalVideos,
+            completed: newCompletedVideos
+          });
+          setCourseProgress(correctedProgress);
         });
     } catch (error) {
       console.error('Error handling video completion:', error);
