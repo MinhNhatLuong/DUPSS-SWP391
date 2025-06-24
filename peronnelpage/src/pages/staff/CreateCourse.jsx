@@ -69,12 +69,14 @@ const CreateCourse = () => {
     duration: 0,
     coverImage: null,
     modules: [],
-    quiz: null
+    quiz: {
+      sections: [],
+      conditions: []
+    }
   });
 
   // Additional states
   const [topics, setTopics] = useState([]);
-  const [surveys, setSurveys] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
@@ -82,58 +84,105 @@ const CreateCourse = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [apiError, setApiError] = useState(null);
 
-  // Load initial data: topics and surveys
+  // UI visibility states
+  const [showQuizSection, setShowQuizSection] = useState(false);
+  const [showConditionsSection, setShowConditionsSection] = useState(false);
+
+  // Load initial data: topics
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setApiError(null);
         
-        // Create authorized axios instance
-        const authAxios = createAuthAxios();
-        
-        // Fetch topics first with detailed logging
+        // Fetch topics with simpler approach
         try {
-          const topicsUrl = `/api/topics`;
-          console.log('Fetching topics from:', API_BASE_URL + topicsUrl);
+          const topicsUrl = `${API_BASE_URL}/api/topics`;
+          console.log('Fetching topics from:', topicsUrl);
           
-          const topicsResponse = await authAxios.get(topicsUrl);
-          console.log('Topics API response:', topicsResponse);
+          // Simple fetch without auth headers first to test API
+          const response = await fetch(topicsUrl);
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
           
-          if (topicsResponse.data && Array.isArray(topicsResponse.data)) {
-            setTopics(topicsResponse.data);
-            console.log('Topics loaded:', topicsResponse.data.length);
+          const data = await response.json();
+          console.log('Topics API response:', data);
+          
+          // Even if the API returns empty array, we'll handle it gracefully
+          if (Array.isArray(data)) {
+            setTopics(data);
+            console.log('Topics loaded:', data.length);
           } else {
-            console.error('Topics data format error:', topicsResponse.data);
-            setApiError('Topics data format is not as expected');
-            showSnackbar('Topics data format is not as expected', 'error');
+            console.error('Topics data format error - not an array:', data);
+            
+            // Use mock data if API fails
+            const mockTopics = [
+              {
+                id: 1,
+                topicName: "Healthy Lifestyle",
+                topicDescription: "Topics related to maintaining a healthy lifestyle",
+                creatorName: "Admin",
+                createdAt: "2023-06-24T04:48:10.755Z",
+                updatedAt: "2023-06-24T04:48:10.755Z"
+              },
+              {
+                id: 2,
+                topicName: "Mental Health",
+                topicDescription: "Topics focused on mental wellbeing",
+                creatorName: "Admin",
+                createdAt: "2023-06-24T04:48:10.755Z",
+                updatedAt: "2023-06-24T04:48:10.755Z"
+              },
+              {
+                id: 3,
+                topicName: "Nutrition",
+                topicDescription: "All about healthy eating and nutrition",
+                creatorName: "Admin",
+                createdAt: "2023-06-24T04:48:10.755Z",
+                updatedAt: "2023-06-24T04:48:10.755Z"
+              }
+            ];
+            
+            setTopics(mockTopics);
+            showSnackbar('Using mock topics data for development', 'info');
           }
         } catch (topicError) {
           console.error('Error fetching topics:', topicError);
-          setApiError(`Error loading topics: ${topicError.message}`);
-          showSnackbar(`Error loading topics: ${topicError.message}`, 'error');
+          
+          // Provide fallback mock data for development
+          const mockTopics = [
+            {
+              id: 1,
+              topicName: "Healthy Lifestyle",
+              topicDescription: "Topics related to maintaining a healthy lifestyle",
+              creatorName: "Admin",
+              createdAt: "2023-06-24T04:48:10.755Z",
+              updatedAt: "2023-06-24T04:48:10.755Z"
+            },
+            {
+              id: 2,
+              topicName: "Mental Health",
+              topicDescription: "Topics focused on mental wellbeing",
+              creatorName: "Admin",
+              createdAt: "2023-06-24T04:48:10.755Z",
+              updatedAt: "2023-06-24T04:48:10.755Z"
+            },
+            {
+              id: 3,
+              topicName: "Nutrition",
+              topicDescription: "All about healthy eating and nutrition",
+              creatorName: "Admin",
+              createdAt: "2023-06-24T04:48:10.755Z",
+              updatedAt: "2023-06-24T04:48:10.755Z"
+            }
+          ];
+          
+          setTopics(mockTopics);
+          setApiError(`Error loading topics: ${topicError.message} - Using mock data`);
+          showSnackbar(`Using mock topics data for development`, 'info');
         }
         
-        // Now fetch surveys
-        try {
-          const surveysUrl = `/api/staff/surveys`;
-          console.log('Fetching surveys from:', API_BASE_URL + surveysUrl);
-          
-          const surveysResponse = await authAxios.get(surveysUrl);
-          console.log('Surveys API response:', surveysResponse);
-          
-          if (surveysResponse.data && Array.isArray(surveysResponse.data)) {
-            // Filter only surveys that are for courses
-            setSurveys(surveysResponse.data.filter(survey => survey.forCourse) || []);
-            console.log('Surveys loaded:', surveysResponse.data.length);
-          } else {
-            console.error('Surveys data format error:', surveysResponse.data);
-            showSnackbar('Surveys data format is not as expected', 'error');
-          }
-        } catch (surveyError) {
-          console.error('Error fetching surveys:', surveyError);
-          showSnackbar(`Error loading surveys: ${surveyError.message}`, 'error');
-        }
       } finally {
         if (isMounted.current) setLoading(false);
       }
@@ -336,9 +385,16 @@ const CreateCourse = () => {
       // Append modules as JSON string
       formData.append('modules', JSON.stringify(course.modules));
       
-      // Append quiz if selected
-      if (course.quiz) {
-        formData.append('quiz', JSON.stringify(course.quiz));
+      // Append quiz data
+      if (course.quiz && course.quiz.sections.length > 0) {
+        const quizData = {
+          title: course.title,
+          description: course.description,
+          imageCover: course.coverImage ? course.coverImage.name : "",
+          sections: course.quiz.sections,
+          conditions: course.quiz.conditions
+        };
+        formData.append('quiz', JSON.stringify(quizData));
       }
       
       // Create authorized axios instance for submission
@@ -367,7 +423,10 @@ const CreateCourse = () => {
         duration: 0,
         coverImage: null,
         modules: [],
-        quiz: null
+        quiz: {
+          sections: [],
+          conditions: []
+        }
       });
       setImagePreview(null);
       if (editorRef.current) {
@@ -434,7 +493,7 @@ const CreateCourse = () => {
               }
             }}
             error={!!apiError}
-            helperText={apiError ? 'Error loading topics' : ''}
+            helperText={apiError ? 'Using mock topics data' : ''}
           >
             {loading && (
               <MenuItem disabled>
@@ -450,7 +509,7 @@ const CreateCourse = () => {
             
             {topics.map(topic => (
               <MenuItem key={topic.id} value={topic.id}>
-                {topic.topicName || "Unnamed Topic"} (ID: {topic.id})
+                {topic.topicName || "Unnamed Topic"}
               </MenuItem>
             ))}
           </TextField>
@@ -757,50 +816,462 @@ const CreateCourse = () => {
         
         <Divider sx={{ my: 3 }} />
         
-        {/* Quiz section */}
+        {/* Quiz section - updated layout */}
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Quiz
-          </Typography>
-          <TextField
-            select
-            fullWidth
-            label="Bài khảo sát"
-            value={course.quiz ? course.quiz.surveyId : ''}
-            onChange={(e) => {
-              const surveyId = e.target.value;
-              const selectedSurvey = surveys.find(s => s.surveyId.toString() === surveyId.toString());
-              setCourse(prev => ({
-                ...prev,
-                quiz: selectedSurvey || null
-              }));
-            }}
-            variant="outlined"
-            error={surveys.length === 0 && !loading}
-            helperText={surveys.length === 0 && !loading ? 'No surveys available' : ''}
-            sx={{ 
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'white',
-                borderRadius: 1
-              }
-            }}
-          >
-            {loading && (
-              <MenuItem disabled>
-                <CircularProgress size={20} sx={{ mr: 1 }} /> Loading...
-              </MenuItem>
-            )}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6">Quiz</Typography>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                if (!showQuizSection) {
+                  setShowQuizSection(true);
+                  if (course.quiz.sections.length === 0) {
+                    // Add a default section when first opening
+                    setCourse(prev => ({
+                      ...prev,
+                      quiz: {
+                        ...prev.quiz,
+                        sections: [...(prev.quiz?.sections || []), {
+                          sectionName: '',
+                          questions: []
+                        }]
+                      }
+                    }));
+                  }
+                } else {
+                  // Add another section if already showing
+                  setCourse(prev => ({
+                    ...prev,
+                    quiz: {
+                      ...prev.quiz,
+                      sections: [...(prev.quiz?.sections || []), {
+                        sectionName: '',
+                        questions: []
+                      }]
+                    }
+                  }));
+                }
+              }}
+            >
+              Add section
+            </Button>
+          </Box>
           
-            <MenuItem value="">
-              <em>Không có quiz</em>
-            </MenuItem>
-            
-            {surveys.map((survey) => (
-              <MenuItem key={survey.surveyId} value={survey.surveyId}>
-                {survey.surveyTitle} {survey.forCourse ? '(Course Quiz)' : ''}
-              </MenuItem>
-            ))}
-          </TextField>
+          {showQuizSection && course.quiz && (
+            <Box>
+              {/* Quiz Sections */}
+              {course.quiz.sections.map((section, sectionIndex) => (
+                <Box 
+                  key={sectionIndex}
+                  sx={{ 
+                    mb: 3, 
+                    p: 3,
+                    border: '1px solid #c4c4c4',
+                    borderRadius: '30px',
+                    position: 'relative',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  {/* X button to delete section */}
+                  <Box sx={{ position: 'absolute', top: -20, right: -20 }}>
+                    <IconButton 
+                      sx={{ bgcolor: 'background.paper', border: '1px solid #c4c4c4' }}
+                      onClick={() => {
+                        const updatedSections = [...(course.quiz?.sections || [])];
+                        updatedSections.splice(sectionIndex, 1);
+                        setCourse(prev => ({
+                          ...prev,
+                          quiz: {
+                            ...prev.quiz,
+                            sections: updatedSections
+                          }
+                        }));
+                      }}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                  
+                  {/* Section Name */}
+                  <TextField
+                    fullWidth
+                    label="Textfield của section_name"
+                    value={section.sectionName}
+                    onChange={(e) => {
+                      const updatedSections = [...(course.quiz?.sections || [])];
+                      if (!updatedSections[sectionIndex]) {
+                        updatedSections[sectionIndex] = { sectionName: '', questions: [] };
+                      }
+                      updatedSections[sectionIndex].sectionName = e.target.value;
+                      setCourse(prev => ({
+                        ...prev,
+                        quiz: {
+                          ...prev.quiz,
+                          sections: updatedSections
+                        }
+                      }));
+                    }}
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                  />
+                  
+                  {/* Add Question Button */}
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button 
+                      variant="outlined"
+                      onClick={() => {
+                        const updatedSections = [...(course.quiz?.sections || [])];
+                        if (!updatedSections[sectionIndex]) {
+                          updatedSections[sectionIndex] = { questions: [] };
+                        }
+                        if (!updatedSections[sectionIndex].questions) {
+                          updatedSections[sectionIndex].questions = [];
+                        }
+                        updatedSections[sectionIndex].questions.push({
+                          questionText: '',
+                          options: []
+                        });
+                        setCourse(prev => ({
+                          ...prev,
+                          quiz: {
+                            ...prev.quiz,
+                            sections: updatedSections
+                          }
+                        }));
+                      }}
+                    >
+                      Add question
+                    </Button>
+                  </Box>
+                  
+                  {/* Questions */}
+                  {section.questions && section.questions.map((question, questionIndex) => (
+                    <Box 
+                      key={questionIndex}
+                      sx={{ 
+                        mb: 3, 
+                        p: 2,
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '10px',
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Delete Question Button */}
+                      <IconButton
+                        size="small"
+                        sx={{ position: 'absolute', top: 8, right: 8 }}
+                        onClick={() => {
+                          const updatedSections = [...(course.quiz?.sections || [])];
+                          if (updatedSections[sectionIndex] && updatedSections[sectionIndex].questions) {
+                            updatedSections[sectionIndex].questions.splice(questionIndex, 1);
+                            setCourse(prev => ({
+                              ...prev,
+                              quiz: {
+                                ...prev.quiz,
+                                sections: updatedSections
+                              }
+                            }));
+                          }
+                        }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                      
+                      {/* Question Text */}
+                      <TextField
+                        fullWidth
+                        label="Textfield của questiontext"
+                        value={question.questionText}
+                        onChange={(e) => {
+                          const updatedSections = [...(course.quiz?.sections || [])];
+                          if (updatedSections[sectionIndex] && 
+                              updatedSections[sectionIndex].questions && 
+                              updatedSections[sectionIndex].questions[questionIndex]) {
+                            updatedSections[sectionIndex].questions[questionIndex].questionText = e.target.value;
+                            setCourse(prev => ({
+                              ...prev,
+                              quiz: {
+                                ...prev.quiz,
+                                sections: updatedSections
+                              }
+                            }));
+                          }
+                        }}
+                        variant="outlined"
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      {/* Add Option Button */}
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button 
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            const updatedSections = [...(course.quiz?.sections || [])];
+                            if (!updatedSections[sectionIndex].questions[questionIndex].options) {
+                              updatedSections[sectionIndex].questions[questionIndex].options = [];
+                            }
+                            updatedSections[sectionIndex].questions[questionIndex].options.push({
+                              optionText: '',
+                              score: 0
+                            });
+                            setCourse(prev => ({
+                              ...prev,
+                              quiz: {
+                                ...prev.quiz,
+                                sections: updatedSections
+                              }
+                            }));
+                          }}
+                        >
+                          Add option
+                        </Button>
+                      </Box>
+                      
+                      {/* Options */}
+                      {question.options && question.options.map((option, optionIndex) => (
+                        <Box 
+                          key={optionIndex}
+                          sx={{ 
+                            mb: 2, 
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2
+                          }}
+                        >
+                          {/* Option Text */}
+                          <TextField
+                            fullWidth
+                            label="Textfield của option_text"
+                            value={option.optionText}
+                            onChange={(e) => {
+                              const updatedSections = [...(course.quiz?.sections || [])];
+                              if (updatedSections[sectionIndex] && 
+                                  updatedSections[sectionIndex].questions && 
+                                  updatedSections[sectionIndex].questions[questionIndex] &&
+                                  updatedSections[sectionIndex].questions[questionIndex].options &&
+                                  updatedSections[sectionIndex].questions[questionIndex].options[optionIndex]) {
+                                updatedSections[sectionIndex].questions[questionIndex].options[optionIndex].optionText = e.target.value;
+                                setCourse(prev => ({
+                                  ...prev,
+                                  quiz: {
+                                    ...prev.quiz,
+                                    sections: updatedSections
+                                  }
+                                }));
+                              }
+                            }}
+                            variant="outlined"
+                          />
+                          
+                          {/* Option Score */}
+                          <TextField
+                            label="Textfield int score"
+                            type="number"
+                            value={option.score}
+                            onChange={(e) => {
+                              const updatedSections = [...(course.quiz?.sections || [])];
+                              if (updatedSections[sectionIndex] && 
+                                  updatedSections[sectionIndex].questions && 
+                                  updatedSections[sectionIndex].questions[questionIndex] &&
+                                  updatedSections[sectionIndex].questions[questionIndex].options) {
+                                updatedSections[sectionIndex].questions[questionIndex].options[optionIndex].score = parseInt(e.target.value, 10) || 0;
+                                setCourse(prev => ({
+                                  ...prev,
+                                  quiz: {
+                                    ...prev.quiz,
+                                    sections: updatedSections
+                                  }
+                                }));
+                              }
+                            }}
+                            variant="outlined"
+                            sx={{ width: '150px' }}
+                          />
+                          
+                          {/* Delete Option Button */}
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              const updatedSections = [...(course.quiz?.sections || [])];
+                              if (updatedSections[sectionIndex] && 
+                                  updatedSections[sectionIndex].questions && 
+                                  updatedSections[sectionIndex].questions[questionIndex] &&
+                                  updatedSections[sectionIndex].questions[questionIndex].options) {
+                                updatedSections[sectionIndex].questions[questionIndex].options.splice(optionIndex, 1);
+                                setCourse(prev => ({
+                                  ...prev,
+                                  quiz: {
+                                    ...prev.quiz,
+                                    sections: updatedSections
+                                  }
+                                }));
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+        
+        <Divider sx={{ my: 3 }} />
+        
+        {/* Conditions section - updated layout */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6">Conditions</Typography>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                if (!showConditionsSection) {
+                  setShowConditionsSection(true);
+                  if (course.quiz.conditions.length === 0) {
+                    // Add a default condition when first opening
+                    setCourse(prev => ({
+                      ...prev,
+                      quiz: {
+                        ...prev.quiz,
+                        conditions: [...(prev.quiz?.conditions || []), {
+                          message: '',
+                          value: 0,
+                          operator: '='
+                        }]
+                      }
+                    }));
+                  }
+                } else {
+                  // Add another condition if already showing
+                  setCourse(prev => ({
+                    ...prev,
+                    quiz: {
+                      ...prev.quiz,
+                      conditions: [...(prev.quiz?.conditions || []), {
+                        message: '',
+                        value: 0,
+                        operator: '='
+                      }]
+                    }
+                  }));
+                }
+              }}
+            >
+              Add conditions
+            </Button>
+          </Box>
+          
+          {showConditionsSection && course.quiz && (
+            <Box sx={{ 
+              border: '1px solid #c4c4c4',
+              borderRadius: '30px',
+              p: 3,
+              backgroundColor: 'white'
+            }}>
+              {/* Conditions List */}
+              {course.quiz.conditions.map((condition, index) => (
+                <Box 
+                  key={index}
+                  sx={{ 
+                    mb: 2, 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                  }}
+                >
+                  {/* Message Text */}
+                  <TextField
+                    label="Textfield của message_text"
+                    value={condition.message}
+                    onChange={(e) => {
+                      const updatedConditions = [...(course.quiz?.conditions || [])];
+                      if (updatedConditions[index]) {
+                        updatedConditions[index].message = e.target.value;
+                        setCourse(prev => ({
+                          ...prev,
+                          quiz: {
+                            ...prev.quiz,
+                            conditions: updatedConditions
+                          }
+                        }));
+                      }
+                    }}
+                    variant="outlined"
+                    sx={{ flexGrow: 1 }}
+                  />
+                  
+                  {/* Condition Value */}
+                  <TextField
+                    label="Textfield kiểu int của value"
+                    type="number"
+                    value={condition.value}
+                    onChange={(e) => {
+                      const updatedConditions = [...(course.quiz?.conditions || [])];
+                      updatedConditions[index].value = parseInt(e.target.value, 10) || 0;
+                      setCourse(prev => ({
+                        ...prev,
+                        quiz: {
+                          ...prev.quiz,
+                          conditions: updatedConditions
+                        }
+                      }));
+                    }}
+                    variant="outlined"
+                    sx={{ width: '150px' }}
+                  />
+                  
+                  {/* Operator */}
+                  <TextField
+                    select
+                    label="operator (dấu)"
+                    value={condition.operator}
+                    onChange={(e) => {
+                      const updatedConditions = [...(course.quiz?.conditions || [])];
+                      updatedConditions[index].operator = e.target.value;
+                      setCourse(prev => ({
+                        ...prev,
+                        quiz: {
+                          ...prev.quiz,
+                          conditions: updatedConditions
+                        }
+                      }));
+                    }}
+                    variant="outlined"
+                    sx={{ width: '120px' }}
+                  >
+                    <MenuItem value="<">{"<"}</MenuItem>
+                    <MenuItem value=">">{">"}</MenuItem>
+                    <MenuItem value="=">{"="}</MenuItem>
+                    <MenuItem value="<=">{"<="}</MenuItem>
+                    <MenuItem value=">=">{">="}</MenuItem>
+                  </TextField>
+                  
+                  {/* Delete Condition */}
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      const updatedConditions = [...(course.quiz?.conditions || [])];
+                      updatedConditions.splice(index, 1);
+                      setCourse(prev => ({
+                        ...prev,
+                        quiz: {
+                          ...prev.quiz,
+                          conditions: updatedConditions
+                        }
+                      }));
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
         
         {/* Action buttons */}

@@ -411,23 +411,38 @@ const CreateBlog = () => {
             onInit={(evt, editor) => editorRef.current = editor}
             initialValue={blog.content}
             init={{
-              height: 300,
+              height: 500,
               menubar: true,
-              directionality: 'ltr',
-              browser_spellcheck: true,
-              contextmenu: false,
               plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount',
+                'codesample'
               ],
               toolbar: 'undo redo | blocks | ' +
                 'bold italic forecolor | alignleft aligncenter ' +
                 'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | help',
-              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-              setup: (editor) => {
-                editor.on('init', () => {
+                'removeformat | link image media | code preview fullscreen | codesample',
+              content_style: `
+                body { 
+                  font-family: Helvetica, Arial, sans-serif; 
+                  font-size: 14px;
+                  direction: ltr;
+                  text-align: left;
+                }
+              `,
+              // Basic config needed
+              browser_spellcheck: true,
+              directionality: 'ltr',
+              entity_encoding: 'raw',
+              convert_urls: false,
+              // Remove onchange event handlers from TinyMCE's config
+              setup: function(editor) {
+                editor.on('init', function(e) {
+                  // One time set direction on init
+                  editor.getBody().style.direction = 'ltr';
+                  editor.getBody().style.textAlign = 'left';
+                  
                   // Focus at the end of content when initialized
                   if (editor.getContent() !== '') {
                     editor.focus();
