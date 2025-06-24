@@ -80,7 +80,6 @@ const CreateCourse = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
-  const [autoSaveTimer, setAutoSaveTimer] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
   const [apiError, setApiError] = useState(null);
 
@@ -205,16 +204,9 @@ const CreateCourse = () => {
       }
     }
 
-    // Setup auto-save timer
-    const timer = setInterval(() => {
-      saveDraft();
-    }, 60000); // Auto-save every minute
-    setAutoSaveTimer(timer);
-
     // Cleanup
     return () => {
       isMounted.current = false;
-      clearInterval(autoSaveTimer);
     };
   }, []);
 

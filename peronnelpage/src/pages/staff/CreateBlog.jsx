@@ -27,6 +27,8 @@ import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
 import { getAccessToken } from '../../utils/auth';
 
+const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
+
 const CreateBlog = () => {
   const editorRef = useRef(null);
   const [blog, setBlog] = useState({
@@ -66,13 +68,14 @@ const CreateBlog = () => {
   const fetchTopics = async () => {
     setLoadingTopics(true);
     try {
-      const response = await axios.get('/api/topics');
+      const response = await axios.get(`${API_BASE_URL}/api/topics`);
+      console.log('Topics fetched:', response.data);
       setTopics(response.data);
     } catch (error) {
       console.error('Error fetching topics:', error);
       setSnackbar({
         open: true,
-        message: 'Không thể tải danh sách topic. Vui lòng thử lại sau.',
+        message: 'Không thể tải danh sách topic. Vui lòng kiểm tra kết nối và thử lại.',
         severity: 'error'
       });
     } finally {
@@ -164,21 +167,41 @@ const CreateBlog = () => {
     formData.append('topicId', blog.topicId);
     formData.append('description', blog.description);
     formData.append('content', currentContent);
+    
+    // Handle image upload
     if (blog.image) {
       formData.append('images', blog.image);
     }
+    
+    // Handle tags
     if (blog.tags && blog.tags.length > 0) {
+      // Join tags array into a single string with commas if the API expects a string
+      // Or append each tag individually if the API expects an array
       blog.tags.forEach(tag => formData.append('tags', tag));
     }
     
     try {
       const token = getAccessToken();
-      await axios.post('/api/staff/blog', formData, {
+      
+      // Log what's being sent for debugging
+      console.log('Sending blog with data:', {
+        title: blog.title,
+        topicId: blog.topicId,
+        description: blog.description,
+        contentLength: currentContent.length,
+        hasImage: !!blog.image,
+        tags: blog.tags
+      });
+      
+      // Make the API call with full URL
+      const response = await axios.post(`${API_BASE_URL}/api/staff/blog`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
         }
       });
+      
+      console.log('Blog creation successful:', response.data);
       
       // Show success message
       setSnackbar({
@@ -207,9 +230,27 @@ const CreateBlog = () => {
       
     } catch (error) {
       console.error('Error creating blog:', error);
+      
+      // Get more detailed error information
+      let errorMessage = 'Có lỗi xảy ra khi tạo blog';
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        errorMessage += `: ${error.response.status} - ${error.response.data?.message || JSON.stringify(error.response.data)}`;
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Error request:', error.request);
+        errorMessage += ': Không nhận được phản hồi từ server';
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        errorMessage += `: ${error.message}`;
+      }
+      
       setSnackbar({
         open: true,
-        message: 'Có lỗi xảy ra khi tạo blog. Vui lòng thử lại sau.',
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
