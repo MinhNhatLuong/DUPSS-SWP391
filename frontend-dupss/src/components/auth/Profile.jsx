@@ -861,7 +861,7 @@ const Profile = () => {
                             variant="contained"
                             color="error"
                             size="small"
-                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELED'}
+                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELED' || appointment.status === 'CONFIRMED'}
                             onClick={() => handleCancelClick(appointment.id)}
                           >
                             Hủy cuộc hẹn
@@ -967,7 +967,7 @@ const Profile = () => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
+        <DialogTitle id="alert-dialog-title" sx={{fontWeight: 600}}>
           Xác nhận hủy cuộc hẹn
         </DialogTitle>
         <DialogContent>

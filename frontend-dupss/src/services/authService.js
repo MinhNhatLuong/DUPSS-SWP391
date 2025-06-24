@@ -230,9 +230,6 @@ export const getUserData = () => {
   const decodedToken = parseJwt(token);
   if (!decodedToken) return null;
   
-  // Log token để debug
-  console.log('Decoded token:', decodedToken);
-  
   return {
     id: decodedToken.userId, // Lấy userId từ token
     username: decodedToken.sub || decodedToken.username,
