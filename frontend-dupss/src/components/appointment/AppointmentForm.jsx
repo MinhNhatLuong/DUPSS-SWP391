@@ -158,6 +158,13 @@ const AppointmentForm = () => {
     // Validate appointment time
     if (!formData.appointmentTime) {
       newErrors.appointmentTime = 'Giờ hẹn là bắt buộc';
+    } else {
+      const time = formData.appointmentTime;
+      const [hours] = time.split(':').map(Number);
+      
+      if (hours < 8 || hours >= 21) {
+        newErrors.appointmentTime = 'Giờ hẹn phải từ 8:00 đến 21:00';
+      }
     }
     
     // Validate topic
@@ -240,14 +247,14 @@ const AppointmentForm = () => {
       }));
     } else {
       // If not logged in, clear all fields
-      setFormData({
-        fullName: '',
-        phoneNumber: '',
-        email: '',
-        appointmentDate: '',
-        appointmentTime: '',
-        topicId: ''
-      });
+    setFormData({
+      fullName: '',
+      phoneNumber: '',
+      email: '',
+      appointmentDate: '',
+      appointmentTime: '',
+      topicId: ''
+    });
     }
     setErrors({});
   };
@@ -368,9 +375,11 @@ const AppointmentForm = () => {
               value={formData.appointmentTime}
               onChange={handleChange}
               error={!!errors.appointmentTime}
-              helperText={errors.appointmentTime}
+              helperText={errors.appointmentTime || "Giờ hẹn chỉ cho phép đặt  từ 8:00 đến 21:00"}
               inputProps={{
-                step: 60 // Step is in seconds, 60 = 1 minute (removes seconds)
+                step: 60, // Step is in seconds, 60 = 1 minute (removes seconds)
+                min: '08:00',
+                max: '21:00'
               }}
               InputProps={{
                 startAdornment: (
