@@ -212,6 +212,7 @@ const AppointmentForm = () => {
           message: 'Đăng ký cuộc hẹn thành công',
           severity: 'success'
         });
+        // Reset form but keep personal info if user is logged in
         handleReset();
       } catch (error) {
         // Set processing state to false on error
@@ -229,14 +230,25 @@ const AppointmentForm = () => {
   };
 
   const handleReset = () => {
-    setFormData({
-      fullName: '',
-      phoneNumber: '',
-      email: '',
-      appointmentDate: '',
-      appointmentTime: '',
-      topicId: ''
-    });
+    // Keep personal information fields if the user is logged in
+    if (userId) {
+      setFormData(prev => ({
+        ...prev,
+        appointmentDate: '',
+        appointmentTime: '',
+        topicId: ''
+      }));
+    } else {
+      // If not logged in, clear all fields
+      setFormData({
+        fullName: '',
+        phoneNumber: '',
+        email: '',
+        appointmentDate: '',
+        appointmentTime: '',
+        topicId: ''
+      });
+    }
     setErrors({});
   };
 

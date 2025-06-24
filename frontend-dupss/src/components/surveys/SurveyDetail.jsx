@@ -141,7 +141,7 @@ const SurveyDetail = () => {
         case '<':
           isMatch = totalScore < condition.value;
           break;
-      }
+        }
       
       if (isMatch) {
         console.log(`Matched condition: ${condition.operator} ${condition.value} => ${condition.message}`);
@@ -207,7 +207,7 @@ const SurveyDetail = () => {
           selectedOptionIds: extractSelectedOptionIds()
         };
         localStorage.setItem('pendingSurveySubmission', JSON.stringify(surveyData));
-        
+      
         // Save redirect URL to return to survey list after login
         sessionStorage.setItem('redirectAfterLogin', '/surveys');
         
@@ -227,61 +227,61 @@ const SurveyDetail = () => {
   // Hàm trích xuất các ID lựa chọn đã chọn
   const extractSelectedOptionIds = () => {
     const selectedOptionIds = [];
-    let foundOptionIds = false;
-    
-    // Process answers to find selected options
-    Object.entries(answers).forEach(([sectionName, sectionAnswers]) => {
-      const sectionIndex = survey.survey.section.findIndex(s => s.sectionName === sectionName);
+      let foundOptionIds = false;
       
-      if (sectionIndex !== -1) {
-        Object.entries(sectionAnswers).forEach(([questionIndex, selectedValue]) => {
-          const qIndex = parseInt(questionIndex);
-          const question = survey.survey.section[sectionIndex].questions[qIndex];
-          
-          if (question) {
-            // Find the option with matching value
-            const option = question.options.find(opt => opt.value === parseInt(selectedValue));
+      // Process answers to find selected options
+      Object.entries(answers).forEach(([sectionName, sectionAnswers]) => {
+        const sectionIndex = survey.survey.section.findIndex(s => s.sectionName === sectionName);
+        
+        if (sectionIndex !== -1) {
+          Object.entries(sectionAnswers).forEach(([questionIndex, selectedValue]) => {
+            const qIndex = parseInt(questionIndex);
+            const question = survey.survey.section[sectionIndex].questions[qIndex];
             
-            if (option) {
-              if (option.id) {
-                // If option has ID, use it
-                console.log(`Found option with ID: ${option.id}`);
-                selectedOptionIds.push(option.id);
-                foundOptionIds = true;
-              } else {
-                // If option doesn't have ID, we need to generate a fallback ID
-                // This might be needed if the API response structure is different
-                console.log('Option does not have ID, using index-based approach');
-                
-                // Find the option index
-                const optionIndex = question.options.findIndex(o => o.value === parseInt(selectedValue));
-                
-                if (optionIndex !== -1) {
-                  // Create a map of all answers with their indices for API
-                  console.log(`Using option index: ${optionIndex} for section ${sectionIndex}, question ${qIndex}`);
+            if (question) {
+              // Find the option with matching value
+              const option = question.options.find(opt => opt.value === parseInt(selectedValue));
+              
+              if (option) {
+                if (option.id) {
+                  // If option has ID, use it
+                  console.log(`Found option with ID: ${option.id}`);
+                  selectedOptionIds.push(option.id);
+                  foundOptionIds = true;
+                } else {
+                  // If option doesn't have ID, we need to generate a fallback ID
+                  // This might be needed if the API response structure is different
+                  console.log('Option does not have ID, using index-based approach');
                   
-                  // Store option information for fallback approach
-                  selectedOptionIds.push({
-                    sectionIndex: sectionIndex,
-                    questionIndex: qIndex,
-                    optionIndex: optionIndex
-                  });
+                  // Find the option index
+                  const optionIndex = question.options.findIndex(o => o.value === parseInt(selectedValue));
+                  
+                  if (optionIndex !== -1) {
+                    // Create a map of all answers with their indices for API
+                    console.log(`Using option index: ${optionIndex} for section ${sectionIndex}, question ${qIndex}`);
+                    
+                    // Store option information for fallback approach
+                    selectedOptionIds.push({
+                      sectionIndex: sectionIndex,
+                      questionIndex: qIndex,
+                      optionIndex: optionIndex
+                    });
+                  }
                 }
+              } else {
+                console.log(`No option found with value ${selectedValue} in question:`, question);
               }
-            } else {
-              console.log(`No option found with value ${selectedValue} in question:`, question);
             }
-          }
-        });
+          });
+        }
+      });
+      
+      // If no option IDs were found, throw error
+      if (selectedOptionIds.length === 0) {
+        console.error('Failed to extract option IDs from the survey responses.');
+        throw new Error('Lưu thất bại, không thể xác định các lựa chọn.');
       }
-    });
-    
-    // If no option IDs were found, throw error
-    if (selectedOptionIds.length === 0) {
-      console.error('Failed to extract option IDs from the survey responses.');
-      throw new Error('Lưu thất bại, không thể xác định các lựa chọn.');
-    }
-    
+      
     return selectedOptionIds;
   };
 
