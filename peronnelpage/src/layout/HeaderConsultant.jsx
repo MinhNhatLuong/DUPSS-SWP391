@@ -158,12 +158,6 @@ const HeaderConsultant = ({ userName }) => {
             </ListItemIcon>
             Profile
           </MenuItem>
-          <MenuItem onClick={() => navigate('/consultant/settings')}>
-            <ListItemIcon>
-              <Settings fontSize="small" />
-            </ListItemIcon>
-            Settings
-          </MenuItem>
           <Divider />
           <MenuItem onClick={handleLogout} disabled={loggingOut}>
             <ListItemIcon>
