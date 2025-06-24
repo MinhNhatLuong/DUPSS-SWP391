@@ -14,16 +14,17 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    List<Course> findByCreator(User creator);
-    List<Course> findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus status);
-    List<Course> findByStatus(ApprovalStatus status);
+    List<Course> findByCreatorAndActiveTrue(User creator);
+    List<Course> findTop3ByStatusAndActiveTrueOrderByCreatedAtDesc(ApprovalStatus status);
+    List<Course> findByStatusAndActiveTrue(ApprovalStatus status);
     
 //    @Query("SELECT c FROM Course c JOIN Topic t on c.topic.id = t.id WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
 //            "(:topic IS NULL OR c.topic.id = :topic) OR " +
 //           "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
 //           "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
 @Query("SELECT c FROM Course c " +
-        "WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND (" +
+        "WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
+        "c.active = true AND (" +
         "(:topic IS NULL OR c.topic.id = :topic) AND (" +
         "LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
         "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

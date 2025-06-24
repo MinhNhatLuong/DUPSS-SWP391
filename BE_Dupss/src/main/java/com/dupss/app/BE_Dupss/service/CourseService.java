@@ -66,6 +66,7 @@ public class CourseService {
         course.setDescription(request.getDescription());
         course.setContent(request.getContent());
         course.setDuration(request.getDuration());
+        course.setActive(true);
         course.setCreator(currentUser);
         course.setStatus(ApprovalStatus.PENDING);
 
@@ -157,7 +158,7 @@ public class CourseService {
 
         User currentUser = userRepository.findByUsername(username).orElse(null);
 
-        List<Course> courses = courseRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+        List<Course> courses = courseRepository.findTop3ByStatusAndActiveTrueOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
 
 
         return courses.stream()
@@ -277,7 +278,7 @@ public class CourseService {
             throw new AccessDeniedException("Only STAFF and MANAGER can view created courses");
         }
         
-        List<Course> courses = courseRepository.findByCreator(currentUser);
+        List<Course> courses = courseRepository.findByCreatorAndActiveTrue(currentUser);
         
         return courses.stream()
                 .map(course -> {

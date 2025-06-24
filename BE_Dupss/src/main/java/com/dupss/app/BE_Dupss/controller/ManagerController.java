@@ -153,7 +153,7 @@ public class ManagerController {
     @GetMapping("/courses/pending")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<CourseManagerResponse>> getPendingCourses() {
-        List<Course> courses = courseRepository.findByStatus(ApprovalStatus.PENDING);
+        List<Course> courses = courseRepository.findByStatusAndActiveTrue(ApprovalStatus.PENDING);
         List<CourseManagerResponse> responses = courses.stream()
                 .map(course -> CourseManagerResponse.builder()
                         .id(course.getId())

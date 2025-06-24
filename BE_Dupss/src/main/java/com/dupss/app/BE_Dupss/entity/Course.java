@@ -48,6 +48,8 @@ public class Course {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+
+    private Boolean active;
     
 //    @ManyToOne
 //    @JoinColumn(name = "checked_by_id")
