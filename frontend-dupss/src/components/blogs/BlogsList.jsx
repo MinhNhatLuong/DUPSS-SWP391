@@ -140,7 +140,7 @@ const BlogsList = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 5, mb: 8, px: { xs: 1, sm: 2, md: 3 } }}>
       <Typography 
-        variant="h4" 
+        variant="h3" 
         component="h1" 
         gutterBottom
         sx={{ 

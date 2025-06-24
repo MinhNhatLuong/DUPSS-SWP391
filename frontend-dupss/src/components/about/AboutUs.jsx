@@ -16,7 +16,7 @@ const AboutUs = () => {
     <Container maxWidth="lg" sx={{ py: 5 }}>
       {/* Header Section */}
       <Box sx={{ mb: 5, textAlign: 'center' }}>
-        <Typography variant="h1" component="h1" sx={{ fontSize: '2.5rem', mb: 1, color: '#0056b3', fontWeight: 600 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 1, color: '#0056b3', fontWeight: 600 }}>
           Về DUPSS
         </Typography>
         <Typography variant="subtitle1" sx={{ fontSize: '1.2rem', color: '#666', mb: 5, fontWeight: 'bold' }}>
