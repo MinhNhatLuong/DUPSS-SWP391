@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final ConsultantRepository consultantRepository;
+//    private final ConsultantRepository consultantRepository;
     private final TopicRepo topicRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
@@ -62,7 +62,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Gán cố định consultant ID = 2 làm placeholder
         // Các consultant thực sự sẽ nhận cuộc hẹn sau thông qua API claimAppointment
-        Optional<Consultant> placeholderConsultant = consultantRepository.findById(2L);
+        Optional<User> placeholderConsultant = userRepository.findById(2L);
         if (placeholderConsultant.isPresent()) {
             appointment.setConsultant(placeholderConsultant.get());
         } else {
@@ -114,7 +114,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getAppointmentsByConsultantId(Long consultantId) {
-        Optional<Consultant> consultantOptional = consultantRepository.findById(consultantId);
+        Optional<User> consultantOptional = userRepository.findById(consultantId);
         if (consultantOptional.isEmpty()) {
             return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
         }
@@ -131,7 +131,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + id));
 
         // Get the consultant
-        Consultant consultant = consultantRepository.findById(consultantId)
+        User consultant = userRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
         
         // If appointment doesn't have a consultant, assign this consultant
@@ -227,7 +227,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getCompletedOrCanceledAppointmentsByConsultantId(Long consultantId) {
-        Optional<Consultant> consultantOptional = consultantRepository.findById(consultantId);
+        Optional<User> consultantOptional = userRepository.findById(consultantId);
         if (consultantOptional.isEmpty()) {
             return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
         }
@@ -262,7 +262,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
         
         // Lấy thông tin tư vấn viên mới
-        Consultant consultant = consultantRepository.findById(consultantId)
+        User consultant = userRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
         
         // Kiểm tra và cập nhật tư vấn viên

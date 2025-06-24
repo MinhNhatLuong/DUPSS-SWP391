@@ -2,11 +2,11 @@ package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.SlotRequestDto;
 import com.dupss.app.BE_Dupss.dto.response.SlotResponseDto;
-import com.dupss.app.BE_Dupss.entity.Consultant;
 import com.dupss.app.BE_Dupss.entity.Slot;
+import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
-import com.dupss.app.BE_Dupss.respository.ConsultantRepository;
 import com.dupss.app.BE_Dupss.respository.SlotRepository;
+import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,11 +19,11 @@ import java.util.List;
 public class SlotServiceImpl implements SlotService {
 
     private final SlotRepository slotRepository;
-    private final ConsultantRepository consultantRepository;
+    private final UserRepository consultantRepository;
 
     @Override
     public SlotResponseDto createSlot(SlotRequestDto requestDto) {
-        Consultant consultant = consultantRepository.findById(requestDto.getConsultantId())
+        User consultant = consultantRepository.findById(requestDto.getConsultantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + requestDto.getConsultantId()));
 
         // Tạo đối tượng Slot từ requestDto
@@ -40,16 +40,16 @@ public class SlotServiceImpl implements SlotService {
 
     @Override
     public List<Slot> getSlotsByConsultantId(Long consultantId) {
-        Consultant consultant = consultantRepository.findById(consultantId)
+        User consultant = consultantRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
         return slotRepository.findByConsultant(consultant);
     }
 
     @Override
     public List<Slot> getAvailableSlotsByConsultantAndDate(Long consultantId, LocalDate date) {
-        Consultant consultant = consultantRepository.findById(consultantId)
+        User consultant = consultantRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
-        
+
         return slotRepository.findByConsultantAndDateAndIsAvailable(consultant, date, true);
     }
 

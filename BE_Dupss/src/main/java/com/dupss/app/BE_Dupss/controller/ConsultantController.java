@@ -1,9 +1,9 @@
 package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
-import com.dupss.app.BE_Dupss.entity.Consultant;
+import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.AppointmentRepository;
-import com.dupss.app.BE_Dupss.respository.ConsultantRepository;
+import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class ConsultantController {
 
-    private final ConsultantRepository consultantRepository;
+    private final UserRepository consultantRepository;
     private final AppointmentService appointmentService;
     private final AppointmentRepository appointmentRepository;
 
@@ -27,8 +27,8 @@ public class ConsultantController {
      * Phục vụ cho việc hiển thị danh sách tư vấn viên khi đặt lịch
      */
     @GetMapping("/api/consultants")
-    public ResponseEntity<List<Consultant>> getAllConsultants() {
-        List<Consultant> consultants = consultantRepository.findByEnabledTrue();
+    public ResponseEntity<List<User>> getAllConsultants() {
+        List<User> consultants = consultantRepository.findByEnabledTrue();
         return ResponseEntity.ok(consultants);
     }
 
@@ -36,7 +36,7 @@ public class ConsultantController {
      * API lấy tư vấn viên theo ID
      */
     @GetMapping("/api/consultants/{id}")
-    public ResponseEntity<Consultant> getConsultantById(@PathVariable Long id) {
+    public ResponseEntity<User> getConsultantById(@PathVariable Long id) {
         return consultantRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

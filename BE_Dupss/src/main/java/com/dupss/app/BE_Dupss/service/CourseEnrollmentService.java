@@ -215,11 +215,6 @@ public class CourseEnrollmentService {
         List<SurveyOption> selectedOptions = surveyOptionRepository.findAllById(selectedOptionIds);
 
         int userScore = selectedOptions.stream().mapToInt(SurveyOption::getScore).sum();
-//        int maxScore = quiz.getSections().stream()
-//                .flatMap(section -> section.getQuestions().stream())
-//                .mapToInt(q -> q.getOptions().stream()
-//                        .mapToInt(SurveyOption::getScore).max().orElse(0))
-//                .sum();
         int totalScore = quiz.getSections().stream()
                 .flatMap(section -> section.getQuestions().stream())
                 .mapToInt(question ->

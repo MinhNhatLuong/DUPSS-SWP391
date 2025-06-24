@@ -1,7 +1,7 @@
 package com.dupss.app.BE_Dupss.respository;
 
-import com.dupss.app.BE_Dupss.entity.Consultant;
 import com.dupss.app.BE_Dupss.entity.Slot;
+import com.dupss.app.BE_Dupss.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,14 +14,17 @@ import java.util.Optional;
 
 @Repository
 public interface SlotRepository extends JpaRepository<Slot, Long> {
-    List<Slot> findByConsultant(Consultant consultant);
-    List<Slot> findByConsultantAndDate(Consultant consultant, LocalDate date);
-    List<Slot> findByDateAndIsAvailable(LocalDate date, boolean isAvailable);
-    List<Slot> findByConsultantAndIsAvailable(Consultant consultant, boolean isAvailable);
-    List<Slot> findByConsultantAndDateAndIsAvailable(Consultant consultant, LocalDate date, boolean isAvailable);
+    List<Slot> findByConsultant(User consultant);
 
-    @Query("SELECT s FROM Slot s WHERE s.consultant.id = :consultantId AND s.date = :date AND s.startTime <= :time AND s.endTime > :time AND s.isAvailable = true")
-    Optional<Slot> findAvailableSlotByConsultantAndDateTime(@Param("consultantId") Long consultantId,
-                                                            @Param("date") LocalDate date,
-                                                            @Param("time") LocalTime time);
+    List<Slot> findByConsultantAndDateAndIsAvailable(User consultant, LocalDate date, boolean b);
+//    List<Slot> findByConsultant(Consultant consultant);
+//    List<Slot> findByConsultantAndDate(Consultant consultant, LocalDate date);
+//    List<Slot> findByDateAndIsAvailable(LocalDate date, boolean isAvailable);
+//    List<Slot> findByConsultantAndIsAvailable(Consultant consultant, boolean isAvailable);
+//    List<Slot> findByConsultantAndDateAndIsAvailable(Consultant consultant, LocalDate date, boolean isAvailable);
+//
+//    @Query("SELECT s FROM Slot s WHERE s.consultant.id = :consultantId AND s.date = :date AND s.startTime <= :time AND s.endTime > :time AND s.isAvailable = true")
+//    Optional<Slot> findAvailableSlotByConsultantAndDateTime(@Param("consultantId") Long consultantId,
+//                                                            @Param("date") LocalDate date,
+//                                                            @Param("time") LocalTime time);
 } 

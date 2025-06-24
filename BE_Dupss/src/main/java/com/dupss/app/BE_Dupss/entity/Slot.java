@@ -34,5 +34,5 @@ public class Slot {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "consultant_id", nullable = false)
-    private Consultant consultant;
+    private User consultant;
 } 

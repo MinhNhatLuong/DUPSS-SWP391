@@ -40,7 +40,7 @@ public class Appointment {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "consultant_id", nullable = true)
-    private Consultant consultant;
+    private User consultant;
 
     @Column(name = "is_guest", nullable = false)
     private boolean isGuest = true;
