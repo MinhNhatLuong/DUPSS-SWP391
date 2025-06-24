@@ -1,146 +1,359 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
   Button,
   Paper,
-  Grid,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   IconButton,
-  Card,
-  CardContent,
-  CardHeader,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   Divider,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
+  MenuItem,
+  CircularProgress,
   Alert,
   Snackbar
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon,
   Save as SaveIcon,
-  DragIndicator as DragIcon
+  Close as CloseIcon
 } from '@mui/icons-material';
+import axios from 'axios';
+import { Editor } from '@tinymce/tinymce-react';
+
+const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken');
+  if (!token) {
+    console.warn('No auth token found in localStorage');
+  }
+  return token;
+};
+
+// Create axios instance with auth headers
+const createAuthAxios = () => {
+  const token = getAuthToken();
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Accept': '*/*'
+    }
+  });
+};
 
 const CreateSurvey = () => {
+  const editorRef = useRef(null);
   const [survey, setSurvey] = useState({
     title: '',
     description: '',
-    category: '',
-    questions: []
+    imageCover: null,
+    sections: [],
+    conditions: []
   });
 
-  const [openQuestionDialog, setOpenQuestionDialog] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(null);
-  const [questionIndex, setQuestionIndex] = useState(-1);
+  // UI visibility states
+  const [showSectionsUI, setShowSectionsUI] = useState(false);
+  const [showConditionsUI, setShowConditionsUI] = useState(false);
+  
+  const [imagePreview, setImagePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [loading, setLoading] = useState(false);
 
+  // Handle basic field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSurvey(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleOpenQuestionDialog = (question = null, index = -1) => {
-    setCurrentQuestion(question || { 
-      text: '', 
-      type: 'single_choice', 
-      options: [
-        { text: 'Tùy chọn 1', value: 'option1' },
-        { text: 'Tùy chọn 2', value: 'option2' }
-      ],
-      required: true
-    });
-    setQuestionIndex(index);
-    setOpenQuestionDialog(true);
-  };
-
-  const handleCloseQuestionDialog = () => {
-    setOpenQuestionDialog(false);
-    setCurrentQuestion(null);
-  };
-
-  const handleSaveQuestion = () => {
-    if (questionIndex === -1) {
-      // Add new question
-      setSurvey(prev => ({
-        ...prev,
-        questions: [...prev.questions, currentQuestion]
-      }));
-    } else {
-      // Update existing question
-      setSurvey(prev => {
-        const updatedQuestions = [...prev.questions];
-        updatedQuestions[questionIndex] = currentQuestion;
-        return { ...prev, questions: updatedQuestions };
-      });
+  // Handle image upload
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSurvey(prev => ({ ...prev, imageCover: file }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-    handleCloseQuestionDialog();
   };
 
-  const handleDeleteQuestion = (index) => {
-    setSurvey(prev => {
-      const updatedQuestions = [...prev.questions];
-      updatedQuestions.splice(index, 1);
-      return { ...prev, questions: updatedQuestions };
+  // Save draft to local storage
+  const handleSaveDraft = () => {
+    const currentContent = editorRef.current ? editorRef.current.getContent() : '';
+    const updatedSurvey = {
+      ...survey,
+      description: currentContent,
+      imagePreview: imagePreview
+    };
+    
+    localStorage.setItem('surveyDraft', JSON.stringify(updatedSurvey));
+    
+    setSnackbar({
+      open: true,
+      message: 'Bản nháp đã được lưu thành công!',
+      severity: 'success'
     });
   };
 
-  const handleQuestionChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentQuestion(prev => ({ ...prev, [name]: value }));
+  // Load draft from local storage
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('surveyDraft');
+    if (savedDraft) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        setSurvey(parsedDraft);
+        if (parsedDraft.imagePreview) {
+          setImagePreview(parsedDraft.imagePreview);
+        }
+      } catch (error) {
+        console.error('Error loading draft:', error);
+      }
+    }
+  }, []);
+
+  // Submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Get current content from editor ref
+    const currentContent = editorRef.current ? editorRef.current.getContent() : survey.description;
+    
+    if (!survey.title || !currentContent) {
+      setSnackbar({
+        open: true,
+        message: 'Vui lòng điền đầy đủ tiêu đề và mô tả.',
+        severity: 'error'
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Prepare form data for multipart submission
+      const formData = new FormData();
+      formData.append('title', survey.title);
+      formData.append('description', currentContent);
+      
+      if (survey.imageCover) {
+        formData.append('imageCover', survey.imageCover);
+      }
+      
+      // Append sections and conditions as JSON strings
+      formData.append('sections', JSON.stringify(survey.sections));
+      formData.append('conditions', JSON.stringify(survey.conditions));
+      
+      // Create authorized axios instance for submission
+      const authAxios = createAuthAxios();
+      
+      // Submit the survey
+      await authAxios.post('/api/survey', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      setSnackbar({
+        open: true,
+        message: 'Khảo sát đã được tạo thành công!',
+        severity: 'success'
+      });
+      
+      // Clear the form and draft
+      localStorage.removeItem('surveyDraft');
+      setSurvey({
+        title: '',
+        description: '',
+        imageCover: null,
+        sections: [],
+        conditions: []
+      });
+      setImagePreview(null);
+      if (editorRef.current) {
+        editorRef.current.setContent('');
+      }
+      
+      // Reset UI visibility
+      setShowSectionsUI(false);
+      setShowConditionsUI(false);
+    } catch (error) {
+      console.error('Error creating survey:', error);
+      setSnackbar({
+        open: true,
+        message: `Có lỗi khi tạo khảo sát: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOptionChange = (index, value) => {
-    setCurrentQuestion(prev => {
-      const updatedOptions = [...prev.options];
-      updatedOptions[index] = { ...updatedOptions[index], text: value };
-      return { ...prev, options: updatedOptions };
-    });
-  };
-
-  const addOption = () => {
-    setCurrentQuestion(prev => ({
+  // Handle adding a section
+  const addSection = () => {
+    if (!showSectionsUI) {
+      setShowSectionsUI(true);
+    }
+    
+    setSurvey(prev => ({
       ...prev,
-      options: [
-        ...prev.options, 
-        { text: `Tùy chọn ${prev.options.length + 1}`, value: `option${prev.options.length + 1}` }
-      ]
+      sections: [...prev.sections, {
+        sectionName: '',
+        questions: []
+      }]
     }));
   };
 
-  const removeOption = (index) => {
-    if (currentQuestion.options.length <= 2) {
-      return; // Keep at least 2 options
+  // Handle adding a question to a section
+  const addQuestion = (sectionIndex) => {
+    const updatedSections = [...survey.sections];
+    if (!updatedSections[sectionIndex].questions) {
+      updatedSections[sectionIndex].questions = [];
     }
-    setCurrentQuestion(prev => {
-      const updatedOptions = [...prev.options];
-      updatedOptions.splice(index, 1);
-      return { ...prev, options: updatedOptions };
+    
+    updatedSections[sectionIndex].questions.push({
+      questionText: '',
+      options: []
     });
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Here you would normally send the data to an API
-    console.log('Survey to submit:', survey);
+  // Handle adding an option to a question
+  const addOption = (sectionIndex, questionIndex) => {
+    const updatedSections = [...survey.sections];
+    if (!updatedSections[sectionIndex].questions[questionIndex].options) {
+      updatedSections[sectionIndex].questions[questionIndex].options = [];
+    }
     
-    // Show success message
-    setSnackbar({
-      open: true,
-      message: 'Khảo sát đã được tạo thành công!',
-      severity: 'success'
+    updatedSections[sectionIndex].questions[questionIndex].options.push({
+      optionText: '',
+      score: 0
     });
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle adding a condition
+  const addCondition = () => {
+    if (!showConditionsUI) {
+      setShowConditionsUI(true);
+    }
+    
+    setSurvey(prev => ({
+      ...prev,
+      conditions: [...prev.conditions, {
+        message: '',
+        value: 0,
+        operator: '='
+      }]
+    }));
+  };
+
+  // Handle section name change
+  const updateSectionName = (index, value) => {
+    const updatedSections = [...survey.sections];
+    updatedSections[index].sectionName = value;
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle question text change
+  const updateQuestionText = (sectionIndex, questionIndex, value) => {
+    const updatedSections = [...survey.sections];
+    updatedSections[sectionIndex].questions[questionIndex].questionText = value;
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle option update
+  const updateOption = (sectionIndex, questionIndex, optionIndex, field, value) => {
+    const updatedSections = [...survey.sections];
+    updatedSections[sectionIndex].questions[questionIndex].options[optionIndex][field] = 
+      field === 'score' ? parseInt(value, 10) || 0 : value;
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle condition update
+  const updateCondition = (index, field, value) => {
+    const updatedConditions = [...survey.conditions];
+    updatedConditions[index][field] = field === 'value' ? parseInt(value, 10) || 0 : value;
+    
+    setSurvey(prev => ({
+      ...prev,
+      conditions: updatedConditions
+    }));
+  };
+
+  // Handle delete section
+  const deleteSection = (index) => {
+    const updatedSections = [...survey.sections];
+    updatedSections.splice(index, 1);
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+
+    if (updatedSections.length === 0) {
+      setShowSectionsUI(false);
+    }
+  };
+
+  // Handle delete question
+  const deleteQuestion = (sectionIndex, questionIndex) => {
+    const updatedSections = [...survey.sections];
+    updatedSections[sectionIndex].questions.splice(questionIndex, 1);
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle delete option
+  const deleteOption = (sectionIndex, questionIndex, optionIndex) => {
+    const updatedSections = [...survey.sections];
+    updatedSections[sectionIndex].questions[questionIndex].options.splice(optionIndex, 1);
+    
+    setSurvey(prev => ({
+      ...prev,
+      sections: updatedSections
+    }));
+  };
+
+  // Handle delete condition
+  const deleteCondition = (index) => {
+    const updatedConditions = [...survey.conditions];
+    updatedConditions.splice(index, 1);
+    
+    setSurvey(prev => ({
+      ...prev,
+      conditions: updatedConditions
+    }));
+
+    if (updatedConditions.length === 0) {
+      setShowConditionsUI(false);
+    }
   };
 
   const handleCloseSnackbar = () => {
@@ -148,255 +361,397 @@ const CreateSurvey = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Tạo Khảo Sát Mới
+    <Box sx={{ p: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold', textAlign: 'left' }}>
+        Tạo Khảo Sát
       </Typography>
       
-      <Paper sx={{ p: 3, mt: 2 }}>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                required
+      <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 1200, mx: 'auto' }}>
+        {/* Title and Image */}
+        <Box sx={{ display: 'flex', mb: 2, gap: 2 }}>
+          {/* Survey title */}
+          <TextField
+            fullWidth
+            label="Tên khảo sát"
+            name="title"
+            value={survey.title}
+            onChange={handleChange}
+            variant="outlined"
+            sx={{ 
+              flex: 3,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                borderRadius: 1
+              }
+            }}
+          />
+          
+          {/* Image upload */}
+          <Box
+            sx={{
+              flex: 1,
+              border: '1px solid rgba(0, 0, 0, 0.23)',
+              borderRadius: 1,
+              height: 56,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+              backgroundColor: 'white'
+            }}
+          >
+            {!imagePreview ? (
+              <Button 
+                component="label"
                 fullWidth
-                label="Tiêu đề khảo sát"
-                name="title"
-                value={survey.title}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Danh mục</InputLabel>
-                <Select
-                  value={survey.category}
-                  name="category"
-                  label="Danh mục"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="psychology">Tâm lý học</MenuItem>
-                  <MenuItem value="feedback">Phản hồi</MenuItem>
-                  <MenuItem value="health">Sức khỏe</MenuItem>
-                  <MenuItem value="education">Giáo dục</MenuItem>
-                  <MenuItem value="career">Nghề nghiệp</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Loại khảo sát</InputLabel>
-                <Select
-                  value={survey.type || 'general'}
-                  name="type"
-                  label="Loại khảo sát"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="general">Khảo sát chung</MenuItem>
-                  <MenuItem value="assessment">Đánh giá</MenuItem>
-                  <MenuItem value="quiz">Bài kiểm tra</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Mô tả khảo sát"
-                name="description"
-                value={survey.description}
-                onChange={handleChange}
-                variant="outlined"
-                multiline
-                rows={3}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Câu hỏi
-              </Typography>
-              
-              <Card variant="outlined" sx={{ mb: 2 }}>
-                <CardContent>
-                  <List>
-                    {survey.questions.length === 0 ? (
-                      <ListItem>
-                        <ListItemText primary="Chưa có câu hỏi nào. Hãy thêm câu hỏi đầu tiên." />
-                      </ListItem>
-                    ) : (
-                      survey.questions.map((question, index) => (
-                        <React.Fragment key={index}>
-                          <ListItem
-                            secondaryAction={
-                              <Box>
-                                <IconButton 
-                                  edge="end" 
-                                  aria-label="edit"
-                                  onClick={() => handleOpenQuestionDialog(question, index)}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton 
-                                  edge="end" 
-                                  aria-label="delete"
-                                  onClick={() => handleDeleteQuestion(index)}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            }
-                          >
-                            <DragIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                            <ListItemText 
-                              primary={`${index + 1}. ${question.text}`} 
-                              secondary={`${question.type === 'single_choice' ? 'Một lựa chọn' : 
-                                          question.type === 'multiple_choice' ? 'Nhiều lựa chọn' : 
-                                          'Văn bản'} - ${question.options ? question.options.length : 0} tùy chọn`} 
-                            />
-                          </ListItem>
-                          {index < survey.questions.length - 1 && <Divider />}
-                        </React.Fragment>
-                      ))
-                    )}
-                  </List>
-                </CardContent>
-              </Card>
-              
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenQuestionDialog()}
+                sx={{ height: '100%' }}
               >
-                Thêm câu hỏi mới
+                Chọn ảnh
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
               </Button>
-            </Grid>
-            
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={<SaveIcon />}
-                disabled={survey.questions.length === 0 || !survey.title || !survey.description}
-              >
-                Lưu khảo sát
-              </Button>
-            </Grid>
-          </Grid>
+            ) : (
+              <>
+                <img
+                  src={imagePreview}
+                  alt="Survey preview"
+                  style={{ maxWidth: '100%', maxHeight: 54, objectFit: 'cover' }}
+                />
+                <IconButton
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    bgcolor: 'rgba(255, 255, 255, 0.7)'
+                  }}
+                  onClick={() => {
+                    setImagePreview(null);
+                    setSurvey(prev => ({ ...prev, imageCover: null }));
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </>
+            )}
+          </Box>
         </Box>
-      </Paper>
-      
-      {/* Question Dialog */}
-      <Dialog open={openQuestionDialog} onClose={handleCloseQuestionDialog} maxWidth="md" fullWidth>
-        <CardHeader
-          title={questionIndex === -1 ? 'Thêm Câu Hỏi Mới' : 'Chỉnh Sửa Câu Hỏi'}
-          sx={{ pb: 0 }}
-        />
-        <CardContent>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Nội dung câu hỏi"
-                name="text"
-                value={currentQuestion?.text || ''}
-                onChange={handleQuestionChange}
-                variant="outlined"
+        
+        {/* TinyMCE Editor for Description */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body1" fontWeight="medium">Mô tả khảo sát</Typography>
+          </Box>
+          
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              height: 300, 
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              backgroundColor: 'white'
+            }}
+          >
+            <Box sx={{ p: 1, borderBottom: '1px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
+              <Typography variant="body2" color="text.secondary">
+                Text editor vĩ dụ Tiny MCE cho phần description
+              </Typography>
+            </Box>
+            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+              <Editor
+                apiKey="dpd386vjz5110tuev4munelye54caj3z0xj031ujmmahsu4h"
+                onInit={(evt, editor) => {
+                  editorRef.current = editor;
+                }}
+                initialValue={survey.description}
+                init={{
+                  height: '100%',
+                  menubar: true,
+                  plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount',
+                    'codesample'
+                  ],
+                  toolbar: 'undo redo | blocks | ' +
+                    'bold italic forecolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | link image media | code preview fullscreen',
+                  content_style: `
+                    body { 
+                      font-family: Helvetica, Arial, sans-serif; 
+                      font-size: 14px;
+                      direction: ltr;
+                      text-align: left;
+                    }
+                  `,
+                  browser_spellcheck: true,
+                  directionality: 'ltr',
+                  entity_encoding: 'raw',
+                  convert_urls: false,
+                  setup: function(editor) {
+                    editor.on('init', function(e) {
+                      editor.getBody().style.direction = 'ltr';
+                      editor.getBody().style.textAlign = 'left';
+                    });
+                  }
+                }}
               />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Loại câu hỏi</InputLabel>
-                <Select
-                  value={currentQuestion?.type || 'single_choice'}
-                  name="type"
-                  label="Loại câu hỏi"
-                  onChange={handleQuestionChange}
+            </Box>
+          </Paper>
+        </Box>
+        
+        <Divider sx={{ my: 3 }} />
+        
+        {/* Sections */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6">Survey</Typography>
+            <Button
+              variant="outlined"
+              onClick={addSection}
+            >
+              Add Section
+            </Button>
+          </Box>
+          
+          {showSectionsUI && (
+            <Box>
+              {survey.sections.map((section, sectionIndex) => (
+                <Box 
+                  key={sectionIndex}
+                  sx={{ 
+                    mb: 3, 
+                    p: 3,
+                    border: '1px solid #c4c4c4',
+                    borderRadius: '30px',
+                    position: 'relative',
+                    backgroundColor: 'white'
+                  }}
                 >
-                  <MenuItem value="single_choice">Một lựa chọn</MenuItem>
-                  <MenuItem value="multiple_choice">Nhiều lựa chọn</MenuItem>
-                  <MenuItem value="text">Văn bản</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <FormControl component="fieldset">
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Bắt buộc
-                </Typography>
-                <RadioGroup 
-                  row 
-                  name="required"
-                  value={currentQuestion?.required.toString() || "true"}
-                  onChange={handleQuestionChange}
-                >
-                  <FormControlLabel value="true" control={<Radio />} label="Có" />
-                  <FormControlLabel value="false" control={<Radio />} label="Không" />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-            
-            {(currentQuestion?.type === 'single_choice' || currentQuestion?.type === 'multiple_choice') && (
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Tùy chọn
-                </Typography>
-                {currentQuestion?.options?.map((option, index) => (
-                  <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
-                    <Grid item xs={10}>
+                  {/* X button to delete section */}
+                  <Box sx={{ position: 'absolute', top: -20, right: -20 }}>
+                    <IconButton 
+                      sx={{ bgcolor: 'background.paper', border: '1px solid #c4c4c4' }}
+                      onClick={() => deleteSection(sectionIndex)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                  
+                  {/* Section Name */}
+                  <TextField
+                    fullWidth
+                    label="Textfield của section_name"
+                    value={section.sectionName}
+                    onChange={(e) => updateSectionName(sectionIndex, e.target.value)}
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                  />
+                  
+                  {/* Add Question Button */}
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button 
+                      variant="outlined"
+                      onClick={() => addQuestion(sectionIndex)}
+                    >
+                      Add question
+                    </Button>
+                  </Box>
+                  
+                  {/* Questions */}
+                  {section.questions && section.questions.map((question, questionIndex) => (
+                    <Box 
+                      key={questionIndex}
+                      sx={{ 
+                        mb: 3, 
+                        p: 2,
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '10px',
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Delete Question Button */}
+                      <IconButton
+                        size="small"
+                        sx={{ position: 'absolute', top: 8, right: 8 }}
+                        onClick={() => deleteQuestion(sectionIndex, questionIndex)}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                      
+                      {/* Question Text */}
                       <TextField
                         fullWidth
-                        label={`Tùy chọn ${index + 1}`}
-                        value={option.text}
-                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        label="Textfield của questionText"
+                        value={question.questionText}
+                        onChange={(e) => updateQuestionText(sectionIndex, questionIndex, e.target.value)}
                         variant="outlined"
-                        size="small"
+                        sx={{ mb: 2 }}
                       />
-                    </Grid>
-                    <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton 
-                        aria-label="delete option"
-                        onClick={() => removeOption(index)}
-                        disabled={currentQuestion.options.length <= 2}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                ))}
-                <Button
-                  variant="text"
-                  startIcon={<AddIcon />}
-                  onClick={addOption}
-                  sx={{ mt: 1 }}
+                      
+                      {/* Add Option Button */}
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button 
+                          variant="outlined"
+                          size="small"
+                          onClick={() => addOption(sectionIndex, questionIndex)}
+                        >
+                          Add option
+                        </Button>
+                      </Box>
+                      
+                      {/* Options */}
+                      {question.options && question.options.map((option, optionIndex) => (
+                        <Box 
+                          key={optionIndex}
+                          sx={{ 
+                            mb: 2, 
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2
+                          }}
+                        >
+                          {/* Option Text */}
+                          <TextField
+                            fullWidth
+                            label="Textfield của option_text"
+                            value={option.optionText}
+                            onChange={(e) => updateOption(sectionIndex, questionIndex, optionIndex, 'optionText', e.target.value)}
+                            variant="outlined"
+                          />
+                          
+                          {/* Option Score */}
+                          <TextField
+                            label="Textfield int score"
+                            type="number"
+                            value={option.score}
+                            onChange={(e) => updateOption(sectionIndex, questionIndex, optionIndex, 'score', e.target.value)}
+                            variant="outlined"
+                            sx={{ width: '150px' }}
+                          />
+                          
+                          {/* Delete Option Button */}
+                          <IconButton
+                            size="small"
+                            onClick={() => deleteOption(sectionIndex, questionIndex, optionIndex)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+        
+        <Divider sx={{ my: 3 }} />
+        
+        {/* Conditions */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6">Conditions</Typography>
+            <Button
+              variant="outlined"
+              onClick={addCondition}
+            >
+              Add conditions
+            </Button>
+          </Box>
+          
+          {showConditionsUI && (
+            <Box sx={{ 
+              border: '1px solid #c4c4c4',
+              borderRadius: '30px',
+              p: 3,
+              backgroundColor: 'white'
+            }}>
+              {/* Conditions List */}
+              {survey.conditions.map((condition, index) => (
+                <Box 
+                  key={index}
+                  sx={{ 
+                    mb: 2, 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                  }}
                 >
-                  Thêm tùy chọn
-                </Button>
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-        <Divider />
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button onClick={handleCloseQuestionDialog} sx={{ mr: 1 }}>
-            Hủy
-          </Button>
-          <Button 
-            onClick={handleSaveQuestion} 
-            variant="contained"
-            disabled={!currentQuestion?.text}
+                  {/* Message Text */}
+                  <TextField
+                    label="Textfield của message_text"
+                    value={condition.message}
+                    onChange={(e) => updateCondition(index, 'message', e.target.value)}
+                    variant="outlined"
+                    sx={{ flexGrow: 1 }}
+                  />
+                  
+                  {/* Condition Value */}
+                  <TextField
+                    label="Textfield kiểu int của value"
+                    type="number"
+                    value={condition.value}
+                    onChange={(e) => updateCondition(index, 'value', e.target.value)}
+                    variant="outlined"
+                    sx={{ width: '150px' }}
+                  />
+                  
+                  {/* Operator */}
+                  <TextField
+                    select
+                    label="operator (dấu)"
+                    value={condition.operator}
+                    onChange={(e) => updateCondition(index, 'operator', e.target.value)}
+                    variant="outlined"
+                    sx={{ width: '120px' }}
+                  >
+                    <MenuItem value="<">{"<"}</MenuItem>
+                    <MenuItem value=">">{">"}</MenuItem>
+                    <MenuItem value="=">{"="}</MenuItem>
+                    <MenuItem value="<=">{"<="}</MenuItem>
+                    <MenuItem value=">=">{">="}</MenuItem>
+                  </TextField>
+                  
+                  {/* Delete Condition */}
+                  <IconButton
+                    size="small"
+                    onClick={() => deleteCondition(index)}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+        
+        {/* Action buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+          <Button
+            variant="outlined"
+            startIcon={<SaveIcon />}
+            onClick={handleSaveDraft}
           >
-            Lưu
+            Lưu nháp
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Lưu khảo sát'}
           </Button>
         </Box>
-      </Dialog>
+      </Box>
       
       <Snackbar
         open={snackbar.open}
