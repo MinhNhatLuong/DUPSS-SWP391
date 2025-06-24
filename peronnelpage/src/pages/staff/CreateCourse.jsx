@@ -392,12 +392,12 @@ const CreateCourse = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-      <Typography variant="h5" align="center" gutterBottom>
-        Course
+    <Box sx={{ p: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+      <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold', textAlign: 'left' }}>
+        Tạo Khóa Học
       </Typography>
       
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Course title */}
         <TextField
           fullWidth
@@ -406,7 +406,13 @@ const CreateCourse = () => {
           value={course.title}
           onChange={handleChange}
           variant="outlined"
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'white',
+              borderRadius: 1
+            }
+          }}
         />
         
         {/* Topic and Image side by side */}
@@ -420,7 +426,13 @@ const CreateCourse = () => {
             value={course.topicId}
             onChange={handleChange}
             variant="outlined"
-            sx={{ flex: 3 }}
+            sx={{ 
+              flex: 3,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                borderRadius: 1
+              }
+            }}
             error={!!apiError}
             helperText={apiError ? 'Error loading topics' : ''}
           >
@@ -447,13 +459,14 @@ const CreateCourse = () => {
           <Box
             sx={{
               flex: 1,
-              border: '1px solid #c4c4c4',
+              border: '1px solid rgba(0, 0, 0, 0.23)',
               borderRadius: 1,
               height: 56,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              position: 'relative'
+              position: 'relative',
+              backgroundColor: 'white'
             }}
           >
             {!imagePreview ? (
@@ -505,7 +518,13 @@ const CreateCourse = () => {
           value={course.description}
           onChange={handleChange}
           variant="outlined"
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'white',
+              borderRadius: 1
+            }
+          }}
         />
         
         {/* TinyMCE Editor - completely revised */}
@@ -520,7 +539,8 @@ const CreateCourse = () => {
               height: 500, 
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              backgroundColor: 'white'
             }}
           >
             <Box sx={{ p: 1, borderBottom: '1px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
@@ -587,7 +607,13 @@ const CreateCourse = () => {
           InputProps={{
             inputProps: { min: 1 }
           }}
-          sx={{ mb: 4 }}
+          sx={{ 
+            mb: 4,
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'white',
+              borderRadius: 1
+            }
+          }}
         />
         
         <Divider sx={{ my: 3 }} />
@@ -612,7 +638,8 @@ const CreateCourse = () => {
                 borderRadius: '30px',
                 p: 3,
                 position: 'relative',
-                mb: 4
+                mb: 4,
+                backgroundColor: 'white'
               }}
             >
               {/* X button to delete module */}
@@ -635,7 +662,13 @@ const CreateCourse = () => {
                   readOnly: true
                 }}
                 variant="outlined"
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white',
+                    borderRadius: 1
+                  }
+                }}
               />
               
               {/* Module title field */}
@@ -645,7 +678,13 @@ const CreateCourse = () => {
                 value={module.title}
                 onChange={(e) => updateModule(moduleIndex, 'title', e.target.value)}
                 variant="outlined"
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white',
+                    borderRadius: 1
+                  }
+                }}
               />
               
               {/* Add video button */}
@@ -667,7 +706,8 @@ const CreateCourse = () => {
                     borderRadius: '20px',
                     p: 3,
                     position: 'relative',
-                    mb: 2
+                    mb: 2,
+                    backgroundColor: 'white'
                   }}
                 >
                   {/* Delete video button */}
@@ -686,7 +726,13 @@ const CreateCourse = () => {
                     value={video.title}
                     onChange={(e) => updateVideo(moduleIndex, videoIndex, 'title', e.target.value)}
                     variant="outlined"
-                    sx={{ mb: 2 }}
+                    sx={{ 
+                      mb: 2,
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'white',
+                        borderRadius: 1
+                      }
+                    }}
                   />
                   
                   {/* Video URL */}
@@ -696,6 +742,12 @@ const CreateCourse = () => {
                     value={video.videoUrl}
                     onChange={(e) => updateVideo(moduleIndex, videoIndex, 'videoUrl', e.target.value)}
                     variant="outlined"
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'white',
+                        borderRadius: 1
+                      }
+                    }}
                   />
                 </Box>
               ))}
@@ -726,6 +778,12 @@ const CreateCourse = () => {
             variant="outlined"
             error={surveys.length === 0 && !loading}
             helperText={surveys.length === 0 && !loading ? 'No surveys available' : ''}
+            sx={{ 
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                borderRadius: 1
+              }
+            }}
           >
             {loading && (
               <MenuItem disabled>
