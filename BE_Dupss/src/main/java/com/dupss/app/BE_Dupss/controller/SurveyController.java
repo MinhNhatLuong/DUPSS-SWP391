@@ -24,7 +24,7 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @PostMapping("/results")
-    @PreAuthorize("hasAnyAuthority('ROLE_MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<SurveyResultResponse> submitSurvey(
             @RequestBody @Valid SurveyResultRequest request) {
         SurveyResultResponse response = surveyService.submitSurveyResult(request);
