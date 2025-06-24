@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Divider, Paper, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Divider, Paper, Alert, CircularProgress, Button, Container } from '@mui/material';
 
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -11,10 +11,10 @@ export default function ConsultantDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
-    week: 0,
-    month: 0,
-    quarter: 0,
-    pending: 0
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    cancelled: 0
   });
   const [weekData, setWeekData] = useState([
     { name: 'T2', value: 0 },
@@ -33,15 +33,13 @@ export default function ConsultantDashboard() {
   ]);
 
   useEffect(() => {
-    // Fetch data
     fetchAllData();
     
-    // Set up interval to refresh data every 5 minutes
+    // Auto-refresh every 5 minutes
     const intervalId = setInterval(() => {
       fetchAllData();
-    }, 300000); // 5 minutes
+    }, 300000);
     
-    // Clean up interval on unmount
     return () => clearInterval(intervalId);
   }, []);
 
@@ -64,38 +62,38 @@ export default function ConsultantDashboard() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Lấy tất cả cuộc hẹn
-      const appointmentsResponse = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
+      // Get consultant's appointments
+      const appointmentsResponse = await axios.get(`/api/consultant/${userInfo.id}/appointments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
-      // Lấy lịch sử cuộc hẹn (đã hoàn thành hoặc đã hủy)
+      // Get appointment history
       const historyResponse = await axios.get(`/api/appointments/consultant/${userInfo.id}/history`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
-      // Lấy danh sách cuộc hẹn đang chờ (chưa được phân công)
+      // Get unassigned appointments
       const pendingResponse = await axios.get(`/api/consultant/appointments/unassigned`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
-      // Kết hợp cả hai danh sách để có đầy đủ dữ liệu
+      // Combine data
       const allAppointments = [...appointmentsResponse.data, ...historyResponse.data];
       
       if (allAppointments.length > 0) {
         calculateStats(allAppointments, pendingResponse.data.length);
       } else {
         setStats({
-          week: 0,
-          month: 0,
-          quarter: 0,
-          pending: pendingResponse.data.length
+          pending: pendingResponse.data.length,
+          confirmed: 0,
+          completed: 0,
+          cancelled: 0
         });
       }
     } catch (err) {
@@ -105,59 +103,41 @@ export default function ConsultantDashboard() {
   };
 
   const calculateStats = (appointments, pendingCount) => {
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday of current week
-    startOfWeek.setHours(0, 0, 0, 0);
+    // Count appointments by status
+    const confirmedAppointments = appointments.filter(appt => appt.status === 'CONFIRMED');
+    const completedAppointments = appointments.filter(appt => appt.status === 'COMPLETED');
+    const cancelledAppointments = appointments.filter(
+      appt => appt.status === 'CANCELLED' || appt.status === 'CANCELED'
+    );
     
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    const startOfQuarter = new Date(now);
-    const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
-    startOfQuarter.setMonth(quarterMonth, 1);
-    startOfQuarter.setHours(0, 0, 0, 0);
-    
-         // Calculate stats
-     const weekAppointments = appointments.filter(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       return apptDate >= startOfWeek && (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
-     });
-     
-     const monthAppointments = appointments.filter(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       return apptDate >= startOfMonth && (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
-     });
-     
-     const quarterAppointments = appointments.filter(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       return apptDate >= startOfQuarter && (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
-     });
-    
-    // Update stats
     setStats({
-      week: weekAppointments.length,
-      month: monthAppointments.length,
-      quarter: quarterAppointments.length,
-      pending: pendingCount
+      pending: pendingCount,
+      confirmed: confirmedAppointments.length,
+      completed: completedAppointments.length,
+      cancelled: cancelledAppointments.length
     });
     
-         // Calculate week data (appointments per day of current week)
-     const weekDayData = Array(7).fill(0); // [Monday, Tuesday, ..., Sunday]
-     
-     // Chỉ tính các cuộc hẹn trong tuần hiện tại
-     const currentWeekAppointments = appointments.filter(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       return apptDate >= startOfWeek && 
-              apptDate < new Date(startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000) && 
-              (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
-     });
-     
-     currentWeekAppointments.forEach(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       const dayOfWeek = apptDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-       const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday, ..., 6 = Sunday
-       weekDayData[index]++;
-     });
+    // Calculate weekly data
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const weekDayData = Array(7).fill(0); // [Mon, Tue, ..., Sun]
+    
+    const currentWeekAppointments = appointments.filter(appt => {
+      const apptDate = parseDateString(appt.appointmentDate);
+      return apptDate >= startOfWeek && 
+             apptDate < new Date(startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000) && 
+             (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
+    });
+    
+    currentWeekAppointments.forEach(appt => {
+      const apptDate = parseDateString(appt.appointmentDate);
+      const dayOfWeek = apptDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday, ..., 6 = Sunday
+      weekDayData[index]++;
+    });
     
     setWeekData([
       { name: 'T2', value: weekDayData[0] },
@@ -169,25 +149,25 @@ export default function ConsultantDashboard() {
       { name: 'CN', value: weekDayData[6] },
     ]);
     
-         // Calculate month data (appointments per week of current month)
-     const weekData = Array(4).fill(0); // [Week 1, Week 2, Week 3, Week 4]
-     
-     // Chỉ tính các cuộc hẹn trong tháng hiện tại
-     const currentMonthAppointments = appointments.filter(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-       return apptDate >= startOfMonth && 
-              apptDate < nextMonth && 
-              (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
-     });
-     
-     currentMonthAppointments.forEach(appt => {
-       const apptDate = parseDateString(appt.appointmentDate);
-       const day = apptDate.getDate();
-       let weekIndex = Math.floor((day - 1) / 7); // 0-based week index
-       if (weekIndex > 3) weekIndex = 3; // Cap at week 4
-       weekData[weekIndex]++;
-     });
+    // Calculate monthly data
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const weekData = Array(4).fill(0); // [Week 1, Week 2, Week 3, Week 4]
+    
+    const currentMonthAppointments = appointments.filter(appt => {
+      const apptDate = parseDateString(appt.appointmentDate);
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return apptDate >= startOfMonth && 
+             apptDate < nextMonth && 
+             (appt.status === 'CONFIRMED' || appt.status === 'COMPLETED');
+    });
+    
+    currentMonthAppointments.forEach(appt => {
+      const apptDate = parseDateString(appt.appointmentDate);
+      const day = apptDate.getDate();
+      let weekIndex = Math.floor((day - 1) / 7); // 0-based week index
+      if (weekIndex > 3) weekIndex = 3; // Cap at week 4
+      weekData[weekIndex]++;
+    });
     
     setMonthData([
       { name: 'Tuần 1', value: weekData[0] },
@@ -204,13 +184,13 @@ export default function ConsultantDashboard() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
+      const response = await axios.get(`/api/consultant/${userInfo.id}/appointments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
-      // Filter only confirmed appointments and sort by date
+      // Filter confirmed appointments and sort by date
       const confirmedAppointments = response.data
         .filter(appointment => appointment.status === 'CONFIRMED')
         .sort((a, b) => {
@@ -227,21 +207,18 @@ export default function ConsultantDashboard() {
     }
   };
 
-  // Helper to parse date in both formats
+  // Helper functions for date/time handling
   const parseDateString = (dateStr) => {
     if (!dateStr) return new Date();
     
-    // Check if format is DD/MM/YYYY
     if (dateStr.includes('/')) {
       const [day, month, year] = dateStr.split('/');
       return new Date(`${year}-${month}-${day}`);
     }
     
-    // Otherwise assume ISO format
     return new Date(dateStr);
   };
 
-  // Format time for display
   const formatTime = (timeObj) => {
     if (!timeObj) return '';
     if (typeof timeObj === 'string') return timeObj;
@@ -249,108 +226,132 @@ export default function ConsultantDashboard() {
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   };
 
-  // Format date for display
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    // If already in DD/MM/YYYY format, return as is
     if (dateStr.includes('/')) return dateStr;
-    // Otherwise format it
+    
     const date = new Date(dateStr);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('vi-VN');
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ p: 2, maxWidth: '100%', overflow: 'hidden' }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
         Consultant Dashboard
       </Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
+      
+      {/* Stats Cards */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1%', mb: 4, width: '100%' }}>
+        <Box sx={{ width: '24%' }}>
+          <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Buổi tư vấn tuần này
+                Yêu cầu đang đợi duyệt
               </Typography>
-              <Typography variant="h5">{stats.week}</Typography>
+              <Typography variant="h4" sx={{ mt: 1, color: '#ff9800' }}>
+                {stats.pending}
+              </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
+        </Box>
+        <Box sx={{ width: '24%' }}>
+          <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Buổi tư vấn tháng này
+                Số buổi tư vấn đã xác nhận
               </Typography>
-              <Typography variant="h5">{stats.month}</Typography>
+              <Typography variant="h4" sx={{ mt: 1, color: '#2196f3' }}>
+                {stats.confirmed}
+              </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
+        </Box>
+        <Box sx={{ width: '24%' }}>
+          <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Buổi tư vấn quý này
+                Số buổi tư vấn đã hoàn thành
               </Typography>
-              <Typography variant="h5">{stats.quarter}</Typography>
+              <Typography variant="h4" sx={{ mt: 1, color: '#4caf50' }}>
+                {stats.completed}
+              </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
+        </Box>
+        <Box sx={{ width: '24%' }}>
+          <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Request chờ phân công
+                Số buổi tư vấn đã hủy
               </Typography>
-              <Typography variant="h5">{stats.pending}</Typography>
+              <Typography variant="h4" sx={{ mt: 1, color: '#f44336' }}>
+                {stats.cancelled}
+              </Typography>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
-      <Grid container spacing={2} mt={2}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+      {/* Charts */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2%', mb: 4, width: '100%' }}>
+        <Box sx={{ width: '49%' }}>
+          <Paper sx={{ p: 3, height: '400px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', mb: 2 }}>
               Biểu đồ số buổi tư vấn trong tuần
             </Typography>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={weekData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#1976d2" name="Số buổi" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  }} 
+                />
+                <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                <Bar dataKey="value" fill="#1976d2" name="Số buổi tư vấn" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+        </Box>
+        <Box sx={{ width: '49%' }}>
+          <Paper sx={{ p: 3, height: '400px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', mb: 2 }}>
               Biểu đồ số buổi tư vấn trong tháng
             </Typography>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={monthData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="value" fill="#43a047" name="Số buổi" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  }} 
+                />
+                <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                <Bar dataKey="value" fill="#43a047" name="Số buổi tư vấn" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
-      <Box mt={4}>
-        <Typography variant="h6" gutterBottom>
+      {/* Upcoming Appointments */}
+      <Box>
+        <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
           Buổi tư vấn sắp tới
         </Typography>
-        <Card>
+        <Card sx={{ boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
               <CircularProgress />
             </Box>
           ) : error ? (
@@ -358,32 +359,63 @@ export default function ConsultantDashboard() {
               {error}
             </Alert>
           ) : (
-            <List>
+            <Box sx={{ minHeight: '200px' }}>
               {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map((appointment) => (
-                  <React.Fragment key={appointment.id}>
-                    <ListItem>
+                <List sx={{ p: 0 }}>
+                  {upcomingAppointments.map((appointment, index) => (
+                    <ListItem 
+                      key={appointment.id}
+                      sx={{ 
+                        py: 2.5, 
+                        px: 3,
+                        borderBottom: index < upcomingAppointments.length - 1 ? '1px solid #e0e0e0' : 'none',
+                        '&:hover': {
+                          backgroundColor: '#f5f5f5'
+                        }
+                      }}
+                    >
                       <ListItemText
-                        primary={`${appointment.customerName} - ${appointment.topicName}`}
-                        secondary={`${formatDate(appointment.appointmentDate)} ${formatTime(appointment.appointmentTime)}`}
+                        primary={
+                          <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+                            {`${appointment.customerName} - ${appointment.topicName}`}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" color="textSecondary">
+                            {`${formatDate(appointment.appointmentDate)} ${formatTime(appointment.appointmentTime)}`}
+                          </Typography>
+                        }
                       />
-                      <a 
-                        href={`https://meet.google.com/${appointment.id}`} 
-                        target="_blank" 
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        href={`https://meet.google.com/${appointment.id}`}
+                        target="_blank"
                         rel="noopener noreferrer"
+                        sx={{ 
+                          ml: 2,
+                          px: 2,
+                          borderRadius: '20px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          '&:hover': {
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+                          }
+                        }}
                       >
                         Vào Google Meet
-                      </a>
+                      </Button>
                     </ListItem>
-                    <Divider />
-                  </React.Fragment>
-                ))
+                  ))}
+                </List>
               ) : (
-                <ListItem>
-                  <ListItemText primary="Không có buổi tư vấn nào sắp tới." />
-                </ListItem>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                  <Typography variant="body1" color="textSecondary">
+                    Không có buổi tư vấn nào sắp tới
+                  </Typography>
+                </Box>
               )}
-            </List>
+            </Box>
           )}
         </Card>
       </Box>
