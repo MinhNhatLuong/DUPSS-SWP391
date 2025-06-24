@@ -11,7 +11,9 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import api from '../../services/authService';
+import { getUserData } from '../../services/authService';
 
 // Main container layout
 const PageContainer = styled(Box)(({ theme }) => ({
@@ -736,6 +738,17 @@ function CourseLearning() {
     navigate(`/courses/${id}/quiz`);
   };
 
+  const handleCertificateClick = () => {
+    // Get user ID
+    const user = getUserData();
+    if (user && user.id) {
+      // Navigate to certificate page
+      navigate(`/courses/${id}/cert/${user.id}`);
+    } else {
+      console.error('User ID not found');
+    }
+  };
+
   // Format progress với 2 chữ số thập phân
   const formatProgress = (progress) => {
     if (progress === undefined || progress === null) return '0.00';
@@ -747,6 +760,9 @@ function CourseLearning() {
       <Typography>Đang tải...</Typography>
     </Box>;
   }
+
+  // Check if course is completed
+  const isCompleted = course && course.enrollmentStatus === "COMPLETED";
 
   return (
     <Box>
@@ -780,28 +796,52 @@ function CourseLearning() {
       <ProgressInfoContainer>
         <Box sx={{ flex: '1 1 auto' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-            Tiến độ hiện tại: <span style={{ color: courseProgress >= 100 ? '#27ae60' : '#0056b3' }}>{formatProgress(courseProgress)}%</span>
+            {isCompleted ? (
+              <span style={{ color: '#27ae60' }}>Đã hoàn thành khóa học</span>
+            ) : (
+              <>Tiến độ hiện tại: <span style={{ color: courseProgress >= 100 ? '#27ae60' : '#0056b3' }}>{formatProgress(courseProgress)}%</span></>
+            )}
           </Typography>
           <Typography variant="body2" sx={{ color: '#505050' }}>
-            Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm kiểm tra để có thể hoàn thành khóa học
+            {isCompleted ? 
+              "Chúc mừng bạn đã hoàn thành khóa học! Bạn có thể xem lại video tại đây để củng cố thêm kiến thức cho mình nhé!" :
+              "Sau khi xem hết video với tiến độ là 100%, bạn sẽ được tham gia làm kiểm tra để có thể hoàn thành khóa học"
+            }
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          color="secondary"
-          startIcon={<AssignmentIcon />}
-          disabled={courseProgress < 100 || (course && course.enrollmentStatus === "COMPLETED")}
-          onClick={handleSurveyClick}
-          sx={{ 
-            fontWeight: 'bold',
-            bgcolor: courseProgress >= 100 ? '#27ae60' : undefined,
-            '&:hover': {
-              bgcolor: courseProgress >= 100 ? '#219653' : undefined,
-            }
-          }}
-        >
-          Làm kiểm tra
-        </Button>
+        {isCompleted ? (
+          <Button
+            variant="contained"
+            startIcon={<EmojiEventsIcon />}
+            onClick={handleCertificateClick}
+            sx={{ 
+              fontWeight: 'bold',
+              bgcolor: '#27ae60',
+              '&:hover': {
+                bgcolor: '#219653',
+              }
+            }}
+          >
+            NHẬN CHỨNG CHỈ
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<AssignmentIcon />}
+            disabled={courseProgress < 100}
+            onClick={handleSurveyClick}
+            sx={{ 
+              fontWeight: 'bold',
+              bgcolor: courseProgress >= 100 ? '#27ae60' : undefined,
+              '&:hover': {
+                bgcolor: courseProgress >= 100 ? '#219653' : undefined,
+              }
+            }}
+          >
+            Làm kiểm tra
+          </Button>
+        )}
       </ProgressInfoContainer>
     
       <PageContainer>
