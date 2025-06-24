@@ -50,7 +50,7 @@ public class SlotServiceImpl implements SlotService {
         User consultant = consultantRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
 
-        return slotRepository.findByConsultantAndDateAndIsAvailable(consultant, date, true);
+        return slotRepository.findByConsultantAndDateAndAvailable(consultant, date, true);
     }
 
     @Override

@@ -38,11 +38,6 @@ public class Blog {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApprovalStatus status;
-    private String tags;
-    
-    @ManyToOne
-    @JoinColumn(name = "checked_by_id")
-    private User checkedBy;
 
     @PrePersist
     public void prePersist() {

@@ -24,5 +24,4 @@ public class BlogResponse {
     private LocalDate createdAt;
     private LocalDate updatedAt;
     private ApprovalStatus status;
-    private String tags;
 }

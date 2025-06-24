@@ -90,7 +90,7 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
-                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
+//                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -113,10 +113,9 @@ public class ManagerController {
                         .createdAt(blog.getCreatedAt())
                         .updatedAt(blog.getUpdatedAt())
                         .status(blog.getStatus())
-                        .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
-                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
+//                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -168,7 +167,7 @@ public class ManagerController {
                         .updatedAt(course.getUpdatedAt())
                         .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                         .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
-                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
+//                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -191,10 +190,9 @@ public class ManagerController {
                         .createdAt(blog.getCreatedAt())
                         .updatedAt(blog.getUpdatedAt())
                         .status(blog.getStatus())
-                        .tags(blog.getTags())
                         .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
                         .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
-                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
+//                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -242,7 +240,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         course.setStatus(ApprovalStatus.APPROVED);
-        course.setCheckedBy(currentUser);
+//        course.setCheckedBy(currentUser);
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã được phê duyệt thành công"));
     }
@@ -264,7 +262,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         course.setStatus(ApprovalStatus.REJECTED);
-        course.setCheckedBy(currentUser);
+//        course.setCheckedBy(currentUser);
         courseRepository.save(course);
         return ResponseEntity.ok(Map.of("message", "Khóa học đã bị từ chối"));
     }
@@ -286,7 +284,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         blog.setStatus(ApprovalStatus.APPROVED);
-        blog.setCheckedBy(currentUser);
+//        blog.setCheckedBy(currentUser);
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã được phê duyệt thành công"));
     }
@@ -308,7 +306,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         blog.setStatus(ApprovalStatus.REJECTED);
-        blog.setCheckedBy(currentUser);
+//        blog.setCheckedBy(currentUser);
         blogRepository.save(blog);
         return ResponseEntity.ok(Map.of("message", "Bài viết đã bị từ chối"));
     }

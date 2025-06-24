@@ -19,7 +19,7 @@ public class BlogRequest {
     @NotBlank(message = "Title cannot be blank")
     private String title;
 
-    @NotBlank(message = "Topic ID cannot be blank")
+    @NotNull(message = "Topic ID cannot be blank")
     private Long topicId;
 
     @NotBlank(message = "Description cannot be blank")
@@ -30,5 +30,4 @@ public class BlogRequest {
 
     private List<MultipartFile> images;
 
-    private String tags;
 }

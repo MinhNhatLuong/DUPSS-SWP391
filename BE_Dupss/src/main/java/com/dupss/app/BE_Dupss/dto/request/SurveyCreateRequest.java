@@ -30,7 +30,8 @@ public class SurveyCreateRequest {
 
     @Valid
     @NotEmpty(message = "At least one section is required")
-    private List<SurveySection> sections;
+    private String sections;
+//    private List<SurveySection> sections;
     @Data
     public static class SurveySection {
         private String sectionName;
@@ -60,7 +61,8 @@ public class SurveyCreateRequest {
     }
     @Valid
     @NotEmpty(message = "At least one condition is required")
-    private List<ConditionRequest> conditions;
+    private String conditions;
+//    private List<ConditionRequest> conditions;
     @Data
     public static class ConditionRequest {
         @NotBlank

@@ -58,8 +58,6 @@ public class BlogServiceImpl implements BlogService {
         blog.setContent(blogRequest.getContent());
         blog.setAuthor(author);
         blog.setStatus(ApprovalStatus.PENDING);
-        blog.setTags(blogRequest.getTags());
-
         Topic topic = topicRepository.findByIdAndActive(blogRequest.getTopicId(), true);
         if(topic == null) {
             throw new EntityNotFoundException("Topic không được tìm thấy với id: " + blogRequest.getTopicId());
@@ -170,7 +168,6 @@ public class BlogServiceImpl implements BlogService {
 
                     res.setSummary(blog.getDescription());
                     res.setCreatedAt(blog.getCreatedAt());
-                    res.setTags(blog.getTags());
                     return res;
                 })
                 .collect(Collectors.toList());
@@ -188,7 +185,6 @@ public class BlogServiceImpl implements BlogService {
                     dto.setId(blog.getId());
                     dto.setTitle(blog.getTitle());
                     dto.setTopic(blog.getTopic().getName());
-                    dto.setTags(blog.getTags());
                     dto.setCreatedAt(blog.getCreatedAt());
                     dto.setSummary(blog.getDescription());
 
@@ -213,7 +209,6 @@ public class BlogServiceImpl implements BlogService {
                 .authorName(authorName)
                 .createdAt(blog.getCreatedAt())
                 .updatedAt(blog.getUpdatedAt())
-                .tags(blog.getTags())
                 .status(blog.getStatus())
                 .build();
     }

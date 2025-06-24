@@ -50,9 +50,9 @@ public class CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Check if user has MEMBER role
-        if (currentUser.getRole() != ERole.ROLE_MEMBER) {
-            throw new AccessDeniedException("Only MEMBER can enroll in courses");
-        }
+//        if (currentUser.getRole() != ERole.ROLE_MEMBER) {
+//            throw new AccessDeniedException("Only MEMBER can enroll in courses");
+//        }
         
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
@@ -94,9 +94,9 @@ public class CourseEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Check if user has MEMBER role
-        if (currentUser.getRole() != ERole.ROLE_MEMBER) {
-            throw new AccessDeniedException("Only MEMBER can view enrolled courses");
-        }
+//        if (currentUser.getRole() != ERole.ROLE_MEMBER) {
+//            throw new AccessDeniedException("Only MEMBER can view enrolled courses");
+//        }
         
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUser(currentUser);
         

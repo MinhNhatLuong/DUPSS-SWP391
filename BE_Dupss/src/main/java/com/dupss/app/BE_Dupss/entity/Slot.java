@@ -30,7 +30,7 @@ public class Slot {
     private LocalTime endTime;
 
     @Column(name = "is_available", nullable = false)
-    private boolean isAvailable = true;
+    private boolean available = true;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "consultant_id", nullable = false)

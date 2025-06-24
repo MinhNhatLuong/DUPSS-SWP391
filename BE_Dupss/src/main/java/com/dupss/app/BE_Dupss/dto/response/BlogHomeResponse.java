@@ -18,5 +18,4 @@ public class BlogHomeResponse {
     private String summary;
     private String coverImage;
     private LocalDate createdAt;
-    private String tags;
 }

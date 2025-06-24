@@ -170,7 +170,6 @@ public class StaffController {
         blog.setTitle(request.getTitle());
         blog.setDescription(request.getDescription());
         blog.setContent(request.getContent());
-        blog.setTags(request.getTags());
         blog.setStatus(ApprovalStatus.PENDING); // Reset status to PENDING after update
         
         if (request.getTopicId() != null) {

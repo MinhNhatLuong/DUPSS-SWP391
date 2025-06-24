@@ -11,6 +11,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,7 +39,7 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
     public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
         CourseResponse response = courseService.createCourse(request);
@@ -52,7 +53,7 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/enroll")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> enrollCourse(@Valid @PathVariable("courseId") Long id) {
         try {
             CourseEnrollmentResponse response = enrollmentService.enrollCourse(id);
@@ -65,7 +66,7 @@ public class CourseController {
     }
 
     @GetMapping("/enrolled")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CourseEnrollmentResponse>> getEnrolledCourses() {
         return ResponseEntity.ok(enrollmentService.getEnrolledCourses());
     }
@@ -78,7 +79,7 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/quiz/submit")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<QuizResultResponse> submitFinalQuiz(@PathVariable Long courseId, @RequestBody SurveyResultRequest request) throws MessagingException, UnsupportedEncodingException {
         QuizResultResponse res = courseEnrollmentService.submitCourseQuiz(courseId, request);
         return ResponseEntity.ok(res);

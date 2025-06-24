@@ -9,10 +9,13 @@ import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.CloudinaryService;
 import com.dupss.app.BE_Dupss.service.SurveyService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,6 +34,7 @@ public class SurveyServiceImpl implements SurveyService {
     private final SurveyOptionRepo surveyOptionRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final ObjectMapper objectMapper;
 
 
     @Override
@@ -40,63 +44,7 @@ public class SurveyServiceImpl implements SurveyService {
 
         User author = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-//        Survey survey = new Survey();
-//        survey.setTitle(request.getTitle());
-//        survey.setDescription(request.getDescription());
-//        survey.setCreatedBy(author);
-//        survey.setActive(true);
-//        survey.setCreatedAt(LocalDateTime.now());
-//
-//        if (request.getImageCover() != null && !request.getImageCover().isEmpty()) {
-//            String imageUrl = cloudinaryService.uploadFile(request.getImageCover());
-//            survey.setSurveyImage(imageUrl);
-//        }
-//        List<SurveySection> sectionList = new ArrayList<>();
-//        for (SurveyCreateRequest.SurveySection sectionReq : request.getSections()) {
-//            SurveySection section = new SurveySection();
-//            section.setSectionName(sectionReq.getSectionName());
-//            section.setSurvey(survey);
-//
-//            List<SurveyQuestion> questions = new ArrayList<>();
-//            for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
-//                SurveyQuestion question = new SurveyQuestion();
-//                question.setQuestionText(questionReq.getQuestionText());
-//                question.setSection(section);
-//
-//                List<SurveyOption> optionList = new ArrayList<>();
-//                if (questionReq.getOptions() != null) {
-//                    for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
-//                        SurveyOption option = new SurveyOption();
-//                        option.setOptionText(optionReq.getOptionText());
-//                        option.setScore(optionReq.getScore() != null ? optionReq.getScore() : 0);
-//                        option.setQuestion(question);
-//                        optionList.add(option);
-//                    }
-//                }
-//
-//                question.setOptions(optionList);
-//                questions.add(question);
-//            }
-//
-//            section.setQuestions(questions);
-//            sectionList.add(section);
-//        }
-//
-//        survey.setSections(sectionList);
-//
-//        List<SurveyCondition> conditionList = new ArrayList<>();
-//        if (request.getConditions() != null) {
-//            for (SurveyCreateRequest.ConditionRequest conditionReq : request.getConditions()) {
-//                SurveyCondition condition = new SurveyCondition();
-//                condition.setOperator(conditionReq.getOperator());
-//                condition.setValue(conditionReq.getValue());
-//                condition.setMessage(conditionReq.getMessage());
-//                condition.setSurvey(survey);
-//                conditionList.add(condition);
-//            }
-//        }
-//        survey.setConditions(conditionList);
-//        Survey savedSurvey = surveyRepository.save(survey);
+
         Survey savedSurvey = createAndSaveSurveyEntity(request, author);
         return SurveyResponse.builder()
                 .id(savedSurvey.getId())
@@ -137,42 +85,86 @@ public class SurveyServiceImpl implements SurveyService {
         }
 
         List<SurveySection> sectionList = new ArrayList<>();
-        for (SurveyCreateRequest.SurveySection sectionRequest : request.getSections()) {
-            SurveySection section = new SurveySection();
-            section.setSectionName(sectionRequest.getSectionName());
-            section.setSurvey(survey);
-            section.setQuestions(new ArrayList<>());
+//        for (SurveyCreateRequest.SurveySection sectionRequest : request.getSections()) {
+//            SurveySection section = new SurveySection();
+//            section.setSectionName(sectionRequest.getSectionName());
+//            section.setSurvey(survey);
+//            section.setQuestions(new ArrayList<>());
+//
+//            for (SurveyCreateRequest.SurveySection.QuestionRequest questionRequest : sectionRequest.getQuestions()) {
+//                SurveyQuestion question = new SurveyQuestion();
+//                question.setQuestionText(questionRequest.getQuestionText());
+//                question.setSection(section);
+//                question.setOptions(new ArrayList<>());
+//
+//                for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
+//                        SurveyOption option = new SurveyOption();
+//                    option.setOptionText(optionRequest.getOptionText());
+//                    option.setScore(optionRequest.getScore());
+//                        option.setQuestion(question);
+//                    question.getOptions().add(option);
+//                }
+//                section.getQuestions().add(question);
+//            }
+//            sectionList.add(section);
+//        }
+//        survey.setSections(sectionList);
+//
+//        List<SurveyCondition> conditions = new ArrayList<>();
+//        for (SurveyCreateRequest.ConditionRequest conditionRequest : request.getConditions()) {
+//                SurveyCondition condition = new SurveyCondition();
+//            condition.setOperator(conditionRequest.getOperator());
+//            condition.setValue(conditionRequest.getValue());
+//            condition.setMessage(conditionRequest.getMessage());
+//                condition.setSurvey(survey);
+//            conditions.add(condition);
+//        }
+//
+//
+//        survey.setConditions(conditions);
+        if (StringUtils.hasText(request.getSections())) {
+            List<SurveyCreateRequest.SurveySection> sectionRequests =
+                    objectMapper.readValue(request.getSections(), new TypeReference<>() {});
+            for (SurveyCreateRequest.SurveySection sectionRequest : sectionRequests) {
+                SurveySection section = new SurveySection();
+                section.setSectionName(sectionRequest.getSectionName());
+                section.setSurvey(survey);
+                section.setQuestions(new ArrayList<>());
 
-            for (SurveyCreateRequest.SurveySection.QuestionRequest questionRequest : sectionRequest.getQuestions()) {
-                SurveyQuestion question = new SurveyQuestion();
-                question.setQuestionText(questionRequest.getQuestionText());
-                question.setSection(section);
-                question.setOptions(new ArrayList<>());
+                for (SurveyCreateRequest.SurveySection.QuestionRequest questionRequest : sectionRequest.getQuestions()) {
+                    SurveyQuestion question = new SurveyQuestion();
+                    question.setQuestionText(questionRequest.getQuestionText());
+                    question.setSection(section);
+                    question.setOptions(new ArrayList<>());
 
-                for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
+                    for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
                         SurveyOption option = new SurveyOption();
-                    option.setOptionText(optionRequest.getOptionText());
-                    option.setScore(optionRequest.getScore());
+                        option.setOptionText(optionRequest.getOptionText());
+                        option.setScore(optionRequest.getScore());
                         option.setQuestion(question);
-                    question.getOptions().add(option);
+                        question.getOptions().add(option);
+                    }
+                    section.getQuestions().add(question);
                 }
-                section.getQuestions().add(question);
+                sectionList.add(section);
             }
-            sectionList.add(section);
         }
         survey.setSections(sectionList);
 
+// Parse conditions nếu có
         List<SurveyCondition> conditions = new ArrayList<>();
-        for (SurveyCreateRequest.ConditionRequest conditionRequest : request.getConditions()) {
+        if (StringUtils.hasText(request.getConditions())) {
+            List<SurveyCreateRequest.ConditionRequest> conditionRequests =
+                    objectMapper.readValue(request.getConditions(), new TypeReference<>() {});
+            for (SurveyCreateRequest.ConditionRequest conditionRequest : conditionRequests) {
                 SurveyCondition condition = new SurveyCondition();
-            condition.setOperator(conditionRequest.getOperator());
-            condition.setValue(conditionRequest.getValue());
-            condition.setMessage(conditionRequest.getMessage());
+                condition.setOperator(conditionRequest.getOperator());
+                condition.setValue(conditionRequest.getValue());
+                condition.setMessage(conditionRequest.getMessage());
                 condition.setSurvey(survey);
-            conditions.add(condition);
+                conditions.add(condition);
+            }
         }
-
-
         survey.setConditions(conditions);
 
         return surveyRepository.save(survey);

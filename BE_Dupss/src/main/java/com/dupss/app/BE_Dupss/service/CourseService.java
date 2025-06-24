@@ -3,9 +3,12 @@ package com.dupss.app.BE_Dupss.service;
 import com.dupss.app.BE_Dupss.dto.request.CourseCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseModuleRequest;
 import com.dupss.app.BE_Dupss.dto.request.CourseUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
 import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +40,7 @@ public class CourseService {
     private final WatchedVideoRepo watchedVideoRepository;
     private final SurveyService surveyService;
     private final SurveyRepo surveyRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
@@ -74,8 +79,42 @@ public class CourseService {
 
         // Create modules if provided
         List<CourseModule> modules = new ArrayList<>();
-        if (request.getModules() != null && !request.getModules().isEmpty()) {
-            for (CourseModuleRequest moduleRequest : request.getModules()) {
+//        if (request.getModules() != null && !request.getModules().isEmpty()) {
+//            for (CourseModuleRequest moduleRequest : request.getModules()) {
+//                CourseModule module = new CourseModule();
+//                module.setTitle(moduleRequest.getTitle());
+//                module.setOrderIndex(moduleRequest.getOrderIndex());
+//                module.setCourse(savedCourse);
+//
+//                List<VideoCourse> videos = new ArrayList<>();
+//                if (moduleRequest.getVideos() != null) {
+//                    for (VideoCourse url : moduleRequest.getVideos()) {
+//                        VideoCourse video = new VideoCourse();
+//                        video.setTitle(url.getTitle());
+//                        video.setVideoUrl(url.getVideoUrl());
+//                        video.setCourseModule(module);
+//                        videos.add(video);
+//                    }
+//                }
+//                module.setVideos(videos);
+//                modules.add(module);
+//
+//            }
+//            moduleRepository.saveAll(modules);
+//        }
+//
+//        if (request.getQuiz() != null) {
+//            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+//            quiz.setForCourse(true);
+//            surveyRepository.save(quiz);
+//            savedCourse.setSurveyQuiz(quiz);
+//        }
+
+        if (StringUtils.hasText(request.getModules())) {
+            List<CourseModuleRequest> moduleRequests = objectMapper.readValue(
+                    request.getModules(), new TypeReference<>() {});
+
+            for (CourseModuleRequest moduleRequest : moduleRequests) {
                 CourseModule module = new CourseModule();
                 module.setTitle(moduleRequest.getTitle());
                 module.setOrderIndex(moduleRequest.getOrderIndex());
@@ -93,13 +132,15 @@ public class CourseService {
                 }
                 module.setVideos(videos);
                 modules.add(module);
-
             }
             moduleRepository.saveAll(modules);
         }
 
-        if (request.getQuiz() != null) {
-            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+        // Parse quiz
+        if (StringUtils.hasText(request.getQuiz())) {
+            SurveyCreateRequest quizRequest = objectMapper.readValue(
+                    request.getQuiz(), SurveyCreateRequest.class);
+            Survey quiz = surveyService.createAndSaveSurveyEntity(quizRequest, currentUser);
             quiz.setForCourse(true);
             surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
