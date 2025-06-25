@@ -3,6 +3,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Avatar, Typography, Menu, MenuItem, Button } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
+import LockIcon from '@mui/icons-material/Lock';
 import { styled } from '@mui/material/styles';
 
 // Create custom MenuItem component, override default styles
@@ -183,6 +184,11 @@ const AuthButtons = () => {
     navigate('/profile');
   };
 
+  const handleChangePasswordClick = () => {
+    handleMenuClose();
+    navigate('/change-password');
+  };
+
   return (
     <div className="user-actions">
       {!isLoggedIn ? (
@@ -254,6 +260,10 @@ const AuthButtons = () => {
             <StyledMenuItem onClick={handleProfileClick} disableRipple selected={false}>
               <PersonIcon fontSize="small" sx={{ mr: 1 }} />
               Hồ sơ
+            </StyledMenuItem>
+            <StyledMenuItem onClick={handleChangePasswordClick} disableRipple selected={false}>
+              <LockIcon fontSize="small" sx={{ mr: 1 }} />
+              Đổi mật khẩu
             </StyledMenuItem>
             <StyledMenuItem onClick={handleLogout} disableRipple selected={false}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
