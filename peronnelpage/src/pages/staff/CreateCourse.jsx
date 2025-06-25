@@ -7,7 +7,6 @@ import {
   Divider,
   Alert,
   Snackbar,
-  CircularProgress,
   MenuItem,
   IconButton,
   Grid,
@@ -79,7 +78,6 @@ const CreateCourse = () => {
   const [topics, setTopics] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [apiError, setApiError] = useState(null);
 
@@ -91,7 +89,6 @@ const CreateCourse = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         setApiError(null);
         
         // Fetch topics with simpler approach
@@ -181,9 +178,8 @@ const CreateCourse = () => {
           setApiError(`Error loading topics: ${topicError.message} - Using mock data`);
           showSnackbar(`Using mock topics data for development`, 'info');
         }
-        
-      } finally {
-        if (isMounted.current) setLoading(false);
+      } catch (error) {
+        console.error("Unexpected error:", error);
       }
     };
 
@@ -354,12 +350,11 @@ const CreateCourse = () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : course.content;
     
     if (!course.title || !course.topicId || !course.description || !currentContent) {
-      showSnackbar('Please fill in all required fields', 'error');
+      showSnackbar('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
       return;
     }
 
     try {
-      setLoading(true);
       console.log('Submitting course data:', course);
       
       // Prepare form data for multipart submission
@@ -396,14 +391,17 @@ const CreateCourse = () => {
       const submitUrl = `/api/staff/course`;
       console.log('Submitting course to:', API_BASE_URL + submitUrl);
       
-      await authAxios.post(submitUrl, formData, {
+      const response = await authAxios.post(submitUrl, formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           // Auth headers are already added in the authAxios instance
-        }
+        },
+        // Add timeout to prevent infinite loading
+        timeout: 30000
       });
       
-      showSnackbar('Course created successfully!', 'success');
+      console.log('Course creation response:', response);
+      showSnackbar('Khóa học đã được tạo thành công!', 'success');
       
       // Clear the form and draft
       localStorage.removeItem('courseDraft');
@@ -427,18 +425,28 @@ const CreateCourse = () => {
       
     } catch (error) {
       console.error('Error creating course:', error);
-      showSnackbar(`Error creating course: ${error.message}`, 'error');
-    } finally {
-      setLoading(false);
+      // More detailed error message
+      let errorMsg = 'Lỗi khi tạo khóa học';
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        errorMsg += `: ${error.response.status} - ${error.response.data?.message || JSON.stringify(error.response.data)}`;
+      } else if (error.request) {
+        // The request was made but no response was received
+        errorMsg += ': Không nhận được phản hồi từ server, vui lòng thử lại sau';
+      } else {
+        // Something happened in setting up the request
+        errorMsg += `: ${error.message}`;
+      }
+      showSnackbar(errorMsg, 'error');
     }
   };
 
   // Handle saving draft
   const handleSaveDraft = () => {
     if (saveDraft()) {
-      showSnackbar('Draft saved successfully', 'success');
+      showSnackbar('Lưu bảng nháp thành công!', 'success');
     } else {
-      showSnackbar('Error saving draft', 'error');
+      showSnackbar('Lỗi khi lưu bảng nháp', 'error');
     }
   };
 
@@ -487,13 +495,7 @@ const CreateCourse = () => {
             error={!!apiError}
             helperText={apiError ? 'Using mock topics data' : ''}
           >
-            {loading && (
-              <MenuItem disabled>
-                <CircularProgress size={20} sx={{ mr: 1 }} /> Loading...
-              </MenuItem>
-            )}
-            
-            {!loading && topics.length === 0 && (
+            {topics.length === 0 && (
               <MenuItem disabled value="">
                 No topics available - Check console for errors
               </MenuItem>
@@ -1279,9 +1281,8 @@ const CreateCourse = () => {
             type="submit"
             variant="contained"
             startIcon={<SaveIcon />}
-            disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Lưu khóa học'}
+            Lưu khóa học
           </Button>
         </Box>
       </Box>

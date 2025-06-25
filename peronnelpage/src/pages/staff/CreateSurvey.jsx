@@ -94,7 +94,7 @@ const CreateSurvey = () => {
     
     setSnackbar({
       open: true,
-      message: 'Bản nháp đã được lưu thành công!',
+      message: 'Lưu bảng nháp thành công!',
       severity: 'success'
     });
   };
