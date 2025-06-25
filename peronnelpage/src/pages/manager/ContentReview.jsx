@@ -130,15 +130,6 @@ const ContentReview = () => {
   };
 
   const handleReject = async () => {
-    if (!comment.trim()) {
-      setSnackbar({
-        open: true,
-        message: 'Comment is required for rejection',
-        severity: 'warning'
-      });
-      return;
-    }
-
     setProcessingAction(true);
     try {
       const token = localStorage.getItem('accessToken');
@@ -155,7 +146,7 @@ const ContentReview = () => {
         endpoint = `/api/manager/surveys/${selectedContent.surveyId}/reject`;
       }
 
-      await axios.patch(endpoint, { comment }, {
+      await axios.patch(endpoint, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
 
@@ -190,6 +181,14 @@ const ContentReview = () => {
     setPreviewDialog({
       open: true,
       content: content.content
+    });
+  };
+
+  const handlePreviewSurvey = (content) => {
+    setPreviewDialog({
+      open: true,
+      content: content.description,
+      title: 'Survey Description Preview'
     });
   };
 
@@ -288,6 +287,15 @@ const ContentReview = () => {
                       Preview
                     </Button>
                   )}
+                  {selectedTab === 2 && (
+                    <Button
+                      size="small"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewSurvey(item)}
+                    >
+                      Preview
+                    </Button>
+                  )}
                 </CardActions>
               </Card>
             </Grid>
@@ -375,17 +383,6 @@ const ContentReview = () => {
                   </Button>
                 </Box>
               )}
-              
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Comments (required for rejection)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                sx={{ mt: 2 }}
-                disabled={processingAction}
-              />
             </Box>
           )}
         </DialogContent>
@@ -399,7 +396,7 @@ const ContentReview = () => {
           <Button
             onClick={handleReject}
             color="error"
-            disabled={!comment.trim() || processingAction}
+            disabled={processingAction}
             startIcon={processingAction ? <CircularProgress size={20} /> : <CloseIcon />}
           >
             Reject
@@ -424,7 +421,7 @@ const ContentReview = () => {
         fullWidth
       >
         <DialogTitle>
-          Blog Preview
+          {previewDialog.title || 'Blog Preview'}
         </DialogTitle>
         <DialogContent dividers>
           <Box sx={{ mt: 1 }}>
