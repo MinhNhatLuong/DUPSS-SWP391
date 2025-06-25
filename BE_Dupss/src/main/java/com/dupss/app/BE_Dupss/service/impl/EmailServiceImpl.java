@@ -15,6 +15,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -191,6 +192,34 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(message);
     }
 
+    @Async
+    @Override
+    public void sendPasswordChangedEmail(String toEmail, String userName, LocalDateTime changeTime) throws MessagingException, UnsupportedEncodingException {
+        try {
+            log.info("Bắt đầu gửi email thông báo đổi mật khẩu thành công đến: {}", toEmail);
+            
+            Context context = new Context();
+            context.setVariable("userName", userName);
+            context.setVariable("changeTime", changeTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")));
+            
+            String htmlContent = templateEngine.process("email/password-changed", context);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "UTF-8");
+            
+            helper.setFrom(fromEmail, "DUPSS Support");
+            helper.setTo(toEmail);
+            helper.setSubject("Thông báo: Mật khẩu của bạn đã được thay đổi");
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(message);
+            log.info("Email thông báo đổi mật khẩu đã được gửi thành công đến: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi email thông báo đổi mật khẩu đến {}: {}", toEmail, e.getMessage());
+            log.error("Chi tiết lỗi:", e);
+            throw e;
+        }
+    }
 
     private String getStatusChangeMessage(String newStatus, String previousStatus) {
         switch (newStatus) {

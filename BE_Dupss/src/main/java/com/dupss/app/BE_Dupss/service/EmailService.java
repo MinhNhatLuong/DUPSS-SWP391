@@ -4,6 +4,7 @@ import com.dupss.app.BE_Dupss.entity.Appointment;
 import jakarta.mail.MessagingException;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 
 public interface EmailService {
     
@@ -33,5 +34,10 @@ public interface EmailService {
     void sendWelcomeEmail(String toEmail, String userName) throws MessagingException, UnsupportedEncodingException;
 
     void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException;
+    
+    /**
+     * Gửi email thông báo đổi mật khẩu thành công
+     */
+    void sendPasswordChangedEmail(String toEmail, String userName, LocalDateTime changeTime) throws MessagingException, UnsupportedEncodingException;
 
 } 

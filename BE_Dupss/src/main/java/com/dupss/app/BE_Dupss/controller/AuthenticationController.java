@@ -41,6 +41,9 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.dupss.app.BE_Dupss.dto.request.ChangePasswordRequest;
+import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -85,6 +88,13 @@ public class AuthenticationController {
     public ResponseEntity<UpdateUserResponse> updateUser(@Valid @ModelAttribute UpdateUserRequest request) throws IOException {
         UpdateUserResponse response = userService.updateUserProfile(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ChangePasswordResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+        return authenticationService.changePassword(request, authentication.getName());
     }
 
 }

@@ -1,8 +1,10 @@
 package com.dupss.app.BE_Dupss.service;
 
+import com.dupss.app.BE_Dupss.dto.request.ChangePasswordRequest;
 import com.dupss.app.BE_Dupss.dto.request.LoginRequest;
 import com.dupss.app.BE_Dupss.dto.request.LogoutRequest;
 import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
+import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
 import com.dupss.app.BE_Dupss.entity.InvalidatedToken;
@@ -18,10 +20,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,8 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(LoginRequest request) {
         try{
@@ -87,6 +94,52 @@ public class AuthenticationService {
         return RefreshTokenResponse.builder()
                 .accessToken(accessToken)
                 .build();
+    }
+
+    public ResponseEntity<ChangePasswordResponse> changePassword(ChangePasswordRequest request, String username) {
+        try {
+            // Lấy thông tin người dùng
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+            // Xác thực mật khẩu cũ
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ChangePasswordResponse.builder()
+                                .success(false)
+                                .message("Mật khẩu cũ không chính xác")
+                                .build());
+            }
+
+            // Kiểm tra mật khẩu mới không trùng với mật khẩu cũ
+            if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ChangePasswordResponse.builder()
+                                .success(false)
+                                .message("Mật khẩu mới không được trùng với mật khẩu cũ")
+                                .build());
+            }
+
+            // Cập nhật mật khẩu mới
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+
+            // Gửi email thông báo
+            LocalDateTime now = LocalDateTime.now();
+            emailService.sendPasswordChangedEmail(user.getEmail(), user.getFullname(), now);
+
+            return ResponseEntity.ok(ChangePasswordResponse.builder()
+                    .success(true)
+                    .message("Đổi mật khẩu thành công")
+                    .build());
+        } catch (Exception e) {
+            log.error("Lỗi khi đổi mật khẩu: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ChangePasswordResponse.builder()
+                            .success(false)
+                            .message("Đã xảy ra lỗi: " + e.getMessage())
+                            .build());
+        }
     }
 
 }
