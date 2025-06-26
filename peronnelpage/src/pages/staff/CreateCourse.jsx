@@ -12,7 +12,8 @@ import {
   Grid,
   Paper,
   ToggleButtonGroup,
-  ToggleButton
+  ToggleButton,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -80,6 +81,7 @@ const CreateCourse = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [lastSaved, setLastSaved] = useState(null);
   const [apiError, setApiError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // UI visibility states
   const [showQuizSection, setShowQuizSection] = useState(false);
@@ -354,6 +356,11 @@ const CreateCourse = () => {
       return;
     }
 
+    // Set submitting state
+    setIsSubmitting(true);
+    // Show processing notification
+    showSnackbar('Đang xử lý yêu cầu...', 'warning');
+
     try {
       console.log('Submitting course data:', course);
       
@@ -438,6 +445,9 @@ const CreateCourse = () => {
         errorMsg += `: ${error.message}`;
       }
       showSnackbar(errorMsg, 'error');
+    } finally {
+      // Reset submitting state
+      setIsSubmitting(false);
     }
   };
 
@@ -1274,15 +1284,17 @@ const CreateCourse = () => {
             variant="outlined"
             startIcon={<SaveIcon />}
             onClick={handleSaveDraft}
+            disabled={isSubmitting}
           >
             Lưu nháp
           </Button>
           <Button
             type="submit"
             variant="contained"
-            startIcon={<SaveIcon />}
+            startIcon={isSubmitting ? <CircularProgress size={24} color="inherit" /> : <SaveIcon />}
+            disabled={isSubmitting}
           >
-            Lưu khóa học
+            {isSubmitting ? 'Đang xử lý...' : 'Lưu khóa học'}
           </Button>
         </Box>
       </Box>
@@ -1295,7 +1307,7 @@ const CreateCourse = () => {
       
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={6000}
+        autoHideDuration={snackbar.severity === 'warning' ? null : 6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
