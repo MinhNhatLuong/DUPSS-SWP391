@@ -20,29 +20,9 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
+import { getAccessToken, checkAndRefreshToken } from '../../utils/auth';
 
 const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
-
-// Helper function to get auth token
-const getAuthToken = () => {
-  const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken');
-  if (!token) {
-    console.warn('No auth token found in localStorage');
-  }
-  return token;
-};
-
-// Create axios instance with auth headers
-const createAuthAxios = () => {
-  const token = getAuthToken();
-  return axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Accept': '*/*'
-    }
-  });
-};
 
 const CreateSurvey = () => {
   const editorRef = useRef(null);
@@ -50,6 +30,8 @@ const CreateSurvey = () => {
     title: '',
     description: '',
     imageCover: null,
+    active: true,
+    forCourse: false,
     sections: [],
     conditions: []
   });
@@ -134,28 +116,85 @@ const CreateSurvey = () => {
     try {
       setLoading(true);
       
-      // Prepare form data for multipart submission
-      const formData = new FormData();
-      formData.append('title', survey.title);
-      formData.append('description', currentContent);
+      // Ensure we have a valid token
+      const isTokenValid = await checkAndRefreshToken();
       
-      if (survey.imageCover) {
-        formData.append('imageCover', survey.imageCover);
+      if (!isTokenValid) {
+        setSnackbar({
+          open: true,
+          message: 'Phiên làm việc hết hạn. Vui lòng đăng nhập lại.',
+          severity: 'error'
+        });
+        setLoading(false);
+        return;
       }
       
-      // Append sections and conditions as JSON strings
-      formData.append('sections', JSON.stringify(survey.sections));
-      formData.append('conditions', JSON.stringify(survey.conditions));
+      // Get fresh token after potential refresh
+      const accessToken = getAccessToken();
       
-      // Create authorized axios instance for submission
-      const authAxios = createAuthAxios();
+      if (!accessToken) {
+        setSnackbar({
+          open: true,
+          message: 'Không tìm thấy token xác thực. Vui lòng đăng nhập lại.',
+          severity: 'error'
+        });
+        setLoading(false);
+        return;
+      }
       
-      // Submit the survey
-      await authAxios.post('/api/survey', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data'
+      // Create survey request object according to required format
+      const surveyRequest = {
+        title: survey.title,
+        description: currentContent,
+        active: survey.active,
+        forCourse: survey.forCourse,
+        sections: survey.sections.map(section => ({
+          sectionName: section.sectionName,
+          questions: section.questions.map(question => ({
+            questionText: question.questionText,
+            options: question.options.map(option => ({
+              optionText: option.optionText,
+              score: option.score
+            }))
+          }))
+        })),
+        conditions: survey.conditions.map(condition => ({
+          operator: condition.operator,
+          value: condition.value,
+          message: condition.message
+        }))
+      };
+      
+      console.log('Sending survey data:', surveyRequest);
+      
+      // Convert request to string
+      const requestString = JSON.stringify(surveyRequest);
+      
+      // Prepare form data for multipart submission
+      const formData = new FormData();
+      
+      // Add the JSON request as a string with parameter "request"
+      formData.append('request', new Blob([requestString], {
+        type: 'application/json'
+      }));
+      
+      // Add the cover image if it exists
+      if (survey.imageCover) {
+        formData.append('coverImage', survey.imageCover);
+      }
+      
+      // Submit the survey using the project's authentication pattern
+      const response = await axios({
+        method: 'post',
+        url: `${API_BASE_URL}/api/survey`,
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${accessToken}`
         }
       });
+      
+      console.log('Response:', response.data);
       
       setSnackbar({
         open: true,
@@ -169,6 +208,8 @@ const CreateSurvey = () => {
         title: '',
         description: '',
         imageCover: null,
+        active: true,
+        forCourse: false,
         sections: [],
         conditions: []
       });
@@ -182,9 +223,25 @@ const CreateSurvey = () => {
       setShowConditionsUI(false);
     } catch (error) {
       console.error('Error creating survey:', error);
+      console.error('Error response:', error.response?.data || 'No response data');
+      
+      let errorMessage = 'Có lỗi khi tạo khảo sát';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Phiên làm việc hết hạn. Vui lòng đăng nhập lại.';
+        } else if (error.response.data && error.response.data.message) {
+          errorMessage = `${errorMessage}: ${error.response.data.message}`;
+        } else {
+          errorMessage = `${errorMessage}: ${error.message}`;
+        }
+      } else {
+        errorMessage = `${errorMessage}: ${error.message}`;
+      }
+      
       setSnackbar({
         open: true,
-        message: `Có lỗi khi tạo khảo sát: ${error.message}`,
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
@@ -459,7 +516,7 @@ const CreateSurvey = () => {
           >
             <Box sx={{ p: 1, borderBottom: '1px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
               <Typography variant="body2" color="text.secondary">
-                Text editor vĩ dụ Tiny MCE cho phần description
+                Mô tả
               </Typography>
             </Box>
             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
