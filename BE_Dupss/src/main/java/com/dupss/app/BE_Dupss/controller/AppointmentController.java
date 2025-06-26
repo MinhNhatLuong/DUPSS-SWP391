@@ -3,6 +3,11 @@ package com.dupss.app.BE_Dupss.controller;
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
 import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusUpdateRequest;
 import com.dupss.app.BE_Dupss.dto.request.ConsultantNoteRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentEndRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentCancelConsultantRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentApproveRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -107,9 +112,9 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestBody AppointmentStatusUpdateRequest statusUpdateRequest,
+            @RequestBody AppointmentStatusRequest request,
             @RequestParam Long consultantId) {
-        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, statusUpdateRequest.getStatus(), consultantId));
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, request.getStatus(), consultantId));
     }
     
     /**
@@ -154,8 +159,8 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> approveAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, body.get("linkGoogleMeet")));
+            @RequestBody AppointmentApproveRequest request) {
+        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, request.getLinkGoogleMeet()));
     }
     
     @PutMapping("/{id}/start")
@@ -171,8 +176,8 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> endAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody ConsultantNoteRequest consultantNote) {
-        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, consultantNote.getConsultantNote()));
+            @RequestBody AppointmentEndRequest request) {
+        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, request.getConsultantNote()));
     }
     
     @PutMapping("/{id}/cancel/consultant")
@@ -180,8 +185,8 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> cancelAppointmentByConsultant(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.cancelAppointmentByConsultant(id, consultantId, body.get("reason")));
+            @RequestBody AppointmentCancelConsultantRequest request) {
+        return ResponseEntity.ok(appointmentService.cancelAppointmentByConsultant(id, consultantId, request.getReason()));
     }
     
     @PutMapping("/{id}/review/user")
@@ -189,19 +194,15 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> reviewAppointment(
             @PathVariable Long id,
             @RequestParam Long userId,
-            @RequestBody Map<String, Object> body) {
-        Integer reviewScore = (Integer) body.get("reviewScore");
-        String customerReview = (String) body.get("customerReview");
-        return ResponseEntity.ok(appointmentService.reviewAppointment(id, reviewScore, customerReview, userId));
+            @RequestBody AppointmentReviewRequest request) {
+        return ResponseEntity.ok(appointmentService.reviewAppointment(id, request.getReviewScore(), request.getCustomerReview(), userId));
     }
     
     @PutMapping("/{id}/review/guest")
     public ResponseEntity<AppointmentResponseDto> reviewAppointmentByGuest(
             @PathVariable Long id,
             @RequestParam String email,
-            @RequestBody Map<String, Object> body) {
-        Integer reviewScore = (Integer) body.get("reviewScore");
-        String customerReview = (String) body.get("customerReview");
-        return ResponseEntity.ok(appointmentService.reviewAppointmentByGuest(id, reviewScore, customerReview, email));
+            @RequestBody AppointmentReviewRequest request) {
+        return ResponseEntity.ok(appointmentService.reviewAppointmentByGuest(id, request.getReviewScore(), request.getCustomerReview(), email));
     }
 } 
