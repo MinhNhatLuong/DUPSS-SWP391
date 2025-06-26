@@ -31,7 +31,9 @@ public interface AppointmentService {
      * Lấy cuộc hẹn theo ID của thành viên
      */
     List<AppointmentResponseDto> getAppointmentsByUserId(Long userId);
-    
+
+    List<AppointmentResponseDto> getAllAppointmentsByUser(Long userId);
+
     /**
      * Lấy cuộc hẹn theo ID của tư vấn viên
      */

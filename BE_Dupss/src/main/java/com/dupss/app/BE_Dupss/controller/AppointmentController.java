@@ -66,10 +66,11 @@ public class AppointmentController {
      * Dùng cho thành viên đã đăng nhập xem lịch sử đặt lịch của họ
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') and #userId == authentication.principal.id")
-    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByUserId(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointmentsByUserId(
             @PathVariable Long userId) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsByUserId(userId));
+        List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByUserId(userId);
+        return ResponseEntity.ok(appointments);
     }
     
     /**
