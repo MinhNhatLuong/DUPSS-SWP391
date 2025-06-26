@@ -72,7 +72,6 @@ public class AppointmentController {
         List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByUserId(userId);
         return ResponseEntity.ok(appointments);
     }
-    
     /**
      * API lấy cuộc hẹn của tư vấn viên theo consultantId
      * Chỉ dành cho tư vấn viên
