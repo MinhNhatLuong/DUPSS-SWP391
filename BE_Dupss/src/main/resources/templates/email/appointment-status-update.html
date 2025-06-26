@@ -198,13 +198,14 @@
             
             <div class="info-item">
                 <span class="info-label">Trạng thái mới:</span>
-                <span th:class="${'status status-' + #strings.toLowerCase(appointment.status)}" 
-                      th:text="${#strings.equals(appointment.status, 'PENDING') ? 'Chờ xác nhận' : 
-                               #strings.equals(appointment.status, 'CONFIRMED') ? 'Đã xác nhận' : 
-                               #strings.equals(appointment.status, 'CANCELED') ? 'Đã hủy' : 
-                               #strings.equals(appointment.status, 'COMPLETED') ? 'Đã hoàn thành' : appointment.status}">
-                    Đã xác nhận
-                </span>
+                <span th:class="${'status status-' + appointment.status.toLowerCase()}"
+                      th:switch="${appointment.status}">
+                <span th:case="'PENDING'">Chờ xác nhận</span>
+                <span th:case="'CONFIRMED'">Đã xác nhận</span>
+                <span th:case="'CANCELED'">Đã hủy</span>
+                <span th:case="'COMPLETED'">Đã hoàn thành</span>
+                <span th:case="*">Không xác định</span>
+            </span>
             </div>
         </div>
         

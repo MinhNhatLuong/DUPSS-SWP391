@@ -1,6 +1,13 @@
 package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.request.ConsultantNoteRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentEndRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentCancelConsultantRequest;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentApproveRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -38,7 +45,7 @@ public class AppointmentController {
      * Chỉ dành cho admin
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
@@ -65,19 +72,21 @@ public class AppointmentController {
      * API lấy cuộc hẹn của thành viên (member) theo userId
      * Dùng cho thành viên đã đăng nhập xem lịch sử đặt lịch của họ
      */
+
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') and #userId == authentication.principal.id")
-    public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByUserId(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointmentsByUserId(
             @PathVariable Long userId) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsByUserId(userId));
+        List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByUserId(userId);
+        return ResponseEntity.ok(appointments);
     }
-    
+
     /**
      * API lấy cuộc hẹn của tư vấn viên theo consultantId
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/consultant/{consultantId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByConsultantId(
             @PathVariable Long consultantId) {
         return ResponseEntity.ok(appointmentService.getAppointmentsByConsultantId(consultantId));
@@ -88,7 +97,7 @@ public class AppointmentController {
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/consultant/{consultantId}/history")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getCompletedOrCanceledAppointmentsByConsultantId(
             @PathVariable Long consultantId) {
         return ResponseEntity.ok(appointmentService.getCompletedOrCanceledAppointmentsByConsultantId(consultantId));
@@ -103,21 +112,21 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestBody Map<String, String> body,
+            @RequestBody AppointmentStatusRequest request,
             @RequestParam Long consultantId) {
-        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, body.get("status"), consultantId));
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, request.getStatus(), consultantId));
     }
     
     /**
      * API hủy cuộc hẹn của thành viên đã đăng nhập
      * Dùng cho thành viên đã đăng nhập muốn hủy cuộc hẹn của họ
      */
-    @PutMapping("/{id}/cancel/user")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') and #userId == authentication.principal.id")
+    @PutMapping("/{appointmentId}/cancel/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') ")
     public ResponseEntity<AppointmentResponseDto> cancelAppointmentByUser(
-            @PathVariable Long id,
-            @RequestParam Long userId) {
-        return ResponseEntity.ok(appointmentService.cancelAppointmentByUser(id, userId));
+            @PathVariable("appointmentId") Long appointmentId,
+            @PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(appointmentService.cancelAppointmentByUser(appointmentId, userId));
     }
     
     /**
@@ -138,7 +147,7 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}/claim")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> claimAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId) {
@@ -146,16 +155,16 @@ public class AppointmentController {
     }
     
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> approveAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, body.get("linkGoogleMeet")));
+            @RequestBody AppointmentApproveRequest request) {
+        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, request.getLinkGoogleMeet()));
     }
     
     @PutMapping("/{id}/start")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> startAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId) {
@@ -163,41 +172,37 @@ public class AppointmentController {
     }
     
     @PutMapping("/{id}/end")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> endAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, body.get("consultantNote")));
+            @RequestBody AppointmentEndRequest request) {
+        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, request.getConsultantNote()));
     }
     
     @PutMapping("/{id}/cancel/consultant")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') and #consultantId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> cancelAppointmentByConsultant(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.cancelAppointmentByConsultant(id, consultantId, body.get("reason")));
+            @RequestBody AppointmentCancelConsultantRequest request) {
+        return ResponseEntity.ok(appointmentService.cancelAppointmentByConsultant(id, consultantId, request.getReason()));
     }
     
     @PutMapping("/{id}/review/user")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') and #userId == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') ")
     public ResponseEntity<AppointmentResponseDto> reviewAppointment(
             @PathVariable Long id,
             @RequestParam Long userId,
-            @RequestBody Map<String, Object> body) {
-        Integer reviewScore = (Integer) body.get("reviewScore");
-        String customerReview = (String) body.get("customerReview");
-        return ResponseEntity.ok(appointmentService.reviewAppointment(id, reviewScore, customerReview, userId));
+            @RequestBody AppointmentReviewRequest request) {
+        return ResponseEntity.ok(appointmentService.reviewAppointment(id, request.getReviewScore(), request.getCustomerReview(), userId));
     }
     
     @PutMapping("/{id}/review/guest")
     public ResponseEntity<AppointmentResponseDto> reviewAppointmentByGuest(
             @PathVariable Long id,
             @RequestParam String email,
-            @RequestBody Map<String, Object> body) {
-        Integer reviewScore = (Integer) body.get("reviewScore");
-        String customerReview = (String) body.get("customerReview");
-        return ResponseEntity.ok(appointmentService.reviewAppointmentByGuest(id, reviewScore, customerReview, email));
+            @RequestBody AppointmentReviewRequest request) {
+        return ResponseEntity.ok(appointmentService.reviewAppointmentByGuest(id, request.getReviewScore(), request.getCustomerReview(), email));
     }
 } 

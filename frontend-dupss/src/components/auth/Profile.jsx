@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -123,8 +123,30 @@ const Profile = () => {
   const fetchAppointments = async () => {
     setLoadingAppointments(true);
     try {
-      const response = await api.get('http://localhost:8080/api/appointments');
-      setAppointments(response.data);
+      // Get user ID from getUserData function
+      const userInfo = getUserData();
+      const userId = userInfo?.id;
+      
+      if (!userId) {
+        console.error('User ID not found');
+        setLoadingAppointments(false);
+        return;
+      }
+      
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:8080/api/appointments/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (response.status === 200) {
+        const data = await response.json();
+        setAppointments(data);
+      } else {
+        console.error('Failed to fetch appointments:', response.status);
+      }
       setLoadingAppointments(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -176,7 +198,7 @@ const Profile = () => {
       }
 
       const response = await fetch(`http://localhost:8080/api/appointments/${appointmentId}/cancel/user/${userId}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -455,6 +477,39 @@ const Profile = () => {
       console.error('Error updating profile:', error);
       showErrorAlert('Có lỗi xảy ra khi cập nhật thông tin!');
       setIsProcessing(false); // Ensure processing state is turned off if error occurs
+    }
+  };
+
+  // Render the review button based on appointment status and review flag
+  const renderReviewButton = (appointment) => {
+    if (appointment.status !== 'COMPLETED') {
+      return null;
+    }
+
+    if (appointment.review) {
+      return (
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
+          component={RouterLink}
+          to={`/appointment/${appointment.id}/review`}
+        >
+          Xem lại đánh giá
+        </Button>
+      );
+    } else {
+      return (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          component={RouterLink}
+          to={`/appointment/${appointment.id}/review`}
+        >
+          Đánh giá
+        </Button>
+      );
     }
   };
 
@@ -845,6 +900,8 @@ const Profile = () => {
                       <TableCell sx={{ fontWeight: 600 }}>Chủ đề tư vấn</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Tư vấn viên</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Link tham dự</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Đánh giá</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Hủy cuộc hẹn</TableCell>
                     </TableRow>
                   </TableHead>
@@ -856,6 +913,16 @@ const Profile = () => {
                         <TableCell>{appointment.topicName}</TableCell>
                         <TableCell>{appointment.consultantName}</TableCell>
                         <TableCell>{getStatusLabel(appointment.status)}</TableCell>
+                        <TableCell>
+                          {appointment.linkGoogleMeet ? (
+                            <Link href={appointment.linkGoogleMeet} target="_blank" rel="noopener noreferrer">
+                              Link
+                            </Link>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          {renderReviewButton(appointment)}
+                        </TableCell>
                         <TableCell>
                           <Button
                             variant="contained"

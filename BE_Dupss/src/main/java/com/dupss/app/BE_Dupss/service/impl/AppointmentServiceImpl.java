@@ -8,6 +8,7 @@ import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import com.dupss.app.BE_Dupss.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
@@ -60,20 +62,18 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setGuest(true);
         }
 
-        // Gán cố định consultant ID = 2 làm placeholder
-        // Các consultant thực sự sẽ nhận cuộc hẹn sau thông qua API claimAppointment
-//        Optional<User> placeholderConsultant = userRepository.findById(2L);
-//        if (placeholderConsultant.isPresent()) {
-//            appointment.setConsultant(placeholderConsultant.get());
-//        } else {
-//            throw new ResourceNotFoundException("Không tìm thấy consultant placeholder với ID = 2");
-//        }
 
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         // Gửi email xác nhận đặt lịch
-        emailService.sendAppointmentConfirmation(savedAppointment);
+//        emailService.sendAppointmentConfirmation(savedAppointment);
+        try {
+            emailService.sendAppointmentConfirmation(savedAppointment);
+        } catch (Exception ex) {
+            // Không rollback nếu lỗi gửi mail, chỉ log
+            log.warn("Không thể gửi email xác nhận lịch hẹn: {}", ex.getMessage());
+        }
 
         // Chuyển đổi thành AppointmentResponseDto và trả về
         return mapToResponseDto(savedAppointment);
@@ -104,6 +104,20 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getAppointmentsByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+        List<Appointment> appointments = appointmentRepository.findByUser(user);
+        return appointments.stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AppointmentResponseDto> getAllAppointmentsByUser(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("Người dùng chưa đăng nhập");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
         List<Appointment> appointments = appointmentRepository.findByUser(user);
@@ -355,6 +369,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
+        if (appointment.getStatus().equalsIgnoreCase("COMPLETED")) {
+            throw new IllegalStateException("Cuộc hẹn đã được hoàn thành trước đó");
+        }
+
         // Kiểm tra quyền truy cập
         if (appointment.getConsultant() == null || 
             !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
@@ -365,6 +383,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getCheckInTime() == null) {
             throw new IllegalArgumentException("Cuộc hẹn chưa được bắt đầu");
         }
+
 
         // Cập nhật thông tin
         java.time.LocalDateTime endTime = java.time.LocalDateTime.now();

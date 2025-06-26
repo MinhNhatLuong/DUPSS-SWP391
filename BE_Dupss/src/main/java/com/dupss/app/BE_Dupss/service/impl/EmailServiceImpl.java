@@ -75,7 +75,7 @@ public class EmailServiceImpl implements EmailService {
                 context.setVariable("showGoogleMeetLink", false);
             }
             
-            String content = templateEngine.process("email/appointment-status-update", context);
+            String content = templateEngine.process("email/appointment-confirmation", context);
             if (content == null || content.trim().isEmpty()) {
                 throw new RuntimeException("Không thể tạo nội dung email từ template");
             }
