@@ -369,6 +369,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
+        if (appointment.getStatus().equalsIgnoreCase("COMPLETED")) {
+            throw new IllegalStateException("Cuộc hẹn đã được hoàn thành trước đó");
+        }
+
         // Kiểm tra quyền truy cập
         if (appointment.getConsultant() == null || 
             !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
@@ -379,6 +383,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getCheckInTime() == null) {
             throw new IllegalArgumentException("Cuộc hẹn chưa được bắt đầu");
         }
+
 
         // Cập nhật thông tin
         java.time.LocalDateTime endTime = java.time.LocalDateTime.now();

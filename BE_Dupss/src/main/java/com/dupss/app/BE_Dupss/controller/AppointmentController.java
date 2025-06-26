@@ -1,6 +1,8 @@
 package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusUpdateRequest;
+import com.dupss.app.BE_Dupss.dto.request.ConsultantNoteRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -105,9 +107,9 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestBody Map<String, String> body,
+            @RequestBody AppointmentStatusUpdateRequest statusUpdateRequest,
             @RequestParam Long consultantId) {
-        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, body.get("status"), consultantId));
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, statusUpdateRequest.getStatus(), consultantId));
     }
     
     /**
@@ -169,8 +171,8 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDto> endAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, body.get("consultantNote")));
+            @RequestBody ConsultantNoteRequest consultantNote) {
+        return ResponseEntity.ok(appointmentService.endAppointment(id, consultantId, consultantNote.getConsultantNote()));
     }
     
     @PutMapping("/{id}/cancel/consultant")
