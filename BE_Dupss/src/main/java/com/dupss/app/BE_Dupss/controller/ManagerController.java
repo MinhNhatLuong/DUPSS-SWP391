@@ -140,7 +140,7 @@ public class ManagerController {
                         .createdAt(survey.getCreatedAt())
                         .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
-                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
+//                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -217,7 +217,7 @@ public class ManagerController {
                         .createdAt(survey.getCreatedAt())
                         .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
                         .status(survey.getStatus())
-                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
+//                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -328,7 +328,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         survey.setStatus(ApprovalStatus.APPROVED);
-        survey.setCheckedBy(currentUser);
+//        survey.setCheckedBy(currentUser);
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
     }
@@ -350,7 +350,7 @@ public class ManagerController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         survey.setStatus(ApprovalStatus.REJECTED);
-        survey.setCheckedBy(currentUser);
+//        survey.setCheckedBy(currentUser);
         surveyRepository.save(survey);
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
     }
@@ -381,10 +381,10 @@ public class ManagerController {
         return ResponseEntity.ok("Topic deleted successfully");
     }
 
-    @PostMapping(value = "/survey", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF, ROLE_MANAGER')")
-    public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request) throws IOException {
-        SurveyResponse surveyResponse = surveyService.createSurvey(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
-    }
+//    @PostMapping(value = "/survey", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @PreAuthorize("hasAuthority('ROLE_STAFF, ROLE_MANAGER')")
+//    public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request) throws IOException {
+//        SurveyResponse surveyResponse = surveyService.createSurvey(request);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
+//    }
 }

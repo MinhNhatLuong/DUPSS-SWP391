@@ -112,67 +112,74 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="https://your-logo-url.com/logo.png" alt="DUPSS Logo" class="logo" th:if="${logoUrl}">
-            <h2>Xác nhận đặt lịch tư vấn</h2>
+<div class="container">
+    <div class="header">
+        <img src="https://your-logo-url.com/logo.png" alt="DUPSS Logo" class="logo" th:if="${logoUrl}">
+        <h2>Xác nhận đặt lịch tư vấn</h2>
+    </div>
+
+    <p>Kính gửi <span class="highlight" th:text="${appointment.customerName}">[Tên khách hàng]</span>,</p>
+
+    <p>Cảm ơn bạn đã đặt lịch tư vấn với chúng tôi. Dưới đây là thông tin chi tiết về cuộc hẹn của bạn:</p>
+
+    <div class="content">
+        <div class="info-item">
+            <span class="info-label">Mã cuộc hẹn:</span>
+            <span class="info-value" th:text="${appointment.id}">[Mã cuộc hẹn]</span>
         </div>
-        
-        <p>Kính gửi <span class="highlight" th:text="${appointment.customerName}"></span>,</p>
-        
-        <p>Cảm ơn bạn đã đặt lịch tư vấn với chúng tôi. Dưới đây là thông tin chi tiết về cuộc hẹn của bạn:</p>
-        
-        <div class="content">
-            <div class="info-item">
-                <span class="info-label">Mã cuộc hẹn:</span>
-                <span class="info-value" th:text="${appointment.id}"></span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Ngày hẹn:</span>
-                <span class="info-value" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}"></span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Giờ hẹn:</span>
-                <span class="info-value" th:text="${#temporals.format(appointment.appointmentTime, 'HH:mm')}"></span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Chủ đề tư vấn:</span>
-                <span class="info-value" th:text="${appointment.topic.name}"></span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Tư vấn viên:</span>
-                <span class="info-value" th:text="${appointment.consultant.fullname}"></span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Trạng thái:</span>
-                <span th:class="${'status status-' + #strings.toLowerCase(appointment.status)}" 
-                      th:text="${#strings.equals(appointment.status, 'PENDING') ? 'Chờ xác nhận' : 
-                               #strings.equals(appointment.status, 'CONFIRMED') ? 'Đã xác nhận' : 
-                               #strings.equals(appointment.status, 'CANCELED') ? 'Đã hủy' : 
-                               #strings.equals(appointment.status, 'COMPLETED') ? 'Đã hoàn thành' : appointment.status}">
-                    Chờ xác nhận
-                </span>
-            </div>
+
+        <div class="info-item">
+            <span class="info-label">Ngày hẹn:</span>
+            <span class="info-value" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">[Ngày hẹn]</span>
         </div>
-        
-        <div class="note">
-            <p>Vui lòng lưu ý rằng tư vấn viên của chúng tôi sẽ liên hệ với bạn để xác nhận cuộc hẹn. 
-            Nếu bạn có bất kỳ thắc mắc nào, đừng ngần ngại liên hệ với chúng tôi.</p>
+
+        <div class="info-item">
+            <span class="info-label">Giờ hẹn:</span>
+            <span class="info-value" th:text="${#temporals.format(appointment.appointmentTime, 'HH:mm')}">[Giờ hẹn]</span>
         </div>
-        
-        <div class="contact-info">
-            <p>Email: dupss.system312@gmail.com</p>
+
+        <div class="info-item">
+            <span class="info-label">Chủ đề tư vấn:</span>
+            <span class="info-value" th:text="${appointment.topic.name}">[Chủ đề]</span>
         </div>
-        
-        <div class="footer">
-            <p>Trân trọng,<br>Đội ngũ tư vấn DUPSS</p>
-            <p>© 2025 DUPSS. All rights reserved.</p>
+
+        <div class="info-item">
+            <span class="info-label">Tư vấn viên:</span>
+            <span class="info-value"
+                  th:text="${appointment.consultant != null ? appointment.consultant.fullname : 'Chưa được phân công'}">[Tên tư vấn viên]</span>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">Trạng thái:</span>
+            <span th:class="${'status status-' + appointment.status.toLowerCase()}"
+                  th:switch="${appointment.status}">
+                <span th:case="'PENDING'">Chờ xác nhận</span>
+                <span th:case="'CONFIRMED'">Đã xác nhận</span>
+                <span th:case="'CANCELED'">Đã hủy</span>
+                <span th:case="'COMPLETED'">Đã hoàn thành</span>
+                <span th:case="*">Không xác định</span>
+            </span>
+        </div>
+        <!-- Google Meet Link (chỉ hiển thị khi đã xác nhận và có link) -->
+        <div class="info-item" th:if="${showGoogleMeetLink}">
+            <span class="info-label">Link Google Meet:</span>
+            <span class="info-value"><a th:href="${googleMeetLink}" th:text="${googleMeetLink}"></a></span>
         </div>
     </div>
+
+    <div class="note">
+        <p>Vui lòng lưu ý rằng tư vấn viên của chúng tôi sẽ liên hệ với bạn để xác nhận cuộc hẹn.
+            Nếu bạn có bất kỳ thắc mắc nào, đừng ngần ngại liên hệ với chúng tôi.</p>
+    </div>
+
+    <div class="contact-info">
+        <p>Email: dupss.system312@gmail.com</p>
+    </div>
+
+    <div class="footer">
+        <p>Trân trọng,<br>Đội ngũ tư vấn DUPSS</p>
+        <p>© 2025 DUPSS. All rights reserved.</p>
+    </div>
+</div>
 </body>
-</html> 
+</html>

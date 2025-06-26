@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class CourseService {
 //
 //                List<VideoCourse> videos = new ArrayList<>();
 //                if (moduleRequest.getVideos() != null) {
-//                    for (VideoCourse url : moduleRequest.getVideos()) {
+//                    for (CourseModuleRequest.VideoCourseRequest url : moduleRequest.getVideos()) {
 //                        VideoCourse video = new VideoCourse();
 //                        video.setTitle(url.getTitle());
 //                        video.setVideoUrl(url.getVideoUrl());
@@ -105,7 +106,7 @@ public class CourseService {
 //        }
 //
 //        if (request.getQuiz() != null) {
-//            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+//            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), null, currentUser);
 //            quiz.setForCourse(true);
 //            surveyRepository.save(quiz);
 //            savedCourse.setSurveyQuiz(quiz);
@@ -123,7 +124,7 @@ public class CourseService {
 
                 List<VideoCourse> videos = new ArrayList<>();
                 if (moduleRequest.getVideos() != null) {
-                    for (VideoCourse url : moduleRequest.getVideos()) {
+                    for (CourseModuleRequest.VideoCourseRequest url : moduleRequest.getVideos()) {
                         VideoCourse video = new VideoCourse();
                         video.setTitle(url.getTitle());
                         video.setVideoUrl(url.getVideoUrl());
@@ -141,7 +142,7 @@ public class CourseService {
         if (StringUtils.hasText(request.getQuiz())) {
             SurveyCreateRequest quizRequest = objectMapper.readValue(
                     request.getQuiz(), SurveyCreateRequest.class);
-            Survey quiz = surveyService.createAndSaveSurveyEntity(quizRequest, currentUser);
+            Survey quiz = surveyService.createAndSaveSurveyEntity(quizRequest, null, currentUser);
             quiz.setForCourse(true);
             surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
@@ -371,7 +372,7 @@ public class CourseService {
 
                 List<VideoCourse> videos = new ArrayList<>();
                 if (moduleRequest.getVideos() != null) {
-                    for (VideoCourse url : moduleRequest.getVideos()) {
+                    for (CourseModuleRequest.VideoCourseRequest url : moduleRequest.getVideos()) {
                         VideoCourse video = new VideoCourse();
                         video.setTitle(url.getTitle());
                         video.setVideoUrl(url.getVideoUrl());
@@ -387,7 +388,7 @@ public class CourseService {
         }
 
         if (request.getQuiz() != null) {
-            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), currentUser);
+            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), null, currentUser);
             quiz.setForCourse(true);
             surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
@@ -428,6 +429,9 @@ public class CourseService {
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
+                .description(course.getDescription())
+                .content(course.getContent())
+                .coverImage(course.getCoverImage())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .creator(course.getCreator().getFullname())

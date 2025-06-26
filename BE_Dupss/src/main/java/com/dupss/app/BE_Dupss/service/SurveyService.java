@@ -14,12 +14,12 @@ import java.io.IOException;
 import java.util.List;
 
 public interface SurveyService {
-    SurveyResponse createSurvey(SurveyCreateRequest surveyCreateRequest) throws IOException;
+    SurveyResponse createSurvey(SurveyCreateRequest surveyCreateRequest, MultipartFile coverImage) throws IOException;
     List<SurveySummaryResponse> getSurveySummary();
     SurveyResponse getSurveyDetails(Long surveyId);
     SurveyResultResponse submitSurveyResult(SurveyResultRequest request);
     List<SurveyResultResponse> getSubmittedSurveys();
-    Survey createAndSaveSurveyEntity(SurveyCreateRequest request, User author) throws IOException;
+    Survey createAndSaveSurveyEntity(SurveyCreateRequest request, MultipartFile coverImage, User author) throws IOException;
     List<SurveyResponse> getAllSurveys();
     SurveyResponse getSurveyById(Long id);
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);

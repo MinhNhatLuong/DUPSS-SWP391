@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.VideoCourse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -16,14 +17,20 @@ import java.util.List;
 public class CourseModuleRequest {
     @NotBlank(message = "Tiêu đề module không được để trống")
     private String title;
-    
-    private String description;
-    
-    private String content;
 
-    private List<VideoCourse> videos;
+    @Valid
+    private List<VideoCourseRequest> videos;
 
-    
     @PositiveOrZero(message = "Thứ tự module không được âm")
     private Integer orderIndex;
+
+    @Data
+    public static class VideoCourseRequest {
+        @NotBlank(message = "Tiêu đề video không được để trống")
+        private String title;
+
+        @NotBlank(message = "Đường dẫn video không được để trống")
+        private String videoUrl;
+    }
+
 } 

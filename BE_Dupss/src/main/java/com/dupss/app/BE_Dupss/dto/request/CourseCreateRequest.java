@@ -33,6 +33,5 @@ public class CourseCreateRequest {
     private String modules;
 
     @Valid
-    private String quiz; // Assuming this is a JSON string or similar format for the quiz
-//    private SurveyCreateRequest quiz;
+    private String quiz;
 } 
