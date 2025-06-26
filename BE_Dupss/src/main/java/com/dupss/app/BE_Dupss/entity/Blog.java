@@ -19,16 +19,21 @@ public class Blog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+
     @ManyToOne
     @JoinColumn(name = "topic_id")
     private Topic topic;
+
     @Column(length = 5000)
     private String description;
+
     @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
+
     @OneToMany(mappedBy = "blogPost", cascade = CascadeType.ALL)
     private List<BlogImage> images = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private User author;

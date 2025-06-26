@@ -27,6 +27,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -122,12 +123,12 @@ public class StaffController {
      * API tạo khóa học mới
      * Chỉ dành cho Staff
      */
-    @PostMapping(value = "/course", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
-        CourseResponse response = courseService.createCourse(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+//    @PostMapping(value = "/course", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+//    public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
+//        CourseResponse response = courseService.createCourse(request, );
+//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//    }
     
     /**
      * API lấy tất cả khóa học của Staff hiện tại
@@ -180,6 +181,14 @@ public class StaffController {
         
         return ResponseEntity.ok(Map.of("message", "Cập nhật bài viết thành công", "id", updatedBlog.getId().toString()));
     }
+
+
+    @PostMapping(value = "/course", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
+//        CourseCreateRequest request = objectMapper.readValue(rawJson, CourseCreateRequest.class);
+        CourseResponse response = courseService.createCourse(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
     
     /**
      * API cập nhật khóa học
@@ -203,7 +212,7 @@ public class StaffController {
      */
     @PutMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request) throws IOException {
+    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart MultipartFile images) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
@@ -230,7 +239,7 @@ public class StaffController {
         survey.setDescription(request.getDescription());
         survey.setStatus(ApprovalStatus.PENDING); // Reset status to PENDING after update
         
-        if (request.getImageCover() != null && !request.getImageCover().isEmpty()) {
+        if (images != null && !images.isEmpty()) {
             // Xử lý upload hình ảnh nếu cần
         }
         

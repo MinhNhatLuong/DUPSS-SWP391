@@ -22,7 +22,7 @@ public class SurveyCreateRequest {
     private String title;
 
     private String description;
-    private MultipartFile imageCover;
+//    private MultipartFile imageCover;
 
 //    @Valid
 //    @NotEmpty(message = "At least one question is required")
@@ -30,8 +30,7 @@ public class SurveyCreateRequest {
 
     @Valid
     @NotEmpty(message = "At least one section is required")
-    private String sections;
-//    private List<SurveySection> sections;
+    private List<SurveySection> sections;
     @Data
     public static class SurveySection {
         private String sectionName;
@@ -61,8 +60,7 @@ public class SurveyCreateRequest {
     }
     @Valid
     @NotEmpty(message = "At least one condition is required")
-    private String conditions;
-//    private List<ConditionRequest> conditions;
+    private List<ConditionRequest> conditions;
     @Data
     public static class ConditionRequest {
         @NotBlank

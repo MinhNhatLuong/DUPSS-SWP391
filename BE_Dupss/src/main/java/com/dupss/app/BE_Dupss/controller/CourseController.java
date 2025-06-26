@@ -7,6 +7,7 @@ import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.Certificate;
 import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
 import com.dupss.app.BE_Dupss.service.CourseService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class CourseController {
     private final CourseService courseService;
     private final CourseEnrollmentService enrollmentService;
     private final CourseEnrollmentService courseEnrollmentService;
+//    private final ObjectMapper objectMapper;
 
 
     @GetMapping("/detail/{id}")
@@ -42,8 +44,8 @@ public class CourseController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
-    public ResponseEntity<CourseResponse> createCourse(@Valid @RequestPart CourseCreateRequest request,
-                                                       @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) throws IOException {
+    public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
+//        CourseCreateRequest request = objectMapper.readValue(rawJson, CourseCreateRequest.class);
         CourseResponse response = courseService.createCourse(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
