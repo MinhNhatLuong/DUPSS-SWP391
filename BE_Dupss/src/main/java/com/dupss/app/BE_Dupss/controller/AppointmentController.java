@@ -65,13 +65,15 @@ public class AppointmentController {
      * API lấy cuộc hẹn của thành viên (member) theo userId
      * Dùng cho thành viên đã đăng nhập xem lịch sử đặt lịch của họ
      */
-        @GetMapping("/user/{userId}")
-        @PreAuthorize("isAuthenticated()")
-        public ResponseEntity<List<AppointmentResponseDto>> getAllAppointmentsByUserId(
-                @PathVariable Long userId) {
-            List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByUserId(userId);
-            return ResponseEntity.ok(appointments);
-        }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointmentsByUserId(
+            @PathVariable Long userId) {
+        List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByUserId(userId);
+        return ResponseEntity.ok(appointments);
+    }
+
     
     /**
      * API lấy cuộc hẹn của tư vấn viên theo consultantId
