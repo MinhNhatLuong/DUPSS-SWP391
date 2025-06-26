@@ -67,6 +67,14 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("appointment", appointment);
             context.setVariable("statusChangeMessage", getStatusChangeMessage(appointment.getStatus(), previousStatus));
             
+            // Thêm biến để hiển thị Google Meet link nếu có
+            if ("CONFIRMED".equals(appointment.getStatus()) && appointment.getLinkGoogleMeet() != null) {
+                context.setVariable("showGoogleMeetLink", true);
+                context.setVariable("googleMeetLink", appointment.getLinkGoogleMeet());
+            } else {
+                context.setVariable("showGoogleMeetLink", false);
+            }
+            
             String content = templateEngine.process("email/appointment-status-update", context);
             if (content == null || content.trim().isEmpty()) {
                 throw new RuntimeException("Không thể tạo nội dung email từ template");

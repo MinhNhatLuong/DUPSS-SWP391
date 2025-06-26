@@ -71,4 +71,34 @@ public interface AppointmentService {
      * Tư vấn viên nhận cuộc hẹn chưa được phân công
      */
     AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
+    
+    /**
+     * Tư vấn viên duyệt cuộc hẹn và thêm link Google Meet
+     */
+    AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet);
+    
+    /**
+     * Tư vấn viên bắt đầu cuộc hẹn
+     */
+    AppointmentResponseDto startAppointment(Long appointmentId, Long consultantId);
+    
+    /**
+     * Tư vấn viên kết thúc cuộc hẹn
+     */
+    AppointmentResponseDto endAppointment(Long appointmentId, Long consultantId, String consultantNote);
+    
+    /**
+     * Tư vấn viên hủy cuộc hẹn do khách không tham gia
+     */
+    AppointmentResponseDto cancelAppointmentByConsultant(Long appointmentId, Long consultantId, String reason);
+    
+    /**
+     * Khách hàng đánh giá cuộc hẹn
+     */
+    AppointmentResponseDto reviewAppointment(Long appointmentId, Integer reviewScore, String customerReview, Long userId);
+    
+    /**
+     * Khách không đăng nhập đánh giá cuộc hẹn (qua email)
+     */
+    AppointmentResponseDto reviewAppointmentByGuest(Long appointmentId, Integer reviewScore, String customerReview, String email);
 } 

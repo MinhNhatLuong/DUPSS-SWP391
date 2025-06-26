@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -30,4 +31,16 @@ public class AppointmentResponseDto {
     private boolean isGuest;
     private String status;
     private Long userId;
+    
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    private LocalDateTime checkInTime;
+    
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    private LocalDateTime checkOutTime;
+    
+    private String consultantNote;
+    private Integer reviewScore;
+    private String customerReview;
+    private boolean isReview;
+    private String linkGoogleMeet;
 } 

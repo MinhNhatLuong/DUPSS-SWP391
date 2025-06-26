@@ -122,6 +122,32 @@
             font-size: 16px;
             color: #2c3e50;
         }
+        .google-meet-link {
+            background-color: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+            text-align: center;
+        }
+        .google-meet-link p {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #155724;
+        }
+        .google-meet-link a {
+            display: inline-block;
+            background-color: #4285f4;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .google-meet-link a:hover {
+            background-color: #3367d6;
+        }
     </style>
 </head>
 <body>
@@ -135,6 +161,13 @@
         
         <div class="status-change">
             <p th:text="${statusChangeMessage}">Thông báo cập nhật trạng thái</p>
+        </div>
+        
+        <!-- Hiển thị Google Meet Link nếu có -->
+        <div class="google-meet-link" th:if="${showGoogleMeetLink == true}">
+            <p>Cuộc hẹn của bạn sẽ được thực hiện qua Google Meet. Vui lòng nhấp vào liên kết dưới đây vào thời gian đã hẹn:</p>
+            <a th:href="${googleMeetLink}" target="_blank">Tham gia cuộc họp Google Meet</a>
+            <p style="margin-top: 10px; font-size: 14px;">Hoặc sao chép liên kết: <span th:text="${googleMeetLink}"></span></p>
         </div>
         
         <div class="content">
