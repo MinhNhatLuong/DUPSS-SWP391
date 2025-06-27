@@ -18,15 +18,25 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
-  Snackbar
+  Snackbar,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
 
-// Khung giờ từ 7h đến 19h
-const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => 7 + i); // 7h-19h
-const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6']; // Chỉ thứ 2 đến thứ 6
+// Đăng ký plugin tuần trong năm
+dayjs.extend(weekOfYear);
+
+// Khung giờ từ 7h đến 24h (nửa đêm)
+const TIME_SLOTS = Array.from({ length: 18 }, (_, i) => 7 + i); // 7h-24h
+const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']; // Cả tuần
 
 const statusColor = {
   CONFIRMED: 'info',
@@ -48,12 +58,31 @@ const statusLabel = {
 function getStartOfWeek(date) {
   const d = dayjs(date);
   const day = d.day();
-  // Nếu là chủ nhật (0), trả về thứ 2 tuần sau
-  if (day === 0) return d.add(1, 'day');
-  // Nếu là thứ 2-6, trả về thứ 2 cùng tuần
-  if (day >= 1 && day <= 5) return d.subtract(day - 1, 'day');
-  // Nếu là thứ 7, trả về thứ 2 tuần sau
-  return d.add(9 - day, 'day');
+  // Nếu là chủ nhật (0), trả về thứ 2 tuần trước
+  if (day === 0) return d.subtract(6, 'day');
+  // Nếu là thứ 2-7, trả về thứ 2 cùng tuần
+  return d.subtract(day - 1, 'day');
+}
+
+// Hàm tạo danh sách các tuần trong năm
+function getWeeksInYear(year) {
+  const weeks = [];
+  const firstDay = dayjs(`${year}-01-01`);
+  const lastDay = dayjs(`${year}-12-31`);
+  
+  let weekStart = getStartOfWeek(firstDay);
+  
+  // Tạo danh sách tất cả các tuần trong năm
+  while (weekStart.isBefore(lastDay)) {
+    const weekEnd = weekStart.clone().add(6, 'day');
+    weeks.push({
+      value: weekStart.format('YYYY-MM-DD'),
+      label: `Tuần ${weekStart.week()}: ${weekStart.format('DD/MM')} - ${weekEnd.format('DD/MM')}`
+    });
+    weekStart = weekStart.add(7, 'day');
+  }
+  
+  return weeks;
 }
 
 export default function Schedule() {
@@ -61,11 +90,15 @@ export default function Schedule() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentTime, setCurrentTime] = useState(dayjs());
+
   const [weekStart, setWeekStart] = useState(getStartOfWeek(dayjs()));
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const tableRef = useRef(null);
-  const timelineRef = useRef(null);
+  
+  // Danh sách tuần trong năm
+  const currentYear = dayjs().year();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [weeksInYear, setWeeksInYear] = useState(getWeeksInYear(currentYear));
   
   // Dialog xác nhận
   const [confirmDialog, setConfirmDialog] = useState({ 
@@ -75,20 +108,26 @@ export default function Schedule() {
     appointmentData: null,
     loading: false
   });
+
+  // Thêm state cho consultant note và cancel reason
+  const [consultantNote, setConsultantNote] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
   
-  const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.clone().add(i, 'day'));
+  const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.clone().add(i, 'day'));
 
   // Lấy dữ liệu từ API
   useEffect(() => {
     fetchAppointments();
-    
-    // Cập nhật thời gian hiện tại mỗi phút
-    const timer = setInterval(() => {
-      setCurrentTime(dayjs());
-    }, 60000);
-    
-    return () => clearInterval(timer);
   }, [weekStart]);
+  
+  // Cập nhật giá trị tuần được chọn khi thay đổi tuần bắt đầu
+  useEffect(() => {
+    // Nếu năm của weekStart khác với selectedYear, cập nhật selectedYear và danh sách tuần
+    if (weekStart.year() !== selectedYear) {
+      setSelectedYear(weekStart.year());
+      setWeeksInYear(getWeeksInYear(weekStart.year()));
+    }
+  }, [weekStart, selectedYear]);
   
   // Kiểm tra và tự động hủy các cuộc hẹn quá 24 giờ
   useEffect(() => {
@@ -167,64 +206,7 @@ export default function Schedule() {
     return () => clearInterval(timer);
   }, [appointments]);
   
-  // Cập nhật thanh thời gian thực
-  useEffect(() => {
-    updateTimeline();
-    
-    // Update timeline position every 30 seconds for smoother movement
-    const timer = setInterval(updateTimeline, 30000);
-    
-    return () => clearInterval(timer);
-  }, [currentTime, weekStart, weekDays]);
-  
-  const updateTimeline = () => {
-    if (!tableRef.current || !timelineRef.current) return;
-    
-    const now = dayjs();
-    const today = now.format('YYYY-MM-DD');
-    const currentDay = now.day(); // 0: chủ nhật, 1-5: thứ 2-6, 6: thứ 7
-    
-    // Check if current day is in the visible week range
-    const startOfWeek = weekStart.format('YYYY-MM-DD');
-    const endOfWeek = weekStart.clone().add(4, 'day').format('YYYY-MM-DD');
-    const isInCurrentWeek = dayjs(today).isAfter(startOfWeek, 'day') || dayjs(today).isSame(startOfWeek, 'day');
-    const isBeforeEndOfWeek = dayjs(today).isBefore(endOfWeek, 'day') || dayjs(today).isSame(endOfWeek, 'day');
-    
-    // Only show timeline if it's a weekday, within working hours, and in the visible week
-    if (currentDay >= 1 && currentDay <= 5 && now.hour() >= 7 && now.hour() < 19 && isInCurrentWeek && isBeforeEndOfWeek) {
-      // Find column index for current day in the displayed week
-      const dayIndex = weekDays.findIndex(d => d.format('YYYY-MM-DD') === today);
-      
-      if (dayIndex !== -1) {
-        // Calculate position based on current hour and minute
-        const hourFraction = now.hour() - 7 + now.minute() / 60;
-        
-        // Get table dimensions
-        const tableRect = tableRef.current.getBoundingClientRect();
-        const headerHeight = tableRef.current.querySelector('thead').offsetHeight;
-        const timeColumnWidth = tableRef.current.querySelector('th') ? 
-                               tableRef.current.querySelector('th').offsetWidth : 
-                               tableRect.width / 6;
-        
-        // Calculate positions accounting for borders and padding
-        const cellWidth = (tableRect.width - timeColumnWidth) / 5;
-        const bodyHeight = tableRect.height - headerHeight;
-        const rowHeight = bodyHeight / TIME_SLOTS.length;
-        
-        // Position the timeline - adjust top position to account for header height
-        timelineRef.current.style.left = `${timeColumnWidth + dayIndex * cellWidth}px`;
-        timelineRef.current.style.top = `${headerHeight + hourFraction * rowHeight}px`;
-        timelineRef.current.style.width = `${cellWidth}px`;
-        timelineRef.current.style.display = 'block';
-        timelineRef.current.style.transition = 'top 0.5s linear';
-      } else {
-        timelineRef.current.style.display = 'none';
-      }
-    } else {
-      // Hide timeline if not in working hours or not a weekday
-      timelineRef.current.style.display = 'none';
-    }
-  };
+
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -236,7 +218,7 @@ export default function Schedule() {
 
       // Lấy ngày bắt đầu và kết thúc của tuần
       const startDate = weekStart.format('YYYY-MM-DD');
-      const endDate = weekStart.clone().add(4, 'day').format('YYYY-MM-DD');
+      const endDate = weekStart.clone().add(6, 'day').format('YYYY-MM-DD');
 
       const response = await axios.get(`/api/appointments/consultant/${userInfo.id}`, {
         params: {
@@ -262,19 +244,25 @@ export default function Schedule() {
     }
   };
 
-  // Chuyển đến tuần trước
-  const goToPreviousWeek = () => {
-    setWeekStart(weekStart.clone().subtract(7, 'day'));
+  // Chuyển đổi năm
+  const handleYearChange = (e) => {
+    const newYear = e.target.value;
+    setSelectedYear(newYear);
+    setWeeksInYear(getWeeksInYear(newYear));
+  };
+  
+  // Chuyển đổi tuần
+  const handleWeekChange = (e) => {
+    const selectedDate = e.target.value;
+    setWeekStart(dayjs(selectedDate));
   };
 
   // Chuyển đến tuần hiện tại
   const goToCurrentWeek = () => {
-    setWeekStart(getStartOfWeek(dayjs()));
-  };
-
-  // Chuyển đến tuần tiếp theo
-  const goToNextWeek = () => {
-    setWeekStart(weekStart.clone().add(7, 'day'));
+    const currentWeekStart = getStartOfWeek(dayjs());
+    setWeekStart(currentWeekStart);
+    setSelectedYear(currentWeekStart.year());
+    setWeeksInYear(getWeeksInYear(currentWeekStart.year()));
   };
 
   // Cập nhật trạng thái buổi tư vấn
@@ -396,13 +384,9 @@ export default function Schedule() {
   }
 
   // Kiểm tra xem có thể hiển thị nút hoàn thành/hủy bỏ không
-  const canShowActionButtons = (appt) => {
+  const canShowActionButtons = (appt, action = 'all') => {
     // Chỉ hiển thị nút cho các cuộc hẹn ở trạng thái CONFIRMED hoặc PENDING
     if (appt.status !== 'CONFIRMED' && appt.status !== 'PENDING') return false;
-    
-    console.log('Kiểm tra hiển thị nút cho cuộc hẹn:', appt);
-    console.log('Trạng thái cuộc hẹn:', appt.status);
-    console.log('Thời gian hiện tại:', dayjs().format('DD/MM/YYYY HH:mm'));
     
     // Xử lý ngày tháng
     let appointmentDate;
@@ -414,8 +398,6 @@ export default function Schedule() {
       // Định dạng khác
       appointmentDate = dayjs(appt.appointmentDate);
     }
-    
-    console.log('Ngày hẹn (đã parse):', appointmentDate.format('DD/MM/YYYY'));
     
     // Handle different time formats
     let appointmentHour = 0;
@@ -438,15 +420,28 @@ export default function Schedule() {
       .minute(appointmentMinute)
       .second(0);
     
-    console.log('Thời gian hẹn đầy đủ:', appointmentDateTime.format('DD/MM/YYYY HH:mm'));
-    
     const now = dayjs();
+    
+    // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
+    const minutesUntilAppointment = appointmentDateTime.diff(now, 'minute');
+    
+    // Nếu kiểm tra cho nút hủy bỏ
+    if (action === 'cancel') {
+      // Cho phép hủy bỏ buổi tư vấn bất kỳ lúc nào trước khi bắt đầu
+      return minutesUntilAppointment > 0;
+    }
+    
+    // Nếu kiểm tra cho nút hoàn thành
+    if (action === 'complete') {
+      // Chỉ cho phép hoàn thành khi buổi tư vấn đã bắt đầu
+      return now.isAfter(appointmentDateTime) || 
+             now.format('YYYY-MM-DD HH:mm') === appointmentDateTime.format('YYYY-MM-DD HH:mm');
+    }
+    
+    // Mặc định kiểm tra cho tất cả nút (trường hợp trước đây)
     const isAfterOrSame = now.isAfter(appointmentDateTime) || 
                           now.format('YYYY-MM-DD HH:mm') === appointmentDateTime.format('YYYY-MM-DD HH:mm');
     
-    console.log('Đã đến hoặc qua giờ hẹn?', isAfterOrSame);
-    
-    // Hiển thị nút khi thời gian hiện tại đã đến hoặc vượt qua thời gian bắt đầu buổi tư vấn
     return isAfterOrSame;
   };
 
@@ -475,6 +470,150 @@ export default function Schedule() {
     });
   };
 
+  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 10 phút)
+  const canStartAppointment = (appt) => {
+    if (!appt || appt.status !== 'CONFIRMED') return false;
+    
+    // Xử lý ngày tháng
+    let appointmentDate;
+    if (typeof appt.appointmentDate === 'string' && appt.appointmentDate.includes('/')) {
+      // Định dạng DD/MM/YYYY
+      const [day, month, year] = appt.appointmentDate.split('/');
+      appointmentDate = dayjs(`${year}-${month}-${day}`);
+    } else {
+      // Định dạng khác
+      appointmentDate = dayjs(appt.appointmentDate);
+    }
+    
+    // Handle different time formats
+    let appointmentHour = 0;
+    let appointmentMinute = 0;
+    
+    if (typeof appt.appointmentTime === 'string') {
+      // If it's a string like "14:00:00.000000"
+      const timeParts = appt.appointmentTime.split(':');
+      appointmentHour = parseInt(timeParts[0]);
+      appointmentMinute = parseInt(timeParts[1]);
+    } else if (appt.appointmentTime && appt.appointmentTime.hour !== undefined) {
+      // If it's an object with hour/minute properties
+      appointmentHour = appt.appointmentTime.hour || 0;
+      appointmentMinute = appt.appointmentTime.minute || 0;
+    }
+    
+    // Tạo đối tượng dayjs đầy đủ với ngày và giờ
+    const appointmentDateTime = appointmentDate
+      .hour(appointmentHour)
+      .minute(appointmentMinute)
+      .second(0);
+    
+    const now = dayjs();
+    
+    // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
+    const minutesUntilAppointment = appointmentDateTime.diff(now, 'minute');
+    
+    // Cho phép bắt đầu nếu thời gian còn lại ≤ 10 phút
+    return minutesUntilAppointment <= 10;
+  };
+
+  // Thêm hàm bắt đầu buổi tư vấn
+  const handleStartAppointment = async (appointmentId) => {
+    try {
+      // Kiểm tra có thể bắt đầu buổi tư vấn chưa
+      if (!canStartAppointment(dialog.appt)) {
+        setSnackbar({ 
+          open: true, 
+          message: 'Chỉ có thể vào Google Meet trước buổi tư vấn 10 phút!', 
+          severity: 'warning' 
+        });
+        return;
+      }
+      
+      setSnackbar({ 
+        open: true, 
+        message: 'Đang bắt đầu buổi tư vấn...', 
+        severity: 'info' 
+      });
+
+      const userInfo = getUserInfo();
+      if (!userInfo || !userInfo.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+
+      const response = await axios.put(`/api/appointments/${appointmentId}/start?consultantId=${userInfo.id}`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      // Mở Google Meet trong tab mới
+      if (response.data && response.data.linkGoogleMeet) {
+        window.open(response.data.linkGoogleMeet, '_blank');
+      } else {
+        // Nếu không có link trong response, mở link cũ
+        window.open(generateMeetLink(dialog.appt), '_blank');
+      }
+
+      setSnackbar({ 
+        open: true, 
+        message: 'Buổi tư vấn đã bắt đầu!', 
+        severity: 'success' 
+      });
+    } catch (err) {
+      console.error('Error starting appointment:', err);
+      setSnackbar({ 
+        open: true, 
+        message: 'Không thể bắt đầu buổi tư vấn: ' + (err.response?.data?.message || err.message), 
+        severity: 'error' 
+      });
+    }
+  };
+
+  // Xử lý kết thúc buổi tư vấn trực tiếp
+  const handleEndAppointment = async (appointment) => {
+    try {
+      setSnackbar({ 
+        open: true, 
+        message: 'Đang kết thúc buổi tư vấn...', 
+        severity: 'info' 
+      });
+
+      const userInfo = getUserInfo();
+      if (!userInfo || !userInfo.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+
+      // Gọi API kết thúc buổi tư vấn
+      await axios.put(`/api/appointments/${appointment.id}/end?consultantId=${userInfo.id}`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      // Cập nhật trạng thái trong danh sách
+      setAppointments(prev => 
+        prev.map(appt => appt.id === appointment.id ? { ...appt, status: 'COMPLETED' } : appt)
+      );
+
+      // Đóng dialog và hiển thị thông báo thành công
+      setDialog({ open: false, appt: null });
+      setSnackbar({ 
+        open: true, 
+        message: 'Buổi tư vấn đã kết thúc thành công!', 
+        severity: 'success' 
+      });
+      
+      // Cập nhật lại danh sách lịch hẹn
+      fetchAppointments();
+    } catch (err) {
+      console.error('Lỗi khi kết thúc buổi tư vấn:', err);
+      setSnackbar({ 
+        open: true, 
+        message: 'Không thể kết thúc buổi tư vấn: ' + (err.response?.data?.message || err.message), 
+        severity: 'error' 
+      });
+    }
+  };
+
   // Xử lý sau khi xác nhận
   const handleConfirmAction = async () => {
     try {
@@ -493,21 +632,17 @@ export default function Schedule() {
       }
 
       const { appointmentId, action, appointmentData } = confirmDialog;
-      console.log(`Xử lý hành động ${action} cho cuộc hẹn ${appointmentId}`);
-      console.log('Dữ liệu cuộc hẹn:', appointmentData);
 
       if (action === 'complete') {
-        // Hoàn thành buổi tư vấn
-        console.log('Gửi request hoàn thành cuộc hẹn');
+        // Hoàn thành buổi tư vấn với API mới
         try {
-          // Sử dụng API mới để cập nhật trạng thái thành COMPLETED
-          console.log('Hoàn thành cuộc hẹn với id:', appointmentId);
-          await axios.patch(`/api/appointments/${appointmentId}/status?status=COMPLETED&consultantId=${userInfo.id}`, {}, {
+          await axios.put(`/api/appointments/${appointmentId}/end?consultantId=${userInfo.id}`, {
+            consultantNote: consultantNote
+          }, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
           });
-          console.log('Hoàn thành cuộc hẹn thành công');
         } catch (patchError) {
           console.error('Lỗi khi gọi API hoàn thành:', patchError);
           console.error('Chi tiết lỗi:', patchError.response?.data || 'Không có dữ liệu phản hồi');
@@ -519,26 +654,16 @@ export default function Schedule() {
           prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'COMPLETED' } : appt)
         );
       } else if (action === 'cancel') {
-        // Hủy buổi tư vấn dựa vào loại người dùng (guest hoặc user)
+        // Hủy buổi tư vấn với API mới
         console.log('Gửi request hủy cuộc hẹn');
         try {
-          if (appointmentData.guest) {
-            // Sử dụng API hủy cho guest
-            console.log('Hủy cuộc hẹn cho khách (guest)');
-            await axios.post(`/api/appointments/${appointmentId}/cancel/guest?email=${encodeURIComponent(appointmentData.email)}`, {}, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-              }
-            });
-          } else {
-            // Sử dụng API hủy cho user
-            console.log('Hủy cuộc hẹn cho người dùng (user)');
-            await axios.post(`/api/appointments/${appointmentId}/cancel/user/${appointmentData.userId || appointmentData.user?.id}`, {}, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-              }
-            });
-          }
+          await axios.put(`/api/appointments/${appointmentId}/cancel/consultant?consultantId=${userInfo.id}`, {
+            reason: cancelReason
+          }, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
           console.log('Hủy cuộc hẹn thành công');
         } catch (cancelError) {
           console.error('Lỗi khi gọi API hủy:', cancelError);
@@ -559,6 +684,10 @@ export default function Schedule() {
         severity: 'success' 
       });
       
+      // Reset các trạng thái
+      setConsultantNote('');
+      setCancelReason('');
+      
       // Đóng dialog
       setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false });
       setDialog({ open: false, appt: null });
@@ -578,7 +707,7 @@ export default function Schedule() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
-          Lịch tư vấn
+          Thời khóa biểu
         </Typography>
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
@@ -590,25 +719,55 @@ export default function Schedule() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Lịch tư vấn (Thứ 2 - Thứ 6)
+        Lịch tư vấn (Cả tuần)
       </Typography>
       
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Box>
-          <Button variant="outlined" onClick={goToPreviousWeek} sx={{ mr: 1 }}>
-            Tuần trước
-          </Button>
-          <Button variant="contained" onClick={goToCurrentWeek} sx={{ mr: 1 }}>
-            Tuần hiện tại
-          </Button>
-          <Button variant="outlined" onClick={goToNextWeek}>
-            Tuần sau
-          </Button>
-        </Box>
-        <Typography variant="h6">
-          {weekStart.format('DD/MM/YYYY')} - {weekStart.clone().add(4, 'day').format('DD/MM/YYYY')}
-        </Typography>
-      </Box>
+      <Grid container spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+        <Grid item xs={12} md={5}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>Năm</InputLabel>
+              <Select
+                value={selectedYear}
+                onChange={handleYearChange}
+                label="Năm"
+                size="small"
+              >
+                {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl sx={{ minWidth: 300, flexGrow: 1 }}>
+              <InputLabel>Chọn tuần</InputLabel>
+              <Select
+                value={weeksInYear.find(w => w.value === weekStart.format('YYYY-MM-DD'))?.value || ''}
+                onChange={handleWeekChange}
+                label="Chọn tuần"
+                size="small"
+              >
+                {weeksInYear.map((week, index) => (
+                  <MenuItem key={index} value={week.value}>
+                    {week.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <Button variant="contained" onClick={goToCurrentWeek}>
+              Tuần hiện tại
+            </Button>
+          </Box>
+        </Grid>
+        <Grid item xs={12} md={7} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+          <Typography variant="h6">
+            {weekStart.format('DD/MM/YYYY')} - {weekStart.clone().add(6, 'day').format('DD/MM/YYYY')}
+          </Typography>
+        </Grid>
+      </Grid>
       
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -700,29 +859,6 @@ export default function Schedule() {
               </TableBody>
             </Table>
           </TableContainer>
-          
-          {/* Thanh thời gian thực */}
-          <Box
-            ref={timelineRef}
-            sx={{
-              position: 'absolute',
-              height: '2px',
-              backgroundColor: 'red',
-              zIndex: 10,
-              left: 0,
-              right: 0,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                width: '10px',
-                height: '10px',
-                backgroundColor: 'red',
-                borderRadius: '50%',
-                left: '-5px',
-                top: '-4px'
-              }
-            }}
-          />
         </Box>
       )}
       
@@ -751,36 +887,40 @@ export default function Schedule() {
               </Typography>
               <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> {statusLabel[getAppointmentStatus(dialog.appt)] || dialog.appt.status}</Typography>
               
-              <Button
-                variant="contained"
-                color="primary"
-                href={generateMeetLink(dialog.appt)}
-                target="_blank"
-                sx={{ mt: 2, mr: 1 }}
-              >
-                Vào Google Meet
-              </Button>
-              
-              {canShowActionButtons(dialog.appt) && (
-                <>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleComplete(dialog.appt)}
-                    sx={{ mt: 2, mr: 1 }}
-                  >
-                    Hoàn thành
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleCancel(dialog.appt)}
-                    sx={{ mt: 2 }}
-                  >
-                    Hủy bỏ
-                  </Button>
-                </>
-              )}
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+                {/* Nút 1: Vào Google Meet */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleStartAppointment(dialog.appt.id)}
+                  disabled={!canStartAppointment(dialog.appt)}
+                  sx={{ 
+                    opacity: canStartAppointment(dialog.appt) ? 1 : 0.5
+                  }}
+                >
+                  {canStartAppointment(dialog.appt) ? 'Vào Google Meet' : 'Chưa đến giờ tham gia'}
+                </Button>
+                
+                {/* Nút 2: Hoàn thành */}
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => handleComplete(dialog.appt)}
+                  disabled={dialog.appt.status !== 'CONFIRMED'}
+                >
+                  Hoàn thành
+                </Button>
+                
+                {/* Nút 3: Hủy bỏ */}
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleCancel(dialog.appt)}
+                  disabled={dialog.appt.status !== 'CONFIRMED' && dialog.appt.status !== 'PENDING'}
+                >
+                  Hủy bỏ
+                </Button>
+              </Box>
             </Box>
           )}
         </DialogContent>
@@ -794,18 +934,51 @@ export default function Schedule() {
         open={confirmDialog.open}
         onClose={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false })}
         aria-labelledby="confirm-dialog-title"
+        maxWidth="sm"
+        fullWidth
       >
         <DialogTitle id="confirm-dialog-title">
           {confirmDialog.action === 'complete' ? 'Xác nhận hoàn thành' : 'Xác nhận hủy bỏ'}
         </DialogTitle>
         <DialogContent>
-          <Typography>
-            {confirmDialog.action === 'complete' 
-              ? 'Bạn có chắc chắn muốn đánh dấu buổi tư vấn này là đã hoàn thành không?' 
-              : 'Bạn có chắc chắn muốn hủy bỏ buổi tư vấn này không?'}
-          </Typography>
+          {confirmDialog.action === 'complete' ? (
+            <>
+              <Typography gutterBottom>
+                Bạn có chắc chắn muốn đánh dấu buổi tư vấn này là đã hoàn thành không?
+              </Typography>
+              <TextField
+                label="Ghi chú của tư vấn viên"
+                multiline
+                rows={4}
+                fullWidth
+                value={consultantNote}
+                onChange={(e) => setConsultantNote(e.target.value)}
+                placeholder="Nhập ghi chú về buổi tư vấn này"
+                margin="normal"
+              />
+            </>
+          ) : (
+            <>
+              <Typography gutterBottom>
+                Bạn có chắc chắn muốn hủy bỏ buổi tư vấn này không?
+              </Typography>
+              <TextField
+                label="Lý do hủy"
+                multiline
+                rows={4}
+                fullWidth
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Vui lòng cho biết lý do hủy buổi tư vấn"
+                margin="normal"
+                required
+                error={confirmDialog.action === 'cancel' && !cancelReason.trim()}
+                helperText={confirmDialog.action === 'cancel' && !cancelReason.trim() ? 'Vui lòng nhập lý do hủy' : ''}
+              />
+            </>
+          )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e0e0e0' }}>
           <Button 
             onClick={() => !confirmDialog.loading && setConfirmDialog({ open: false, appointmentId: null, action: null, appointmentData: null, loading: false })} 
             color="primary"
@@ -817,7 +990,7 @@ export default function Schedule() {
             onClick={handleConfirmAction} 
             color={confirmDialog.action === 'complete' ? 'success' : 'error'} 
             variant="contained"
-            disabled={confirmDialog.loading}
+            disabled={confirmDialog.loading || (confirmDialog.action === 'cancel' && !cancelReason.trim())}
             startIcon={confirmDialog.loading ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {confirmDialog.loading 

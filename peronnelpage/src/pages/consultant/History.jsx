@@ -18,7 +18,18 @@ import {
   Alert,
   CircularProgress,
   Skeleton,
+  Tooltip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Rating,
+  Grid,
 } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
+import LinkIcon from '@mui/icons-material/Link';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
 
@@ -35,7 +46,11 @@ const columns = [
   { id: 'phoneNumber', label: 'Số điện thoại', sortable: true },
   { id: 'appointmentDate', label: 'Ngày tư vấn', sortable: true },
   { id: 'topicName', label: 'Chủ đề tư vấn', sortable: true },
+  { id: 'checkInTime', label: 'Check-in', sortable: true },
+  { id: 'checkOutTime', label: 'Check-out', sortable: true },
+  { id: 'reviewScore', label: 'Đánh giá', sortable: true },
   { id: 'status', label: 'Trạng thái', sortable: true },
+  { id: 'actions', label: 'Thao tác', sortable: false },
 ];
 
 // Helper to parse date in both formats
@@ -84,6 +99,10 @@ export default function History() {
   const [filter, setFilter] = useState('all');
   const [orderBy, setOrderBy] = useState('appointmentDate');
   const [order, setOrder] = useState('desc');
+  const [detailDialog, setDetailDialog] = useState({
+    open: false,
+    appointment: null
+  });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -152,7 +171,35 @@ export default function History() {
     if (dateStr.includes('/')) return dateStr;
     // Otherwise format it
     const date = new Date(dateStr);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  // Format datetime for check-in, check-out
+  const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return '—';
+    try {
+      const date = new Date(dateTimeStr);
+      return date.toLocaleString('vi-VN');
+    } catch (e) {
+      console.error('Error formatting datetime:', e);
+      return dateTimeStr || '—';
+    }
+  };
+
+  // Open detailed view dialog
+  const handleOpenDetail = (appointment) => {
+    setDetailDialog({
+      open: true,
+      appointment
+    });
+  };
+
+  // Close detailed view dialog
+  const handleCloseDetail = () => {
+    setDetailDialog({
+      open: false,
+      appointment: null
+    });
   };
 
   if (error) {
@@ -214,8 +261,8 @@ export default function History() {
               ))}
             </Select>
           </FormControl>
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 1200 }}>
               <TableHead>
                 <TableRow>
                   {columns.map(col => (
@@ -247,18 +294,50 @@ export default function History() {
                   sortedRows.map(row => (
                     <TableRow key={row.id}>
                       <TableCell>{row.customerName}</TableCell>
-                      <TableCell>{row.email || '-'}</TableCell>
-                      <TableCell>{row.phoneNumber || '-'}</TableCell>
+                      <TableCell>{row.email || '—'}</TableCell>
+                      <TableCell>{row.phoneNumber || '—'}</TableCell>
                       <TableCell>
                         {formatDate(row.appointmentDate)} {formatTime(row.appointmentTime)}
                       </TableCell>
                       <TableCell>{row.topicName}</TableCell>
+                      <TableCell>{formatDateTime(row.checkInTime)}</TableCell>
+                      <TableCell>{formatDateTime(row.checkOutTime)}</TableCell>
+                      <TableCell>
+                        {row.reviewScore ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Rating value={row.reviewScore} readOnly size="small" precision={0.5} />
+                            <Typography variant="body2" sx={{ ml: 1 }}>
+                              ({row.reviewScore})
+                            </Typography>
+                          </Box>
+                        ) : '—'}
+                      </TableCell>
                       <TableCell>
                         <Chip 
                           label={statusMap[row.status] || row.status} 
                           color={getStatusColor(row.status)} 
                           size="small" 
                         />
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title="Xem chi tiết">
+                          <IconButton onClick={() => handleOpenDetail(row)} size="small">
+                            <InfoIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {row.linkGoogleMeet && (
+                          <Tooltip title="Link Google Meet">
+                            <IconButton 
+                              href={row.linkGoogleMeet} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              size="small"
+                              sx={{ ml: 1 }}
+                            >
+                              <LinkIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -268,6 +347,102 @@ export default function History() {
           </TableContainer>
         </>
       )}
+
+      {/* Chi tiết buổi tư vấn */}
+      <Dialog 
+        open={detailDialog.open} 
+        onClose={handleCloseDetail}
+        maxWidth="md"
+        fullWidth
+      >
+        {detailDialog.appointment && (
+          <>
+            <DialogTitle>
+              Chi tiết buổi tư vấn
+            </DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  Thông tin chung
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2"><strong>Khách hàng:</strong> {detailDialog.appointment.customerName}</Typography>
+                    <Typography variant="body2"><strong>Email:</strong> {detailDialog.appointment.email || '—'}</Typography>
+                    <Typography variant="body2"><strong>Số điện thoại:</strong> {detailDialog.appointment.phoneNumber || '—'}</Typography>
+                    <Typography variant="body2">
+                      <strong>Thời gian:</strong> {formatDate(detailDialog.appointment.appointmentDate)} {formatTime(detailDialog.appointment.appointmentTime)}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2"><strong>Chủ đề:</strong> {detailDialog.appointment.topicName}</Typography>
+                    <Typography variant="body2"><strong>Trạng thái:</strong> {statusMap[detailDialog.appointment.status] || detailDialog.appointment.status}</Typography>
+                    <Typography variant="body2"><strong>Check-in:</strong> {formatDateTime(detailDialog.appointment.checkInTime)}</Typography>
+                    <Typography variant="body2"><strong>Check-out:</strong> {formatDateTime(detailDialog.appointment.checkOutTime)}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              
+              {detailDialog.appointment.linkGoogleMeet && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Link Google Meet
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    component="a" 
+                    href={detailDialog.appointment.linkGoogleMeet}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ color: 'primary.main', textDecoration: 'none' }}
+                  >
+                    {detailDialog.appointment.linkGoogleMeet}
+                  </Typography>
+                </Box>
+              )}
+              
+              {detailDialog.appointment.consultantNote && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Ghi chú của tư vấn viên
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
+                    <Typography variant="body2">
+                      {detailDialog.appointment.consultantNote}
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+              
+              {detailDialog.appointment.reviewScore > 0 && (
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Đánh giá từ khách hàng
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Rating value={detailDialog.appointment.reviewScore} readOnly precision={0.5} />
+                    <Typography variant="body2" sx={{ ml: 1 }}>
+                      ({detailDialog.appointment.reviewScore}/5)
+                    </Typography>
+                  </Box>
+                  {detailDialog.appointment.customerReview && (
+                    <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+                      <Typography variant="body2">
+                        {detailDialog.appointment.customerReview}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDetail}>
+                Đóng
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 } 

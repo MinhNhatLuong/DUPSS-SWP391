@@ -18,6 +18,7 @@ import {
   Stack,
   CircularProgress,
   Chip,
+  TextField,
 } from '@mui/material';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
@@ -34,6 +35,8 @@ export default function BookingRequests() {
   const [selected, setSelected] = useState(null);
   const [dialog, setDialog] = useState({ open: false, appt: null });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [googleMeetLink, setGoogleMeetLink] = useState("");
+  const [linkError, setLinkError] = useState(false);
   
   // Phân trang
   const [page, setPage] = useState(1);
@@ -63,7 +66,7 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.get(`/api/consultant/appointments/unassigned`, {
+      const response = await axios.get(`/api/appointments/unassigned`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -86,12 +89,28 @@ export default function BookingRequests() {
 
   const handleOpen = (item) => {
     setSelected(item);
+    setGoogleMeetLink("");
+    setLinkError(false);
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setGoogleMeetLink("");
+    setLinkError(false);
+  };
 
   const handleClaim = async () => {
+    if (!googleMeetLink.trim()) {
+      setLinkError(true);
+      setSnackbar({
+        open: true,
+        message: 'Bạn phải có link Google Meet trước khi chấp thuận yêu cầu',
+        severity: 'error'
+      });
+      return;
+    }
+    
     try {
       // Bật trạng thái loading
       setClaiming(true);
@@ -108,8 +127,9 @@ export default function BookingRequests() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Sử dụng API claim cuộc hẹn
-      const response = await axios.post(`/api/consultant/${userInfo.id}/appointments/${selected.id}/claim`, {}, {
+      const response = await axios.put(`/api/appointments/${selected.id}/approve?consultantId=${userInfo.id}`, {
+        linkGoogleMeet: googleMeetLink
+      }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -152,37 +172,37 @@ export default function BookingRequests() {
     if (!dateString) return 'Không có ngày';
     
     try {
-      // Kiểm tra định dạng YYYY-MM-DD
+      // Định dạng chuẩn từ database: YYYY-MM-DD
       if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         const [year, month, day] = dateString.split('-').map(Number);
-        // Tháng trong JavaScript bắt đầu từ 0 (0 = tháng 1)
-        const date = new Date(year, month - 1, day);
         
-        // Kiểm tra xem ngày có hợp lệ không
-        if (isNaN(date.getTime())) {
+        // Validate các giá trị ngày tháng
+        if (month < 1 || month > 12 || day < 1 || day > 31) {
           return 'Ngày không hợp lệ';
         }
         
-        return date.toLocaleDateString('vi-VN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+        // Format trực tiếp thành DD/MM/YYYY
+        return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
       }
       
-      // Thử tạo đối tượng Date từ chuỗi
+      // Nếu người dùng nhập ngược định dạng DD/MM/YYYY, không xử lý lại
+      if (typeof dateString === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        return dateString;
+      }
+      
+      // Sử dụng Date object để parse chuỗi ngày tháng
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
         return 'Ngày không hợp lệ';
       }
       
-      return date.toLocaleDateString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
+      // Format thành DD/MM/YYYY
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
     } catch (error) {
-      console.error('Error formatting date:', error, dateString);
       return 'Ngày không hợp lệ';
     }
   };
@@ -424,18 +444,18 @@ export default function BookingRequests() {
         <DialogContent sx={{ py: 3 }}>
           {selected && (
             <>
-                             <Chip
-                 label={selected.status}
-                 size="small"
-                 sx={{
-                   bgcolor: '#42a5f5',
-                   color: 'white',
-                   fontWeight: 'bold',
-                   fontSize: '0.75rem',
-                   height: 24,
-                   mb: 2
-                 }}
-               />
+              <Chip
+                label={selected.status}
+                size="small"
+                sx={{
+                  bgcolor: '#42a5f5',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '0.75rem',
+                  height: 24,
+                  mb: 2
+                }}
+              />
             
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                 {selected.topicName}
@@ -445,8 +465,11 @@ export default function BookingRequests() {
                 <Typography variant="caption" color="text.secondary" fontWeight="bold">
                   THỜI GIAN
                 </Typography>
+                <Typography variant="body1" sx={{ fontWeight: '500' }}>
+                  Ngày: {formatDate(selected.appointmentDate)}
+                </Typography>
                 <Typography variant="body1">
-                  {formatDateTime(selected.appointmentDate, selected.appointmentTime)}
+                  Giờ: {formatTime(selected.appointmentTime)}
                 </Typography>
               </Box>
             
@@ -465,7 +488,24 @@ export default function BookingRequests() {
                 </Typography>
               </Box>
               
-              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                  LINK GOOGLE MEET
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Nhập link Google Meet (bắt buộc)"
+                  value={googleMeetLink}
+                  onChange={(e) => {
+                    setGoogleMeetLink(e.target.value);
+                    setLinkError(!e.target.value.trim());
+                  }}
+                  error={linkError}
+                  helperText={linkError ? "Bạn phải có link Google Meet trước khi chấp thuận yêu cầu" : ""}
+                  margin="dense"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
             </>
           )}
         </DialogContent>
@@ -474,7 +514,7 @@ export default function BookingRequests() {
             variant="contained" 
             color="success" 
             onClick={handleClaim}
-            disabled={claiming}
+            disabled={claiming || linkError}
             startIcon={claiming ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {claiming ? 'Đang xử lý...' : 'Nhận yêu cầu'}

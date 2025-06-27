@@ -234,6 +234,73 @@ export default function ConsultantDashboard() {
     return date.toLocaleDateString('vi-VN');
   };
 
+  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 10 phút)
+  const canStartAppointment = (appointment) => {
+    if (!appointment || appointment.status !== 'CONFIRMED') return false;
+    
+    // Xử lý ngày tháng
+    const appointmentDate = parseDateString(appointment.appointmentDate);
+    
+    // Xử lý giờ phút
+    let appointmentHour = 0;
+    let appointmentMinute = 0;
+    
+    if (typeof appointment.appointmentTime === 'string') {
+      const timeParts = appointment.appointmentTime.split(':');
+      appointmentHour = parseInt(timeParts[0]);
+      appointmentMinute = parseInt(timeParts[1]);
+    } else if (appointment.appointmentTime && appointment.appointmentTime.hour !== undefined) {
+      appointmentHour = appointment.appointmentTime.hour || 0;
+      appointmentMinute = appointment.appointmentTime.minute || 0;
+    }
+    
+    // Tạo đối tượng Date đầy đủ với ngày và giờ
+    const appointmentDateTime = new Date(appointmentDate);
+    appointmentDateTime.setHours(appointmentHour, appointmentMinute, 0);
+    
+    const now = new Date();
+    
+    // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
+    const minutesUntilAppointment = Math.floor((appointmentDateTime - now) / (60 * 1000));
+    
+    // Cho phép bắt đầu nếu thời gian còn lại ≤ 10 phút
+    return minutesUntilAppointment <= 10;
+  };
+
+  // Handle starting an appointment via Google Meet
+  const handleStartAppointment = async (appointment) => {
+    try {
+      // Kiểm tra có thể bắt đầu buổi tư vấn chưa
+      if (!canStartAppointment(appointment)) {
+        alert('Chỉ có thể vào Google Meet trước buổi tư vấn 10 phút!');
+        return;
+      }
+      
+      const userInfo = getUserInfo();
+      if (!userInfo || !userInfo.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+
+      // Call the start appointment API
+      const response = await axios.put(`/api/appointments/${appointment.id}/start?consultantId=${userInfo.id}`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      // Open Google Meet link from response or fallback to generated link
+      if (response.data && response.data.linkGoogleMeet) {
+        window.open(response.data.linkGoogleMeet, '_blank');
+      } else {
+        // Fallback to a dummy Google Meet link based on appointment ID
+        window.open(`https://meet.google.com/${appointment.id}`, '_blank');
+      }
+    } catch (err) {
+      console.error('Error starting appointment:', err);
+      alert('Không thể bắt đầu buổi tư vấn: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   return (
     <Box sx={{ p: 2, maxWidth: '100%', overflow: 'hidden' }}>
       <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
@@ -390,20 +457,20 @@ export default function ConsultantDashboard() {
                         variant="contained"
                         color="primary"
                         size="small"
-                        href={`https://meet.google.com/${appointment.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => handleStartAppointment(appointment)}
+                        disabled={!canStartAppointment(appointment)}
                         sx={{ 
                           ml: 2,
                           px: 2,
                           borderRadius: '20px',
                           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          opacity: canStartAppointment(appointment) ? 1 : 0.6,
                           '&:hover': {
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+                            boxShadow: canStartAppointment(appointment) ? '0 4px 6px rgba(0,0,0,0.2)' : 'none'
                           }
                         }}
                       >
-                        Vào Google Meet
+                        {canStartAppointment(appointment) ? 'Vào Google Meet' : 'Chưa đến giờ tham gia'}
                       </Button>
                     </ListItem>
                   ))}
