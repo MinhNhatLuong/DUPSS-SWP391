@@ -51,6 +51,7 @@
             "/api/appointments/guest",
             "/api/appointments/*/cancel/guest",
             "/api/appointments/{id}/review",
+            "/api/appointments/{id}",
             // Slot endpoints
             "/api/slots/available",
             // Topic và consultant endpoints

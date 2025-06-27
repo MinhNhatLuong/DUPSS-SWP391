@@ -449,26 +449,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentResponseDto reviewAppointment(Long appointmentId, AppointmentReviewRequest reviewRequest) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
-        if (appointment.isGuest()) {
-            // Đối với guest: kiểm tra email
-            if (reviewRequest.getGuestEmail() == null ||
-                    !reviewRequest.getGuestEmail().equalsIgnoreCase(appointment.getEmail())) {
-                throw new IllegalArgumentException("Email không khớp với email đã dùng để đặt lịch");
-            }
-        } else {
-            // Đối với user: kiểm tra quyền
-            User currentUser = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với username: " + username));
-            if (!Objects.equals(appointment.getUser().getId(), currentUser.getId())) {
-                throw new IllegalArgumentException("Người dùng không có quyền đánh giá cuộc hẹn này");
-            }
-        }
 
         // Kiểm tra trạng thái cuộc hẹn
         if (!appointment.getStatus().equals("COMPLETED")) {

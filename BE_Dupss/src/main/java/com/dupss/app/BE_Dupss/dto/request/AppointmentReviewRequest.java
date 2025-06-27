@@ -7,5 +7,4 @@ import lombok.Data;
 public class AppointmentReviewRequest {
     private Integer reviewScore;
     private String customerReview;
-    private String guestEmail;
 } 
