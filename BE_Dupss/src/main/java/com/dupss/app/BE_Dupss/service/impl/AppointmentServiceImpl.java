@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
@@ -446,14 +447,27 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentResponseDto reviewAppointment(Long appointmentId, Integer reviewScore, String customerReview, Long userId) {
+    public AppointmentResponseDto reviewAppointment(Long appointmentId, AppointmentReviewRequest reviewRequest) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
-        // Kiểm tra quyền truy cập
-        if (appointment.isGuest() || appointment.getUser() == null || 
-            !Objects.equals(appointment.getUser().getId(), userId)) {
-            throw new IllegalArgumentException("Người dùng không có quyền đánh giá cuộc hẹn này");
+        if (appointment.isGuest()) {
+            // Đối với guest: kiểm tra email
+            if (reviewRequest.getGuestEmail() == null ||
+                    !reviewRequest.getGuestEmail().equalsIgnoreCase(appointment.getEmail())) {
+                throw new IllegalArgumentException("Email không khớp với email đã dùng để đặt lịch");
+            }
+        } else {
+            // Đối với user: kiểm tra quyền
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với username: " + username));
+            if (!Objects.equals(appointment.getUser().getId(), currentUser.getId())) {
+                throw new IllegalArgumentException("Người dùng không có quyền đánh giá cuộc hẹn này");
+            }
         }
 
         // Kiểm tra trạng thái cuộc hẹn
@@ -467,13 +481,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra điểm đánh giá
-        if (reviewScore < 1 || reviewScore > 5) {
+        if (reviewRequest.getReviewScore() < 1 || reviewRequest.getReviewScore() > 5) {
             throw new IllegalArgumentException("Điểm đánh giá phải từ 1 đến 5");
         }
 
         // Cập nhật thông tin
-        appointment.setReviewScore(reviewScore);
-        appointment.setCustomerReview(customerReview);
+        appointment.setReviewScore(reviewRequest.getReviewScore());
+        appointment.setCustomerReview(reviewRequest.getCustomerReview());
         appointment.setReview(true);
         
         // Lưu vào database

@@ -1,13 +1,6 @@
 package com.dupss.app.BE_Dupss.controller;
 
-import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusUpdateRequest;
-import com.dupss.app.BE_Dupss.dto.request.ConsultantNoteRequest;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusRequest;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentEndRequest;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentCancelConsultantRequest;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentApproveRequest;
+import com.dupss.app.BE_Dupss.dto.request.*;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -18,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -112,7 +104,7 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
-            @RequestBody AppointmentStatusRequest request,
+            @RequestBody AppointmentStatusUpdateRequest request,
             @RequestParam Long consultantId) {
         return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, request.getStatus(), consultantId));
     }
@@ -189,13 +181,11 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.cancelAppointmentByConsultant(id, consultantId, request.getReason()));
     }
     
-    @PutMapping("/{id}/review/user")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') ")
+    @PutMapping("/{id}/review")
     public ResponseEntity<AppointmentResponseDto> reviewAppointment(
             @PathVariable Long id,
-            @RequestParam Long userId,
             @RequestBody AppointmentReviewRequest request) {
-        return ResponseEntity.ok(appointmentService.reviewAppointment(id, request.getReviewScore(), request.getCustomerReview(), userId));
+        return ResponseEntity.ok(appointmentService.reviewAppointment(id, request));
     }
     
     @PutMapping("/{id}/review/guest")
