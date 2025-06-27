@@ -29,13 +29,8 @@ const AppointmentReview = () => {
   const fetchAppointmentDetails = async () => {
     setLoading(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
-
       const response = await fetch(`http://localhost:8080/api/appointments/${id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+        method: 'GET'
       });
 
       if (response.status === 200) {
@@ -71,32 +66,38 @@ const AppointmentReview = () => {
 
     setSubmitting(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      
       const response = await fetch(`http://localhost:8080/api/appointments/${id}/review`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          rating: rating,
-          review: review
+          reviewScore: rating,
+          customerReview: review
         })
       });
 
       if (response.status === 200) {
-        showSuccessAlert('Đánh giá của bạn đã được gửi thành công!');
+        showSuccessAlert('Gửi đánh giá cuộc tư vấn thành công!');
         // Refresh appointment data
         fetchAppointmentDetails();
       } else {
-        showErrorAlert('Không thể gửi đánh giá. Vui lòng thử lại sau.');
+        showErrorAlert('Gửi đánh giá cuộc tư vấn thất bại!');
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      showErrorAlert('Có lỗi xảy ra khi gửi đánh giá.');
+      showErrorAlert('Gửi đánh giá cuộc tư vấn thất bại!');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleBackButton = () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      navigate('/profile');
+    } else {
+      navigate('/');
     }
   };
 
@@ -171,7 +172,7 @@ const AppointmentReview = () => {
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', height: '40px' }}>
             <Button
               variant="outlined"
-              onClick={() => navigate('/profile')}
+              onClick={handleBackButton}
               sx={{ width: '150px', fontWeight: 600 }}
             >
               Quay lại
