@@ -51,6 +51,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setTopic(topic);
         appointment.setStatus("PENDING");
 
+        // Gán consultant là placeholder (ID = 2)
+        User placeholderConsultant = userRepository.findById(2L)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy placeholder consultant với ID = 2"));
+        appointment.setConsultant(placeholderConsultant);
+
         // Nếu có userId, đây là thành viên đã đăng nhập
         if (requestDto.getUserId() != null) {
             User user = userRepository.findById(requestDto.getUserId())
