@@ -889,10 +889,17 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           flexGrow: 1, 
           position: 'relative',
           overflow: 'hidden', // Ngăn thanh cuộn ngang
+          transition: 'width 0.3s ease',
           ...(activeSidebar ? { width: 'calc(100% - 320px)' } : { width: '100%' }),
-          maxWidth: activeSidebar ? 'calc(100% - 320px)' : '100%'
         }}>
-                        <Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 0 }}>
+          <Box sx={{ 
+            height: '100%', 
+            width: '100%', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            overflow: 'hidden', 
+            p: 0 
+          }}>
             {(() => {
               // Limit to max 9 participants, if more than 9 the last one will show count
               const maxDisplayed = 9;
@@ -987,7 +994,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
                           +{remainingCount} người khác
                         </Box>
                       ) : (
-                  <ParticipantView participantId={participantId} />
+                        <ParticipantView participantId={participantId} />
                       )}
                     </Box>
                   );
@@ -1015,19 +1022,15 @@ const MeetingContainer = ({ onMeetingLeave }) => {
         </Box>
         
         {/* Sidebar drawer */}
-        <Drawer
-          variant="persistent"
-          anchor="right"
-          open={!!activeSidebar}
-          PaperProps={{
-            sx: {
-              width: 320,
-              position: 'relative',
-              border: 'none',
-              boxShadow: 'none',
-              height: '100%',
-              bgcolor: '#f8f9fa',
-            }
+        <Box
+          sx={{
+            width: activeSidebar ? 320 : 0,
+            flexShrink: 0,
+            height: '100%',
+            overflow: 'hidden',
+            transition: 'width 0.3s ease',
+            bgcolor: '#f8f9fa',
+            borderLeft: activeSidebar ? '1px solid #e0e0e0' : 'none',
           }}
         >
           {activeSidebar === 'chat' && (
@@ -1037,7 +1040,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           {activeSidebar === 'participants' && (
             <ParticipantsPanel participants={participantList} />
           )}
-        </Drawer>
+        </Box>
       </Box>
       
       {/* Bottom control bar */}
