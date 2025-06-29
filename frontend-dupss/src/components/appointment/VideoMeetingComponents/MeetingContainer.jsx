@@ -29,6 +29,39 @@ import ScreenShareIcon from '@mui/icons-material/ScreenShare';
 import StopScreenShareIcon from '@mui/icons-material/StopScreenShare';
 import SendIcon from '@mui/icons-material/Send';
 
+// Hàm tạo màu ngẫu nhiên nhưng nhất quán cho mỗi người dùng
+const getAvatarColor = (id, name) => {
+  // Các màu sắc đẹp cho avatar (loại bỏ màu quá tối hoặc quá nhạt)
+  const colors = [
+    '#2196F3', // Blue
+    '#F44336', // Red
+    '#4CAF50', // Green
+    '#FF9800', // Orange
+    '#9C27B0', // Purple
+    '#00BCD4', // Cyan
+    '#FFEB3B', // Yellow
+    '#E91E63', // Pink
+    '#3F51B5', // Indigo
+    '#009688', // Teal
+    '#673AB7', // Deep Purple
+    '#FFC107', // Amber
+    '#8BC34A', // Light Green
+    '#03A9F4'  // Light Blue
+  ];
+  
+  // Tạo hash code từ ID hoặc tên để có kết quả nhất quán
+  const string = id || name || Math.random().toString();
+  let hash = 0;
+  
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Chọn màu dựa vào hash
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 // Participant component for displaying a single participant
 const ParticipantView = (props) => {
   const { participantId } = props;
@@ -45,6 +78,9 @@ const ParticipantView = (props) => {
   
   const webcamRef = useRef(null);
   const screenShareRef = useRef(null);
+  
+  // Tạo màu avatar nhất quán cho người tham gia
+  const avatarColor = getAvatarColor(participantId, displayName);
   
   useEffect(() => {
     let mediaStream = null;
@@ -142,7 +178,7 @@ const ParticipantView = (props) => {
           height: '100%',
           bgcolor: '#212936'
         }}>
-          <Avatar sx={{ width: 80, height: 80, fontSize: 36, bgcolor: 'primary.main' }}>
+          <Avatar sx={{ width: 80, height: 80, fontSize: 36, bgcolor: avatarColor }}>
             {displayName?.charAt(0)?.toUpperCase() || "?"}
           </Avatar>
         </Box>
@@ -175,6 +211,20 @@ const ParticipantView = (props) => {
 
 // Chat message component
 const ChatMessage = ({ senderId, senderName, message, timestamp, isLocal }) => {
+  // Đảm bảo dữ liệu hợp lệ trước khi hiển thị
+  const safeMessage = typeof message === 'string' ? message : String(message || '');
+  const safeSenderName = typeof senderName === 'string' ? senderName : String(senderName || 'Unknown');
+  const safeTimestamp = typeof timestamp === 'number' ? timestamp : Date.now();
+  
+  const formatTime = () => {
+    try {
+      return new Date(safeTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      console.error("Error formatting timestamp:", error);
+      return '';
+    }
+  };
+  
   return (
     <Box
       sx={{
@@ -196,13 +246,13 @@ const ChatMessage = ({ senderId, senderName, message, timestamp, isLocal }) => {
       >
         {!isLocal && (
           <Typography variant="caption" fontWeight="bold" display="block">
-            {senderName}
+            {safeSenderName}
           </Typography>
         )}
-        <Typography variant="body2">{message}</Typography>
+        <Typography variant="body2">{safeMessage}</Typography>
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-        {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        {formatTime()}
       </Typography>
     </Box>
   );
@@ -316,7 +366,12 @@ const ParticipantsPanel = ({ participants }) => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'primary.main' }}>
+              <Avatar sx={{ 
+                width: 32, 
+                height: 32, 
+                mr: 1, 
+                bgcolor: getAvatarColor(participant.id, participant.displayName)
+              }}>
                 {participant.displayName?.charAt(0).toUpperCase() || "?"}
               </Avatar>
               <Typography>
@@ -422,32 +477,95 @@ const MeetingContainer = ({ onMeetingLeave }) => {
 
   useEffect(() => {
     if (pubsubMessages) {
-      const newMessages = pubsubMessages.map((msg) => ({
-        senderId: msg.senderId,
-        senderName: msg.senderName,
-        message: msg.message,
-        timestamp: msg.timestamp,
-        isLocal: msg.senderId === localParticipant?.id
-      }));
-      
-      setChatMessages(newMessages);
-      
-      // Update unread count if chat is not open
-      if (activeSidebar !== 'chat' && newMessages.length > 0) {
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (!lastMessage.isLocal) {
-          setUnreadMessages(prev => prev + 1);
+      try {
+        console.log("Raw pubsubMessages:", pubsubMessages);
+        
+        const newMessages = pubsubMessages.map((msg) => {
+          // VideoSDK PubSub có thể trả về các định dạng khác nhau tùy thuộc vào cách gửi
+          // Trích xuất dữ liệu tin nhắn và metadata
+          
+          let senderId, senderName, message, timestamp;
+          
+          // Xác định cấu trúc của msg
+          if (typeof msg === 'string') {
+            // Nếu msg là string đơn giản
+            message = msg;
+            senderId = localParticipant?.id !== msg.senderId ? msg.senderId : localParticipant?.id;
+            senderName = localParticipant?.id !== msg.senderId ? "Người tham gia" : (localParticipant?.displayName || "Bạn");
+            timestamp = Date.now();
+          } else if (typeof msg === 'object') {
+            // Nếu msg là object có các trường
+            if (msg.message !== undefined) {
+              // Trường hợp khi gửi đi là object { message, senderName, timestamp }
+              message = typeof msg.message === 'string' 
+                ? msg.message 
+                : typeof msg.message === 'object'
+                  ? JSON.stringify(msg.message)
+                  : String(msg.message || '');
+              senderId = msg.senderId || '';
+              senderName = msg.senderName || "Unknown";
+              timestamp = msg.timestamp || Date.now();
+            } else {
+              // Trường hợp object khác không có trường message
+              try {
+                message = JSON.stringify(msg);
+              } catch (e) {
+                message = "[Không thể hiển thị tin nhắn]";
+              }
+              senderId = '';
+              senderName = "System";
+              timestamp = Date.now();
+            }
+          } else {
+            // Trường hợp khác
+            message = String(msg || '');
+            senderId = '';
+            senderName = "System";
+            timestamp = Date.now();
+          }
+          
+          // Tạo đối tượng tin nhắn đã được xử lý
+          const processedMsg = {
+            senderId: String(senderId),
+            senderName: String(senderName),
+            message: String(message),
+            timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
+            isLocal: senderId === localParticipant?.id
+          };
+          
+          console.log("Processed message:", processedMsg);
+          return processedMsg;
+        });
+        
+        setChatMessages(newMessages);
+        
+        // Update unread count if chat is not open
+        if (activeSidebar !== 'chat' && newMessages.length > 0) {
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (!lastMessage.isLocal) {
+            setUnreadMessages(prev => prev + 1);
+          }
         }
+      } catch (error) {
+        console.error("Error processing chat messages:", error);
       }
     }
   }, [pubsubMessages, localParticipant, activeSidebar]);
 
   const sendChatMessage = (message) => {
-    publishChat({
-      message,
-      senderName: localParticipant?.displayName || "You",
-      timestamp: Date.now()
-    });
+    try {
+      // Đảm bảo message là string và không phải object
+      const textMessage = typeof message === 'string' ? message : String(message || '');
+      
+      console.log("Preparing to send message:", textMessage);
+      
+      // Gửi message dưới dạng chuỗi đơn giản, không phải object
+      publishChat(textMessage);
+      
+      console.log("Message sent successfully");
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+    }
   };
 
   const handleToggleSidebar = (sidebar) => {
