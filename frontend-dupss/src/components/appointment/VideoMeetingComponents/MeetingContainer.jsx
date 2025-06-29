@@ -99,9 +99,10 @@ const ParticipantView = (props) => {
   }, [screenShareOn, screenShareStream]);
   
   return (
-    <Box sx={{ 
+            <Box sx={{ 
       position: 'relative', 
       height: '100%', 
+      width: '100%',
       borderRadius: 1,
       overflow: 'hidden',
       bgcolor: '#1a1a1a'
@@ -137,6 +138,7 @@ const ParticipantView = (props) => {
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
+          width: '100%',
           height: '100%',
           bgcolor: '#212936'
         }}>
@@ -518,52 +520,152 @@ const MeetingContainer = ({ onMeetingLeave }) => {
   })();
 
   return (
-    <Box sx={{ height: 'calc(100vh - 150px)', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
+    <Box sx={{ 
+      height: 'calc(100vh - 150px)', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      bgcolor: '#f5f5f5',
+      overflow: 'hidden' // Ngăn thanh cuộn ngang
+    }}>
       {/* Main content area with video grid */}
       <Box 
         sx={{ 
           flexGrow: 1, 
-          p: 2,
+          p: 0.5, // Giảm padding để tối đa không gian
           display: 'flex',
-          position: 'relative'
+          position: 'relative',
+          overflow: 'hidden', // Ngăn thanh cuộn ngang
+          maxWidth: '100%'
         }}
       >
         {/* Video grid */}
         <Box sx={{ 
           flexGrow: 1, 
           position: 'relative',
-          ...(activeSidebar ? { width: 'calc(100% - 320px)' } : { width: '100%' })
+          overflow: 'hidden', // Ngăn thanh cuộn ngang
+          ...(activeSidebar ? { width: 'calc(100% - 320px)' } : { width: '100%' }),
+          maxWidth: activeSidebar ? 'calc(100% - 320px)' : '100%'
         }}>
-          <Grid 
-            container 
-            spacing={2}
-            sx={{ height: '100%' }}
-          >
-            {allParticipants.map((participantId) => {
-              // Calculate grid item size based on participant count
-              let xs = 12, md = 6;
+                        <Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 0 }}>
+            {(() => {
+              // Limit to max 9 participants, if more than 9 the last one will show count
+              const maxDisplayed = 9;
+              const displayParticipants = allParticipants.slice(0, Math.min(maxDisplayed, allParticipants.length));
+              const remainingCount = allParticipants.length > maxDisplayed ? allParticipants.length - maxDisplayed + 1 : 0;
               
-              if (allParticipants.length === 1) {
-                xs = 12;
-                md = 12;
-              } else if (allParticipants.length === 2) {
-                xs = 12;
-                md = 6;
-              } else if (allParticipants.length <= 4) {
-                xs = 6;
-                md = 6;
-              } else {
-                xs = 6;
-                md = 4;
+              if (remainingCount > 0) {
+                // Replace last participant with indicator for remaining participants
+                displayParticipants[maxDisplayed - 1] = 'remaining';
               }
               
-              return (
-                <Grid item xs={xs} md={md} key={participantId} sx={{ height: allParticipants.length > 2 ? '50%' : '100%' }}>
-                  <ParticipantView participantId={participantId} />
-                </Grid>
-              );
-            })}
-          </Grid>
+              // Determine the layout based on participant count
+              let rows = 1;
+              if (displayParticipants.length >= 4 && displayParticipants.length <= 6) rows = 2;
+              if (displayParticipants.length >= 7) rows = 3;
+              
+              // Create the row containers with appropriate heights
+              const rowElements = [];
+              for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
+                // Calculate how many participants in this row
+                let participantsInThisRow;
+                if (rows === 1) {
+                  participantsInThisRow = displayParticipants.length;
+                } else if (rows === 2) {
+                  if (rowIndex === 0) {
+                    // First row with 1, 2, or 3 participants depending on total
+                    if (displayParticipants.length === 4) participantsInThisRow = 1;
+                    else if (displayParticipants.length === 5) participantsInThisRow = 2;
+                    else participantsInThisRow = 3;
+                  } else {
+                    // Second row with the remaining participants
+                    participantsInThisRow = displayParticipants.length - (displayParticipants.length === 4 ? 1 : displayParticipants.length === 5 ? 2 : 3);
+                  }
+                } else {
+                  // 3 rows case (7-9 participants)
+                  if (rowIndex === 0) {
+                    // First row: 1, 2, or 3 participants
+                    if (displayParticipants.length === 7) participantsInThisRow = 1;
+                    else if (displayParticipants.length === 8) participantsInThisRow = 2;
+                    else participantsInThisRow = 3;
+                  } else if (rowIndex === 1) {
+                    // Second row: 3 participants
+                    participantsInThisRow = 3;
+                  } else {
+                    // Third row: remaining participants
+                    participantsInThisRow = displayParticipants.length - (displayParticipants.length === 7 ? 4 : displayParticipants.length === 8 ? 5 : 6);
+                  }
+                }
+                
+                // Calculate the starting index for this row
+                let startIdx = 0;
+                if (rowIndex === 1) {
+                  if (rows === 2) {
+                    startIdx = displayParticipants.length === 4 ? 1 : displayParticipants.length === 5 ? 2 : 3;
+                  } else {
+                    startIdx = displayParticipants.length === 7 ? 1 : displayParticipants.length === 8 ? 2 : 3;
+                  }
+                } else if (rowIndex === 2) {
+                  startIdx = displayParticipants.length === 7 ? 4 : displayParticipants.length === 8 ? 5 : 6;
+                }
+                
+                // Create the participants for this row
+                const colElements = [];
+                for (let i = 0; i < participantsInThisRow; i++) {
+                  const participantIdx = startIdx + i;
+                  const participantId = displayParticipants[participantIdx];
+                  
+                  colElements.push(
+                    <Box 
+                      key={participantId === 'remaining' ? 'remaining' : participantId} 
+                      sx={{ 
+                        flex: 1,
+                        height: '100%',
+                        width: `${100 / participantsInThisRow}%`,
+                        // Giảm padding để các ô sát nhau hơn
+                        padding: 0.25
+                      }}
+                    >
+                      {participantId === 'remaining' ? (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'center', 
+                          alignItems: 'center', 
+                          height: '100%',
+                          width: '100%',
+                          bgcolor: '#212936',
+                          borderRadius: 1,
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '1.5rem'
+                        }}>
+                          +{remainingCount} người khác
+                        </Box>
+                      ) : (
+                        <ParticipantView participantId={participantId} />
+                      )}
+                    </Box>
+                  );
+                }
+                
+                // Add the row to our layout
+                rowElements.push(
+                  <Box 
+                    key={`row-${rowIndex}`} 
+                    sx={{ 
+                      display: 'flex', 
+                      flex: 1,
+                      width: '100%',
+                      height: `${100 / rows}%`
+                    }}
+                  >
+                    {colElements}
+                  </Box>
+                );
+              }
+              
+              return rowElements;
+            })()}
+          </Box>
         </Box>
         
         {/* Sidebar drawer */}
@@ -601,7 +703,9 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           justifyContent: 'center', 
           alignItems: 'center',
           gap: 2,
-          zIndex: 1
+          zIndex: 1,
+          width: '100%',
+          boxSizing: 'border-box' // Đảm bảo padding không làm tăng chiều rộng
         }}
       >
         <Tooltip title={localMicOn ? "Tắt microphone" : "Bật microphone"}>
