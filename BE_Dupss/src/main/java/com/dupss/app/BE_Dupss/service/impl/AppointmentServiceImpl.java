@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +41,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         Topic topic = topicRepository.findByIdAndActive(requestDto.getTopicId(), true);
         if(topic == null) {
             throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
+        }
+
+        LocalDateTime appointmentDateTime = LocalDateTime.of(requestDto.getAppointmentDate(), requestDto.getAppointmentTime());
+        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Không được chọn ngày giờ trong quá khứ");
         }
 
         // Khởi tạo đối tượng Appointment
