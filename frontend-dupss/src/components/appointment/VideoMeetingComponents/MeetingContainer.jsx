@@ -78,9 +78,86 @@ const ParticipantView = (props) => {
   
   const webcamRef = useRef(null);
   const screenShareRef = useRef(null);
+  const audioAnalyserRef = useRef(null);
+  const audioDataRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  
+  // State to track if the participant is speaking
+  const [isSpeaking, setIsSpeaking] = useState(false);
   
   // Tạo màu avatar nhất quán cho người tham gia
   const avatarColor = getAvatarColor(participantId, displayName);
+  
+  // Set up audio analyzer to detect when participant is speaking
+  useEffect(() => {
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let mediaStream;
+    
+    const detectSpeaking = () => {
+      if (!analyser) return;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate the average volume
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / dataArray.length;
+      
+      // Threshold for considering someone as speaking
+      // Adjust this value based on testing
+      const speakingThreshold = 15;
+      
+      // Update speaking state
+      setIsSpeaking(average > speakingThreshold);
+      
+      // Continue detecting in the next animation frame
+      animationFrameRef.current = requestAnimationFrame(detectSpeaking);
+    };
+    
+    if (micOn && micStream && !isLocal) {
+      try {
+        // Create audio context and analyzer
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        // Create media stream from mic track
+        mediaStream = new MediaStream([micStream.track]);
+        
+        // Connect the stream to the analyzer
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(analyser);
+        
+        // Create data array for frequency data
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        // Store references
+        audioAnalyserRef.current = analyser;
+        audioDataRef.current = dataArray;
+        
+        // Start detecting
+        detectSpeaking();
+      } catch (error) {
+        console.error("Error setting up audio analysis:", error);
+      }
+    }
+    
+    return () => {
+      // Clean up
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().catch(err => console.error("Error closing audio context:", err));
+      }
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [micOn, micStream, isLocal]);
   
   useEffect(() => {
     let mediaStream = null;
@@ -134,14 +211,91 @@ const ParticipantView = (props) => {
     };
   }, [screenShareOn, screenShareStream]);
   
+  // For local participant, we need to analyze our own audio
+  useEffect(() => {
+    if (!isLocal || !micOn) return;
+    
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let mediaStream;
+    
+    const detectLocalSpeaking = () => {
+      if (!analyser) return;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate the average volume
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / dataArray.length;
+      
+      // Threshold for considering someone as speaking
+      const speakingThreshold = 15;
+      
+      // Update speaking state
+      setIsSpeaking(average > speakingThreshold);
+      
+      // Continue detecting in the next animation frame
+      animationFrameRef.current = requestAnimationFrame(detectLocalSpeaking);
+    };
+    
+    const setupLocalAudioAnalysis = async () => {
+      try {
+        // Get local audio stream
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Create audio context and analyzer
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        // Connect the stream to the analyzer
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(analyser);
+        
+        // Create data array for frequency data
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        // Start detecting
+        detectLocalSpeaking();
+      } catch (error) {
+        console.error("Error setting up local audio analysis:", error);
+      }
+    };
+    
+    setupLocalAudioAnalysis();
+    
+    return () => {
+      // Clean up
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+      
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().catch(err => console.error("Error closing audio context:", err));
+      }
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isLocal, micOn]);
+  
   return (
-            <Box sx={{ 
+    <Box sx={{ 
       position: 'relative', 
       height: '100%', 
       width: '100%',
       borderRadius: 1,
       overflow: 'hidden',
-      bgcolor: '#1a1a1a'
+      bgcolor: '#1a1a1a',
+      border: isSpeaking && micOn ? `2px solid ${avatarColor}` : '2px solid transparent',
+      boxShadow: isSpeaking && micOn ? `0 0 8px 2px ${avatarColor}80` : 'none',
+      transition: 'border 0.2s ease, box-shadow 0.2s ease'
     }}>
       {/* Screen share has priority over webcam */}
       {screenShareOn ? (
@@ -199,11 +353,8 @@ const ParticipantView = (props) => {
           {isLocal ? "Bạn" : displayName || "Khách"}
           {screenShareOn && " (Đang chia sẻ màn hình)"}
         </Typography>
-        {micOn ? (
-          <MicIcon fontSize="small" sx={{ color: 'white' }} />
-        ) : (
-          <MicOffIcon fontSize="small" sx={{ color: 'white' }} />
-        )}
+        {micOn ? <MicIcon fontSize="small" color="primary" /> : <MicOffIcon fontSize="small" color="error" />}
+        {webcamOn ? <VideocamIcon fontSize="small" color="primary" sx={{ ml: 0.5 }} /> : <VideocamOffIcon fontSize="small" color="error" sx={{ ml: 0.5 }} />}
       </Box>
     </Box>
   );
@@ -412,7 +563,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     participants,
     meetingId,
     leave,
-    toggleMic,
+    toggleMic: sdkToggleMic,
     toggleWebcam: sdkToggleWebcam,
     toggleScreenShare,
     startScreenShare,
@@ -426,6 +577,28 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     onMeetingJoined: meetingJoined,
     onMeetingLeft: meetingLeft
   });
+  
+  // Custom toggleMic with proper resource management
+  const toggleMic = async () => {
+    try {
+      // If turning off mic, ensure we properly clean up
+      if (localMicOn) {
+        // First stop any active audio tracks from our side
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getAudioTracks().forEach(track => {
+            track.stop();
+          });
+        }
+      }
+      // Then use SDK's toggle
+      sdkToggleMic();
+    } catch (err) {
+      console.error("Error toggling microphone:", err);
+      // If there was an error in our cleanup, still try the SDK toggle
+      sdkToggleMic();
+    }
+  };
   
   // Custom toggleWebcam with proper resource management
   const toggleWebcam = async () => {
@@ -536,15 +709,15 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           console.log("Processed message:", processedMsg);
           return processedMsg;
         });
-        
-        setChatMessages(newMessages);
-        
-        // Update unread count if chat is not open
-        if (activeSidebar !== 'chat' && newMessages.length > 0) {
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (!lastMessage.isLocal) {
-            setUnreadMessages(prev => prev + 1);
-          }
+      
+      setChatMessages(newMessages);
+      
+      // Update unread count if chat is not open
+      if (activeSidebar !== 'chat' && newMessages.length > 0) {
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (!lastMessage.isLocal) {
+          setUnreadMessages(prev => prev + 1);
+        }
         }
       } catch (error) {
         console.error("Error processing chat messages:", error);
@@ -600,11 +773,11 @@ const MeetingContainer = ({ onMeetingLeave }) => {
       if (!addedNames.has(p.displayName)) {
         addedNames.add(p.displayName);
         list.push({
-          id: p.id,
-          displayName: p.displayName,
-          isLocal: false,
-          micOn: p.micOn,
-          webcamOn: p.webcamOn
+      id: p.id,
+      displayName: p.displayName,
+      isLocal: false,
+      micOn: p.micOn,
+      webcamOn: p.webcamOn
         });
       }
     });
@@ -759,7 +932,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
                           +{remainingCount} người khác
                         </Box>
                       ) : (
-                        <ParticipantView participantId={participantId} />
+                  <ParticipantView participantId={participantId} />
                       )}
                     </Box>
                   );
