@@ -78,6 +78,7 @@ const ParticipantView = (props) => {
   
   const webcamRef = useRef(null);
   const screenShareRef = useRef(null);
+  const audioRef = useRef(null);
   const audioAnalyserRef = useRef(null);
   const audioDataRef = useRef(null);
   const animationFrameRef = useRef(null);
@@ -87,6 +88,48 @@ const ParticipantView = (props) => {
   
   // Tạo màu avatar nhất quán cho người tham gia
   const avatarColor = getAvatarColor(participantId, displayName);
+  
+  // Set up audio element for remote participants
+  useEffect(() => {
+    if (isLocal) return; // Skip for local participant
+    
+    // Create audio element if it doesn't exist
+    if (!audioRef.current) {
+      const audioElement = new Audio();
+      audioElement.autoplay = true;
+      audioElement.muted = false; // Ensure it's not muted
+      audioElement.setAttribute('playsinline', 'true');
+      audioRef.current = audioElement;
+    }
+    
+    // Connect mic stream to audio element
+    if (micOn && micStream) {
+      try {
+        const mediaStream = new MediaStream([micStream.track]);
+        audioRef.current.srcObject = mediaStream;
+        
+        // Make sure audio is playing
+        audioRef.current.play().catch(error => {
+          console.error('Error playing audio:', error);
+        });
+        
+        console.log(`Audio connected for participant: ${displayName || participantId}`);
+      } catch (error) {
+        console.error('Error connecting audio stream:', error);
+      }
+    } else if (audioRef.current) {
+      // Clean up when mic is turned off
+      audioRef.current.srcObject = null;
+    }
+    
+    // Clean up function
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.srcObject = null;
+        audioRef.current.pause();
+      }
+    };
+  }, [micOn, micStream, isLocal, participantId, displayName]);
   
   // Set up audio analyzer to detect when participant is speaking
   useEffect(() => {
@@ -158,58 +201,6 @@ const ParticipantView = (props) => {
       }
     };
   }, [micOn, micStream, isLocal]);
-  
-  useEffect(() => {
-    let mediaStream = null;
-    
-    if (webcamRef.current) {
-      if (webcamOn && webcamStream) {
-        mediaStream = new MediaStream();
-        mediaStream.addTrack(webcamStream.track);
-        webcamRef.current.srcObject = mediaStream;
-        webcamRef.current.play().catch(error => console.error('Error playing webcam video:', error));
-      } else {
-        webcamRef.current.srcObject = null;
-        // Stop all tracks to properly release camera resources
-        if (webcamRef.current.srcObject instanceof MediaStream) {
-          webcamRef.current.srcObject.getTracks().forEach(track => track.stop());
-        }
-      }
-    }
-    
-    // Cleanup function to release resources when component unmounts or dependencies change
-    return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [webcamOn, webcamStream]);
-  
-  useEffect(() => {
-    let mediaStream = null;
-    
-    if (screenShareRef.current) {
-      if (screenShareOn && screenShareStream) {
-        mediaStream = new MediaStream();
-        mediaStream.addTrack(screenShareStream.track);
-        screenShareRef.current.srcObject = mediaStream;
-        screenShareRef.current.play().catch(error => console.error('Error playing screen share video:', error));
-      } else {
-        screenShareRef.current.srcObject = null;
-        // Stop all tracks to properly release screen share resources
-        if (screenShareRef.current.srcObject instanceof MediaStream) {
-          screenShareRef.current.srcObject.getTracks().forEach(track => track.stop());
-        }
-      }
-    }
-    
-    // Cleanup function for screen share resources
-    return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [screenShareOn, screenShareStream]);
   
   // For local participant, we need to analyze our own audio
   useEffect(() => {
@@ -284,6 +275,58 @@ const ParticipantView = (props) => {
       }
     };
   }, [isLocal, micOn]);
+  
+  useEffect(() => {
+    let mediaStream = null;
+    
+    if (webcamRef.current) {
+      if (webcamOn && webcamStream) {
+        mediaStream = new MediaStream();
+        mediaStream.addTrack(webcamStream.track);
+        webcamRef.current.srcObject = mediaStream;
+        webcamRef.current.play().catch(error => console.error('Error playing webcam video:', error));
+      } else {
+        webcamRef.current.srcObject = null;
+        // Stop all tracks to properly release camera resources
+        if (webcamRef.current.srcObject instanceof MediaStream) {
+          webcamRef.current.srcObject.getTracks().forEach(track => track.stop());
+        }
+      }
+    }
+    
+    // Cleanup function to release resources when component unmounts or dependencies change
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [webcamOn, webcamStream]);
+  
+  useEffect(() => {
+    let mediaStream = null;
+    
+    if (screenShareRef.current) {
+      if (screenShareOn && screenShareStream) {
+        mediaStream = new MediaStream();
+        mediaStream.addTrack(screenShareStream.track);
+        screenShareRef.current.srcObject = mediaStream;
+        screenShareRef.current.play().catch(error => console.error('Error playing screen share video:', error));
+      } else {
+        screenShareRef.current.srcObject = null;
+        // Stop all tracks to properly release screen share resources
+        if (screenShareRef.current.srcObject instanceof MediaStream) {
+          screenShareRef.current.srcObject.getTracks().forEach(track => track.stop());
+        }
+      }
+    }
+    
+    // Cleanup function for screen share resources
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [screenShareOn, screenShareStream]);
   
   return (
     <Box sx={{ 
@@ -575,11 +618,17 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     onParticipantJoined: participantJoined,
     onParticipantLeft: participantLeft,
     onMeetingJoined: meetingJoined,
-    onMeetingLeft: meetingLeft
+    onMeetingLeft: meetingLeft,
+    config: {
+      micEnabled: true, // Ensure mic is enabled by default
+      webcamEnabled: true, // Ensure webcam is enabled by default
+      joinWithoutUserInteraction: true, // Auto-join meeting
+    }
   });
   
   // Custom toggleMic with proper resource management
   const toggleMic = async () => {
+    console.log("Toggling microphone. Current state:", localMicOn);
     try {
       // If turning off mic, ensure we properly clean up
       if (localMicOn) {
@@ -590,9 +639,15 @@ const MeetingContainer = ({ onMeetingLeave }) => {
             track.stop();
           });
         }
+      } else {
+        // If turning on mic, ensure permissions are granted
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
       }
       // Then use SDK's toggle
       sdkToggleMic();
+      console.log("Microphone toggled. New state:", !localMicOn);
     } catch (err) {
       console.error("Error toggling microphone:", err);
       // If there was an error in our cleanup, still try the SDK toggle
