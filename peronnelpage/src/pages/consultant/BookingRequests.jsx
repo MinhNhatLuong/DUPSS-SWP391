@@ -24,8 +24,33 @@ import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
 import NotificationService from '../../services/NotificationService';
 
+// VideoSDK API constants
+const API_BASE_URL = "https://api.videosdk.live";
+const VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiJhMjNhMzBmMC1lNWNhLTRkOWQtYjk3Yy01YmQ2MGJjZjliMGIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc1MTIwNTgwMiwiZXhwIjoxNzU4OTgxODAyfQ.Y_YDe_65H93elUAa_h6Qh0cnZCgvPYIKRSFDERebZ5U";
 
+// Function to create a meeting using the VideoSDK API
+const createMeeting = async () => {
+  try {
+    const url = `${API_BASE_URL}/v2/rooms`;
+    const options = {
+      method: "POST",
+      headers: { Authorization: VIDEOSDK_TOKEN, "Content-Type": "application/json" },
+    };
 
+    const response = await fetch(url, options);
+    const data = await response.json();
+    
+    if (data.roomId) {
+      return { videoCallId: data.roomId, error: null };
+    } else {
+      console.error("Error creating meeting:", data.error);
+      return { videoCallId: null, error: data.error || "Could not create meeting" };
+    }
+  } catch (error) {
+    console.error("Error creating meeting:", error);
+    return { videoCallId: null, error: error.message || "Network error" };
+  }
+};
 
 export default function BookingRequests() {
   const [requests, setRequests] = useState([]);
@@ -35,8 +60,6 @@ export default function BookingRequests() {
   const [selected, setSelected] = useState(null);
   const [dialog, setDialog] = useState({ open: false, appt: null });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [googleMeetLink, setGoogleMeetLink] = useState("");
-  const [linkError, setLinkError] = useState(false);
   
   // Phân trang
   const [page, setPage] = useState(1);
@@ -89,28 +112,14 @@ export default function BookingRequests() {
 
   const handleOpen = (item) => {
     setSelected(item);
-    setGoogleMeetLink("");
-    setLinkError(false);
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setGoogleMeetLink("");
-    setLinkError(false);
   };
 
   const handleClaim = async () => {
-    if (!googleMeetLink.trim()) {
-      setLinkError(true);
-      setSnackbar({
-        open: true,
-        message: 'Bạn phải có link Google Meet trước khi chấp thuận yêu cầu',
-        severity: 'error'
-      });
-      return;
-    }
-    
     try {
       // Bật trạng thái loading
       setClaiming(true);
@@ -122,13 +131,24 @@ export default function BookingRequests() {
         severity: 'warning' 
       });
       
+      // Create a video meeting
+      const { videoCallId, error: meetingError } = await createMeeting();
+      
+      if (meetingError || !videoCallId) {
+        throw new Error(meetingError || 'Không thể tạo cuộc họp video');
+      }
+      
+      // Generate meeting link
+      const linkGoogleMeet = `http://localhost:5173/appointment/${videoCallId}/meeting`;
+      
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
       const response = await axios.put(`/api/appointments/${selected.id}/approve?consultantId=${userInfo.id}`, {
-        linkGoogleMeet: googleMeetLink
+        linkGoogleMeet,
+        videoCallId // Add videoCallId to the request
       }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
@@ -141,7 +161,7 @@ export default function BookingRequests() {
       // Hiển thị thông báo thành công
       setSnackbar({ 
         open: true, 
-        message: 'Yêu cầu đã được nhận thành công!', 
+        message: 'Yêu cầu đã được nhận thành công! Link video call đã được tạo tự động.', 
         severity: 'success' 
       });
       
@@ -489,22 +509,9 @@ export default function BookingRequests() {
               </Box>
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                  LINK GOOGLE MEET
+                <Typography variant="body2" color="text.secondary">
+                  Khi chấp thuận yêu cầu, hệ thống sẽ tự động tạo một phòng họp video cho cuộc tư vấn này.
                 </Typography>
-                <TextField
-                  fullWidth
-                  placeholder="Nhập link Google Meet (bắt buộc)"
-                  value={googleMeetLink}
-                  onChange={(e) => {
-                    setGoogleMeetLink(e.target.value);
-                    setLinkError(!e.target.value.trim());
-                  }}
-                  error={linkError}
-                  helperText={linkError ? "Bạn phải có link Google Meet trước khi chấp thuận yêu cầu" : ""}
-                  margin="dense"
-                  sx={{ mt: 1 }}
-                />
               </Box>
             </>
           )}
@@ -514,7 +521,7 @@ export default function BookingRequests() {
             variant="contained" 
             color="success" 
             onClick={handleClaim}
-            disabled={claiming || linkError}
+            disabled={claiming}
             startIcon={claiming ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {claiming ? 'Đang xử lý...' : 'Nhận yêu cầu'}

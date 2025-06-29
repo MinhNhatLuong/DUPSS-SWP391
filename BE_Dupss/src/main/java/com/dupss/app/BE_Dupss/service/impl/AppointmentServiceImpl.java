@@ -322,7 +322,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet) {
+    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet, String videoCallId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
@@ -341,6 +341,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setConsultant(consultant);
         appointment.setStatus("CONFIRMED");
         appointment.setLinkGoogleMeet(linkGoogleMeet);
+        appointment.setVideoCallId(videoCallId);
 
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
