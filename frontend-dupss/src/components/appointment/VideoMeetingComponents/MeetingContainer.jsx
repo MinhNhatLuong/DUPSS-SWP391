@@ -29,6 +29,39 @@ import ScreenShareIcon from '@mui/icons-material/ScreenShare';
 import StopScreenShareIcon from '@mui/icons-material/StopScreenShare';
 import SendIcon from '@mui/icons-material/Send';
 
+// Hàm tạo màu ngẫu nhiên nhưng nhất quán cho mỗi người dùng
+const getAvatarColor = (id, name) => {
+  // Các màu sắc đẹp cho avatar (loại bỏ màu quá tối hoặc quá nhạt)
+  const colors = [
+    '#2196F3', // Blue
+    '#F44336', // Red
+    '#4CAF50', // Green
+    '#FF9800', // Orange
+    '#9C27B0', // Purple
+    '#00BCD4', // Cyan
+    '#FFEB3B', // Yellow
+    '#E91E63', // Pink
+    '#3F51B5', // Indigo
+    '#009688', // Teal
+    '#673AB7', // Deep Purple
+    '#FFC107', // Amber
+    '#8BC34A', // Light Green
+    '#03A9F4'  // Light Blue
+  ];
+  
+  // Tạo hash code từ ID hoặc tên để có kết quả nhất quán
+  const string = id || name || Math.random().toString();
+  let hash = 0;
+  
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Chọn màu dựa vào hash
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 // Participant component for displaying a single participant
 const ParticipantView = (props) => {
   const { participantId } = props;
@@ -45,6 +78,86 @@ const ParticipantView = (props) => {
   
   const webcamRef = useRef(null);
   const screenShareRef = useRef(null);
+  const audioAnalyserRef = useRef(null);
+  const audioDataRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  
+  // State to track if the participant is speaking
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
+  // Tạo màu avatar nhất quán cho người tham gia
+  const avatarColor = getAvatarColor(participantId, displayName);
+  
+  // Set up audio analyzer to detect when participant is speaking
+  useEffect(() => {
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let mediaStream;
+    
+    const detectSpeaking = () => {
+      if (!analyser) return;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate the average volume
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / dataArray.length;
+      
+      // Threshold for considering someone as speaking
+      // Adjust this value based on testing
+      const speakingThreshold = 15;
+      
+      // Update speaking state
+      setIsSpeaking(average > speakingThreshold);
+      
+      // Continue detecting in the next animation frame
+      animationFrameRef.current = requestAnimationFrame(detectSpeaking);
+    };
+    
+    if (micOn && micStream && !isLocal) {
+      try {
+        // Create audio context and analyzer
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        // Create media stream from mic track
+        mediaStream = new MediaStream([micStream.track]);
+        
+        // Connect the stream to the analyzer
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(analyser);
+        
+        // Create data array for frequency data
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        // Store references
+        audioAnalyserRef.current = analyser;
+        audioDataRef.current = dataArray;
+        
+        // Start detecting
+        detectSpeaking();
+      } catch (error) {
+        console.error("Error setting up audio analysis:", error);
+      }
+    }
+    
+    return () => {
+      // Clean up
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().catch(err => console.error("Error closing audio context:", err));
+      }
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [micOn, micStream, isLocal]);
   
   useEffect(() => {
     let mediaStream = null;
@@ -98,14 +211,91 @@ const ParticipantView = (props) => {
     };
   }, [screenShareOn, screenShareStream]);
   
+  // For local participant, we need to analyze our own audio
+  useEffect(() => {
+    if (!isLocal || !micOn) return;
+    
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let mediaStream;
+    
+    const detectLocalSpeaking = () => {
+      if (!analyser) return;
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate the average volume
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / dataArray.length;
+      
+      // Threshold for considering someone as speaking
+      const speakingThreshold = 15;
+      
+      // Update speaking state
+      setIsSpeaking(average > speakingThreshold);
+      
+      // Continue detecting in the next animation frame
+      animationFrameRef.current = requestAnimationFrame(detectLocalSpeaking);
+    };
+    
+    const setupLocalAudioAnalysis = async () => {
+      try {
+        // Get local audio stream
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Create audio context and analyzer
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        // Connect the stream to the analyzer
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(analyser);
+        
+        // Create data array for frequency data
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        // Start detecting
+        detectLocalSpeaking();
+      } catch (error) {
+        console.error("Error setting up local audio analysis:", error);
+      }
+    };
+    
+    setupLocalAudioAnalysis();
+    
+    return () => {
+      // Clean up
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+      
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().catch(err => console.error("Error closing audio context:", err));
+      }
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isLocal, micOn]);
+  
   return (
-            <Box sx={{ 
+    <Box sx={{ 
       position: 'relative', 
       height: '100%', 
       width: '100%',
       borderRadius: 1,
       overflow: 'hidden',
-      bgcolor: '#1a1a1a'
+      bgcolor: '#1a1a1a',
+      border: isSpeaking && micOn ? `2px solid ${avatarColor}` : '2px solid transparent',
+      boxShadow: isSpeaking && micOn ? `0 0 8px 2px ${avatarColor}80` : 'none',
+      transition: 'border 0.2s ease, box-shadow 0.2s ease'
     }}>
       {/* Screen share has priority over webcam */}
       {screenShareOn ? (
@@ -142,7 +332,7 @@ const ParticipantView = (props) => {
           height: '100%',
           bgcolor: '#212936'
         }}>
-          <Avatar sx={{ width: 80, height: 80, fontSize: 36, bgcolor: 'primary.main' }}>
+          <Avatar sx={{ width: 80, height: 80, fontSize: 36, bgcolor: avatarColor }}>
             {displayName?.charAt(0)?.toUpperCase() || "?"}
           </Avatar>
         </Box>
@@ -163,11 +353,8 @@ const ParticipantView = (props) => {
           {isLocal ? "Bạn" : displayName || "Khách"}
           {screenShareOn && " (Đang chia sẻ màn hình)"}
         </Typography>
-        {micOn ? (
-          <MicIcon fontSize="small" sx={{ color: 'white' }} />
-        ) : (
-          <MicOffIcon fontSize="small" sx={{ color: 'white' }} />
-        )}
+        {micOn ? <MicIcon fontSize="small" color="primary" /> : <MicOffIcon fontSize="small" color="error" />}
+        {webcamOn ? <VideocamIcon fontSize="small" color="primary" sx={{ ml: 0.5 }} /> : <VideocamOffIcon fontSize="small" color="error" sx={{ ml: 0.5 }} />}
       </Box>
     </Box>
   );
@@ -175,6 +362,20 @@ const ParticipantView = (props) => {
 
 // Chat message component
 const ChatMessage = ({ senderId, senderName, message, timestamp, isLocal }) => {
+  // Đảm bảo dữ liệu hợp lệ trước khi hiển thị
+  const safeMessage = typeof message === 'string' ? message : String(message || '');
+  const safeSenderName = typeof senderName === 'string' ? senderName : String(senderName || 'Unknown');
+  const safeTimestamp = typeof timestamp === 'number' ? timestamp : Date.now();
+  
+  const formatTime = () => {
+    try {
+      return new Date(safeTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      console.error("Error formatting timestamp:", error);
+      return '';
+    }
+  };
+  
   return (
     <Box
       sx={{
@@ -196,13 +397,13 @@ const ChatMessage = ({ senderId, senderName, message, timestamp, isLocal }) => {
       >
         {!isLocal && (
           <Typography variant="caption" fontWeight="bold" display="block">
-            {senderName}
+            {safeSenderName}
           </Typography>
         )}
-        <Typography variant="body2">{message}</Typography>
+        <Typography variant="body2">{safeMessage}</Typography>
       </Box>
       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-        {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        {formatTime()}
       </Typography>
     </Box>
   );
@@ -316,7 +517,12 @@ const ParticipantsPanel = ({ participants }) => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ width: 32, height: 32, mr: 1, bgcolor: 'primary.main' }}>
+              <Avatar sx={{ 
+                width: 32, 
+                height: 32, 
+                mr: 1, 
+                bgcolor: getAvatarColor(participant.id, participant.displayName)
+              }}>
                 {participant.displayName?.charAt(0).toUpperCase() || "?"}
               </Avatar>
               <Typography>
@@ -357,7 +563,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     participants,
     meetingId,
     leave,
-    toggleMic,
+    toggleMic: sdkToggleMic,
     toggleWebcam: sdkToggleWebcam,
     toggleScreenShare,
     startScreenShare,
@@ -371,6 +577,28 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     onMeetingJoined: meetingJoined,
     onMeetingLeft: meetingLeft
   });
+  
+  // Custom toggleMic with proper resource management
+  const toggleMic = async () => {
+    try {
+      // If turning off mic, ensure we properly clean up
+      if (localMicOn) {
+        // First stop any active audio tracks from our side
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getAudioTracks().forEach(track => {
+            track.stop();
+          });
+        }
+      }
+      // Then use SDK's toggle
+      sdkToggleMic();
+    } catch (err) {
+      console.error("Error toggling microphone:", err);
+      // If there was an error in our cleanup, still try the SDK toggle
+      sdkToggleMic();
+    }
+  };
   
   // Custom toggleWebcam with proper resource management
   const toggleWebcam = async () => {
@@ -422,13 +650,65 @@ const MeetingContainer = ({ onMeetingLeave }) => {
 
   useEffect(() => {
     if (pubsubMessages) {
-      const newMessages = pubsubMessages.map((msg) => ({
-        senderId: msg.senderId,
-        senderName: msg.senderName,
-        message: msg.message,
-        timestamp: msg.timestamp,
-        isLocal: msg.senderId === localParticipant?.id
-      }));
+      try {
+        console.log("Raw pubsubMessages:", pubsubMessages);
+        
+        const newMessages = pubsubMessages.map((msg) => {
+          // VideoSDK PubSub có thể trả về các định dạng khác nhau tùy thuộc vào cách gửi
+          // Trích xuất dữ liệu tin nhắn và metadata
+          
+          let senderId, senderName, message, timestamp;
+          
+          // Xác định cấu trúc của msg
+          if (typeof msg === 'string') {
+            // Nếu msg là string đơn giản
+            message = msg;
+            senderId = localParticipant?.id !== msg.senderId ? msg.senderId : localParticipant?.id;
+            senderName = localParticipant?.id !== msg.senderId ? "Người tham gia" : (localParticipant?.displayName || "Bạn");
+            timestamp = Date.now();
+          } else if (typeof msg === 'object') {
+            // Nếu msg là object có các trường
+            if (msg.message !== undefined) {
+              // Trường hợp khi gửi đi là object { message, senderName, timestamp }
+              message = typeof msg.message === 'string' 
+                ? msg.message 
+                : typeof msg.message === 'object'
+                  ? JSON.stringify(msg.message)
+                  : String(msg.message || '');
+              senderId = msg.senderId || '';
+              senderName = msg.senderName || "Unknown";
+              timestamp = msg.timestamp || Date.now();
+            } else {
+              // Trường hợp object khác không có trường message
+              try {
+                message = JSON.stringify(msg);
+              } catch (e) {
+                message = "[Không thể hiển thị tin nhắn]";
+              }
+              senderId = '';
+              senderName = "System";
+              timestamp = Date.now();
+            }
+          } else {
+            // Trường hợp khác
+            message = String(msg || '');
+            senderId = '';
+            senderName = "System";
+            timestamp = Date.now();
+          }
+          
+          // Tạo đối tượng tin nhắn đã được xử lý
+          const processedMsg = {
+            senderId: String(senderId),
+            senderName: String(senderName),
+            message: String(message),
+            timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
+            isLocal: senderId === localParticipant?.id
+          };
+          
+          console.log("Processed message:", processedMsg);
+          return processedMsg;
+        });
       
       setChatMessages(newMessages);
       
@@ -438,16 +718,27 @@ const MeetingContainer = ({ onMeetingLeave }) => {
         if (!lastMessage.isLocal) {
           setUnreadMessages(prev => prev + 1);
         }
+        }
+      } catch (error) {
+        console.error("Error processing chat messages:", error);
       }
     }
   }, [pubsubMessages, localParticipant, activeSidebar]);
 
   const sendChatMessage = (message) => {
-    publishChat({
-      message,
-      senderName: localParticipant?.displayName || "You",
-      timestamp: Date.now()
-    });
+    try {
+      // Đảm bảo message là string và không phải object
+      const textMessage = typeof message === 'string' ? message : String(message || '');
+      
+      console.log("Preparing to send message:", textMessage);
+      
+      // Gửi message dưới dạng chuỗi đơn giản, không phải object
+      publishChat(textMessage);
+      
+      console.log("Message sent successfully");
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+    }
   };
 
   const handleToggleSidebar = (sidebar) => {
@@ -482,11 +773,11 @@ const MeetingContainer = ({ onMeetingLeave }) => {
       if (!addedNames.has(p.displayName)) {
         addedNames.add(p.displayName);
         list.push({
-          id: p.id,
-          displayName: p.displayName,
-          isLocal: false,
-          micOn: p.micOn,
-          webcamOn: p.webcamOn
+      id: p.id,
+      displayName: p.displayName,
+      isLocal: false,
+      micOn: p.micOn,
+      webcamOn: p.webcamOn
         });
       }
     });
@@ -641,7 +932,7 @@ const MeetingContainer = ({ onMeetingLeave }) => {
                           +{remainingCount} người khác
                         </Box>
                       ) : (
-                        <ParticipantView participantId={participantId} />
+                  <ParticipantView participantId={participantId} />
                       )}
                     </Box>
                   );
