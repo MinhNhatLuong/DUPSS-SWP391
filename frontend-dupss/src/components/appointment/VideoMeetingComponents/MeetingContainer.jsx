@@ -765,20 +765,38 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           return processedMsg;
         });
       
-      setChatMessages(newMessages);
-      
-      // Update unread count if chat is not open
-      if (activeSidebar !== 'chat' && newMessages.length > 0) {
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (!lastMessage.isLocal) {
-          setUnreadMessages(prev => prev + 1);
-        }
+        // Store previous message count to detect actual new messages
+        const prevMessageCount = chatMessages.length;
+        
+        // Update chat messages
+        setChatMessages(newMessages);
+        
+        // Only update unread count if:
+        // 1. Chat panel is not currently open
+        // 2. There are actually new messages (comparing lengths)
+        // 3. The last message is not from the local user
+        if (activeSidebar !== 'chat' && newMessages.length > prevMessageCount) {
+          // Check only the new messages
+          const newMessageCount = newMessages.length - prevMessageCount;
+          let newUnreadCount = 0;
+          
+          // Count only remote messages (not sent by local user)
+          for (let i = newMessages.length - newMessageCount; i < newMessages.length; i++) {
+            if (!newMessages[i].isLocal) {
+              newUnreadCount++;
+            }
+          }
+          
+          // Update the unread count only if there are actual new remote messages
+          if (newUnreadCount > 0) {
+            setUnreadMessages(prev => prev + newUnreadCount);
+          }
         }
       } catch (error) {
         console.error("Error processing chat messages:", error);
       }
     }
-  }, [pubsubMessages, localParticipant, activeSidebar]);
+  }, [pubsubMessages, localParticipant]);
 
   const sendChatMessage = (message) => {
     try {
