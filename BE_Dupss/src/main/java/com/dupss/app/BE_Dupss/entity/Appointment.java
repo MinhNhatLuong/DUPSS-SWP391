@@ -74,7 +74,4 @@ public class Appointment {
     
     @Column(name = "link_google_meet", length = 500)
     private String linkGoogleMeet;
-    
-    @Column(name = "video_call_id", length = 100)
-    private String videoCallId;
 } 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ChatButton from './ChatButton';
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,14 +31,17 @@ const ScrollToTop = () => {
   };
 
   return (
-    <button 
-      id="scroll-to-top" 
-      title="Cuộn lên đầu trang"
-      className={isVisible ? 'show' : ''}
-      onClick={scrollToTop}
-    >
-      <i className="fas fa-arrow-up"></i>
-    </button>
+    <div className="floating-buttons">
+      <ChatButton />
+      <button 
+        id="scroll-to-top" 
+        title="Cuộn lên đầu trang"
+        className={isVisible ? 'show' : ''}
+        onClick={scrollToTop}
+      >
+        <KeyboardArrowUpIcon />
+      </button>
+    </div>
   );
 };
 

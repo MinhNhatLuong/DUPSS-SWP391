@@ -147,12 +147,12 @@ public class AppointmentController {
     }
     
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasRole('CONSULTANT') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> approveAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
             @RequestBody AppointmentApproveRequest request) {
-        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, request.getLinkGoogleMeet(), request.getVideoCallId()));
+        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, request.getLinkGoogleMeet()));
     }
     
     @PutMapping("/{id}/start")

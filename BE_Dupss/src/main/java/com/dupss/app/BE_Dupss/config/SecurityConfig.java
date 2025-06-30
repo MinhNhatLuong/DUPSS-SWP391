@@ -57,7 +57,9 @@
             // Topic và consultant endpoints
             "/api/topics",
             "/api/consultants",
-            "/api/consultants/topic/**"
+            "/api/consultants/topic/**",
+                //Chat box
+            "/chat/**"
         };
 
         // Các đường dẫn API chỉ dành cho ADMIN
