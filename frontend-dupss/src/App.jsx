@@ -10,6 +10,7 @@ import ChangePassword from './components/auth/ChangePassword';
 import AboutUs from './components/about/AboutUs';
 import Appointment from './components/appointment/Appointment';
 import AppointmentReview from './components/appointment/AppointmentReview';
+import VideoMeeting from './components/appointment/VideoMeeting';
 import BlogDetail from './components/blogs/BlogDetail';
 import BlogsList from './components/blogs/BlogsList';
 import CoursesList from './components/courses/CoursesList';
@@ -70,6 +71,11 @@ function App() {
         <Route path="/appointment/:id/review" element={
           <Layout>
             <AppointmentReview />
+          </Layout>
+        } />
+        <Route path="/appointment/:videoCallId/meeting" element={
+          <Layout>
+            <VideoMeeting />
           </Layout>
         } />
         <Route path="/blogs" element={

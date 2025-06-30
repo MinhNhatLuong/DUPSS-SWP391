@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.controller;
 
+import com.dupss.app.BE_Dupss.dto.request.AppointmentApproveRequest;
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
 import com.dupss.app.BE_Dupss.dto.request.AppointmentStatusUpdateRequest;
 import com.dupss.app.BE_Dupss.dto.request.ConsultantNoteRequest;
@@ -150,12 +151,12 @@ public class AppointmentController {
     }
     
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
+    @PreAuthorize("hasRole('CONSULTANT') or hasRole('ADMIN')")
     public ResponseEntity<AppointmentResponseDto> approveAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, body.get("linkGoogleMeet")));
+            @RequestBody AppointmentApproveRequest request) {
+        return ResponseEntity.ok(appointmentService.approveAppointment(id, consultantId, request.getLinkGoogleMeet(), request.getVideoCallId()));
     }
     
     @PutMapping("/{id}/start")
