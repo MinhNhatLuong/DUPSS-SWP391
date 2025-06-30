@@ -140,7 +140,7 @@ const AppointmentReview = () => {
 
         <Box component="form" onSubmit={handleSubmitReview} noValidate sx={{ mt: 1 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography component="legend" sx={{ mb: 1 }}>Đánh giá của bạn (0-5 sao)</Typography>
+            <Typography component="legend" sx={{ mb: 1 }}>Đánh giá của bạn (1-5 sao)</Typography>
             <Rating
               name="rating"
               value={rating}
@@ -148,6 +148,7 @@ const AppointmentReview = () => {
               onChange={(event, newValue) => {
                 setRating(newValue);
               }}
+              defaultValue={5}
               size="large"
               max={5}
               disabled={appointment.review}
