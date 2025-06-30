@@ -1,7 +1,6 @@
 package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
-import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 
 import java.util.List;
@@ -98,7 +97,7 @@ public interface AppointmentService {
     /**
      * Khách hàng đánh giá cuộc hẹn
      */
-    AppointmentResponseDto reviewAppointment(Long appointmentId, AppointmentReviewRequest reviewRequest);
+    AppointmentResponseDto reviewAppointment(Long appointmentId, Integer reviewScore, String customerReview, Long userId);
     
     /**
      * Khách không đăng nhập đánh giá cuộc hẹn (qua email)
