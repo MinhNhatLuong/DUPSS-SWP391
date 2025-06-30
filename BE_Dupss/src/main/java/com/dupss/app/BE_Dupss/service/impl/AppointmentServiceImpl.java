@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
@@ -50,6 +51,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setAppointmentTime(requestDto.getAppointmentTime());
         appointment.setTopic(topic);
         appointment.setStatus("PENDING");
+
+        // Gán consultant là placeholder (ID = 2)
+        User placeholderConsultant = userRepository.findById(2L)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy placeholder consultant với ID = 2"));
+        appointment.setConsultant(placeholderConsultant);
 
         // Nếu có userId, đây là thành viên đã đăng nhập
         if (requestDto.getUserId() != null) {
@@ -310,7 +316,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet, String videoCallId) {
+    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
@@ -329,7 +335,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setConsultant(consultant);
         appointment.setStatus("CONFIRMED");
         appointment.setLinkGoogleMeet(linkGoogleMeet);
-        appointment.setVideoCallId(videoCallId);
 
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
@@ -442,15 +447,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentResponseDto reviewAppointment(Long appointmentId, Integer reviewScore, String customerReview, Long userId) {
+    public AppointmentResponseDto reviewAppointment(Long appointmentId, AppointmentReviewRequest reviewRequest) {
+
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
-        // Kiểm tra quyền truy cập
-        if (appointment.isGuest() || appointment.getUser() == null || 
-            !Objects.equals(appointment.getUser().getId(), userId)) {
-            throw new IllegalArgumentException("Người dùng không có quyền đánh giá cuộc hẹn này");
-        }
 
         // Kiểm tra trạng thái cuộc hẹn
         if (!appointment.getStatus().equals("COMPLETED")) {
@@ -463,13 +464,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra điểm đánh giá
-        if (reviewScore < 1 || reviewScore > 5) {
+        if (reviewRequest.getReviewScore() < 1 || reviewRequest.getReviewScore() > 5) {
             throw new IllegalArgumentException("Điểm đánh giá phải từ 1 đến 5");
         }
 
         // Cập nhật thông tin
-        appointment.setReviewScore(reviewScore);
-        appointment.setCustomerReview(customerReview);
+        appointment.setReviewScore(reviewRequest.getReviewScore());
+        appointment.setCustomerReview(reviewRequest.getCustomerReview());
         appointment.setReview(true);
         
         // Lưu vào database

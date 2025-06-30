@@ -1,11 +1,8 @@
 package com.dupss.app.BE_Dupss.service;
 
 import com.dupss.app.BE_Dupss.dto.request.AppointmentRequestDto;
+import com.dupss.app.BE_Dupss.dto.request.AppointmentReviewRequest;
 import com.dupss.app.BE_Dupss.dto.response.AppointmentResponseDto;
-import com.dupss.app.BE_Dupss.dto.response.SlotResponseDto;
-import com.dupss.app.BE_Dupss.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -79,15 +76,9 @@ public interface AppointmentService {
     AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
     
     /**
-     * Approve an appointment
-     * 
-     * @param appointmentId Appointment ID
-     * @param consultantId Consultant ID
-     * @param linkGoogleMeet Google Meet link
-     * @param videoCallId Video call ID
-     * @return AppointmentResponseDto
+     * Tư vấn viên duyệt cuộc hẹn và thêm link Google Meet
      */
-    AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet, String videoCallId);
+    AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet);
     
     /**
      * Tư vấn viên bắt đầu cuộc hẹn
@@ -107,7 +98,7 @@ public interface AppointmentService {
     /**
      * Khách hàng đánh giá cuộc hẹn
      */
-    AppointmentResponseDto reviewAppointment(Long appointmentId, Integer reviewScore, String customerReview, Long userId);
+    AppointmentResponseDto reviewAppointment(Long appointmentId, AppointmentReviewRequest reviewRequest);
     
     /**
      * Khách không đăng nhập đánh giá cuộc hẹn (qua email)
