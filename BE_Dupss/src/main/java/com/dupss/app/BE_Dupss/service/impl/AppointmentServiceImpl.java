@@ -564,7 +564,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setReviewScore(appointment.getReviewScore());
         responseDto.setCustomerReview(appointment.getCustomerReview());
         responseDto.setReview(appointment.isReview());
-        responseDto.setLinkGoogleMeet(appointment.getLinkGoogleMeet());
         
         return responseDto;
     }
