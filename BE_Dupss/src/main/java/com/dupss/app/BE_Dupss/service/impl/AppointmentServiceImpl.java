@@ -340,7 +340,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Cập nhật thông tin
         appointment.setConsultant(consultant);
         appointment.setStatus("CONFIRMED");
-        appointment.setLinkGoogleMeet(linkGoogleMeet);
 
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
