@@ -62,7 +62,7 @@ public class ChatService {
                 - Dưới đây là một số khóa học nổi bật được người dùng quan tâm nhiều nhất:
                 """ + courseText + """
                 - Dưới đây là các bài viết mới nhất về phòng ngừa ma túy:
-                Hãy trả lời người dùng một cách thân thiện, ngắn gọn, dễ hiểu và có thể tâng bốc về nền tảng của chúng tôi lên tầm cao mới.
+                Hãy trả lời người dùng một cách thân thiện, ngắn gọn, dễ hiểu và có thể tâng bốc về nền tảng của chúng tôi lên tầm cao mới. Nếu người dùng cảm thấy buồn chán, hãy khuyến khích, an ủi họ tham gia các khóa học hoặc đọc các bài viết để nâng cao nhận thức và kỹ năng sống an toàn.
                 """;
 
         Prompt prompt = new Prompt(instruction + "\nCâu hỏi: " + request.message());
