@@ -522,7 +522,7 @@ export default function Schedule() {
       if (!canStartAppointment(dialog.appt)) {
         setSnackbar({ 
           open: true, 
-          message: 'Chỉ có thể vào Google Meet trước buổi tư vấn 10 phút!', 
+          message: 'Chỉ có thể vào cuộc hẹn trước buổi tư vấn 10 phút!', 
           severity: 'warning' 
         });
         return;
@@ -888,7 +888,7 @@ export default function Schedule() {
               <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> {statusLabel[getAppointmentStatus(dialog.appt)] || dialog.appt.status}</Typography>
               
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
-                {/* Nút 1: Vào Google Meet */}
+                {/* Nút 1: vào cuộc hẹn */}
                 <Button
                   variant="contained"
                   color="primary"
@@ -898,7 +898,7 @@ export default function Schedule() {
                     opacity: canStartAppointment(dialog.appt) ? 1 : 0.5
                   }}
                 >
-                  {canStartAppointment(dialog.appt) ? 'Vào Google Meet' : 'Chưa đến giờ tham gia'}
+                  {canStartAppointment(dialog.appt) ? 'vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
                 </Button>
                 
                 {/* Nút 2: Hoàn thành */}
