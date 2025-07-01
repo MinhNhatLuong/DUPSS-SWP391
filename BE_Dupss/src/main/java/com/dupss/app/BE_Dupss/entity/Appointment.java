@@ -72,6 +72,6 @@ public class Appointment {
     @Column(name = "is_review", nullable = false)
     private boolean isReview = false;
     
-    @Column(name = "link_google_meet", length = 500)
-    private String linkGoogleMeet;
+    @Column(name = "dupss_meet_link", length = 500)
+    private String linkMeet;
 } 

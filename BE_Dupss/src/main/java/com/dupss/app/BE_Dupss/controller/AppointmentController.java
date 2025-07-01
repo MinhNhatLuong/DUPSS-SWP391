@@ -114,7 +114,7 @@ public class AppointmentController {
      * Dùng cho thành viên đã đăng nhập muốn hủy cuộc hẹn của họ
      */
     @PutMapping("/{appointmentId}/cancel/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER') ")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AppointmentResponseDto> cancelAppointmentByUser(
             @PathVariable("appointmentId") Long appointmentId,
             @PathVariable("userId") Long userId) {

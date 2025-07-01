@@ -78,7 +78,7 @@ public class AdminController {
 
 
 
-    @DeleteMapping("/users/{userId}")
+    @PatchMapping("/users/delete/{userId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
         try {

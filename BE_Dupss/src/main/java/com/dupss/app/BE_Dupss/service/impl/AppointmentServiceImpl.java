@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +41,20 @@ public class AppointmentServiceImpl implements AppointmentService {
         Topic topic = topicRepository.findByIdAndActive(requestDto.getTopicId(), true);
         if(topic == null) {
             throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
+        }
+
+        LocalDateTime appointmentDateTime = LocalDateTime.of(requestDto.getAppointmentDate(), requestDto.getAppointmentTime());
+        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Không được chọn ngày giờ trong quá khứ");
+        }
+
+        boolean isDuplicated = appointmentRepository.existsByDateTimeAndStatusNotCancelled(
+                requestDto.getAppointmentDate(),
+                requestDto.getAppointmentTime()
+        );
+
+        if (isDuplicated) {
+            throw new IllegalArgumentException("Đã có cuộc hẹn tại thời điểm này. Vui lòng chọn thời gian khác.");
         }
 
         // Khởi tạo đối tượng Appointment
@@ -316,7 +331,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet) {
+    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkMeet) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
@@ -325,17 +340,16 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
 
         // Kiểm tra quyền cập nhật
-        if (appointment.getConsultant() != null && 
-            !Objects.equals(appointment.getConsultant().getId(), consultantId) && 
-            appointment.getConsultant().getId() != 2L) {
-            throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
-        }
+//        if (appointment.getConsultant() != null &&
+//            !Objects.equals(appointment.getConsultant().getId(), consultantId) &&
+//            appointment.getConsultant().getId() != 2L) {
+//            throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
+//        }
 
         // Cập nhật thông tin
         appointment.setConsultant(consultant);
         appointment.setStatus("CONFIRMED");
-        appointment.setLinkGoogleMeet(linkGoogleMeet);
-
+        appointment.setLinkMeet(linkMeet);
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
         
@@ -558,8 +572,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setReviewScore(appointment.getReviewScore());
         responseDto.setCustomerReview(appointment.getCustomerReview());
         responseDto.setReview(appointment.isReview());
-        responseDto.setLinkGoogleMeet(appointment.getLinkGoogleMeet());
-        
+        responseDto.setLinkGoogleMeet(appointment.getLinkMeet());
         return responseDto;
     }
 }

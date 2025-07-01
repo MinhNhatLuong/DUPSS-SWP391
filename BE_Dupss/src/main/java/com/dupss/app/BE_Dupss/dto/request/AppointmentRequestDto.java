@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import com.dupss.app.BE_Dupss.validation.NotInPast;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -156,7 +156,10 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + userId));
 
-        userRepository.delete(user);
+        if(user.isEnabled()){
+            user.setEnabled(false);
+        }
+        userRepository.save(user);
         log.info("Admin deleted user: {} with ID: {}", user.getUsername(), userId);
     }
 
