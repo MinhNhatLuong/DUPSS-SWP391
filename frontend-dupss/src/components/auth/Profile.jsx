@@ -494,6 +494,7 @@ const Profile = () => {
           size="small"
           component={RouterLink}
           to={`/appointment/${appointment.id}/review`}
+          sx={{fontWeight: 600, textAlign: 'center'}}
         >
           Xem lại đánh giá
         </Button>
@@ -506,6 +507,7 @@ const Profile = () => {
           size="small"
           component={RouterLink}
           to={`/appointment/${appointment.id}/review`}
+          sx={{fontWeight: 600, textAlign: 'center'}}
         >
           Đánh giá
         </Button>
@@ -920,6 +922,7 @@ const Profile = () => {
                             size="small"
                             disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELED' || appointment.status === 'CONFIRMED'}
                             onClick={() => handleCancelClick(appointment.id)}
+                            sx={{fontWeight: 600}}
                           >
                             Hủy cuộc hẹn
                           </Button>
