@@ -139,7 +139,7 @@ export default function BookingRequests() {
       }
       
       // Generate meeting link
-      const linkGoogleMeet = `http://localhost:5173/appointment/${videoCallId}/meeting`;
+      const linkGoogleMeet = `https://dupss.vercel.app/appointment/${videoCallId}/meeting`;
       
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
