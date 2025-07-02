@@ -52,8 +52,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format, parse } from 'date-fns';
-import api from '../../services/authService';
-import { getUserData } from '../../services/authService';
+import api, { getUserData } from '../../services/authService';
+import { API_URL } from '../../services/config';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ const Profile = () => {
   const fetchEnrolledCourses = async () => {
     setLoadingCourses(true);
     try {
-      const response = await api.get('http://localhost:8080/api/courses/enrolled');
+      const response = await api.get(`${API_URL}/courses/enrolled`);
       setEnrolledCourses(response.data);
       setLoadingCourses(false);
     } catch (error) {
@@ -134,7 +134,7 @@ const Profile = () => {
       }
       
       const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/appointments/user/${userId}`, {
+      const response = await fetch(`${API_URL}/appointments/user/${userId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -157,7 +157,7 @@ const Profile = () => {
   const fetchSurveys = async () => {
     setLoadingSurveys(true);
     try {
-      const response = await api.get('http://localhost:8080/api/survey/results');
+      const response = await api.get(`${API_URL}/survey/results`);
       setSurveys(response.data);
       setLoadingSurveys(false);
     } catch (error) {
@@ -197,7 +197,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/appointments/${appointmentId}/cancel/user/${userId}`, {
+      const response = await fetch(`${API_URL}/appointments/${appointmentId}/cancel/user/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -248,7 +248,7 @@ const Profile = () => {
 
     try {
       // Follow the exact API endpoint structure
-      const response = await fetch('http://localhost:8080/api/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -283,7 +283,7 @@ const Profile = () => {
             // Try refreshing token
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
-              const refreshResponse = await fetch('http://localhost:8080/api/auth/refresh-token', {
+              const refreshResponse = await fetch(`${API_URL}/auth/refresh-token`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -439,7 +439,7 @@ const Profile = () => {
         console.log(pair[0] + ': ' + pair[1]);
       }
 
-      const response = await fetch('http://localhost:8080/api/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -801,7 +801,7 @@ const Profile = () => {
                           <TableCell>
                             {course.courseTitle && (
                               <Link
-                                href={`http://localhost:5173/courses/${course.courseId}`}
+                                href={`/courses/${course.courseId}`}
                                 target="_self"
                                 rel="noopener noreferrer"
                                 sx={{ textDecoration: 'none' }}
@@ -824,7 +824,7 @@ const Profile = () => {
                           <TableCell>
                             {course.status === 'COMPLETED' && (
                               <Link
-                                href={`http://localhost:5173/courses/${course.courseId}/cert/${user?.id || ''}`}
+                                href={`/courses/${course.courseId}/cert/${user?.id || ''}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 sx={{ textDecoration: 'none' }}

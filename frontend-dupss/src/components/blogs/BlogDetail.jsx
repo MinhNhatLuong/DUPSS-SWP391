@@ -7,6 +7,7 @@ import axios from 'axios';
 import BlogHeader from './BlogHeader';
 import BlogContent from './BlogContent';
 import RelatedArticles from './RelatedArticles';
+import { API_URL } from '../../services/config';
 
 // Breadcrumb container
 const BreadcrumbContainer = styled(Box)(({ theme }) => ({
@@ -37,7 +38,7 @@ const BlogDetail = () => {
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      const response = await axios.get(`http://localhost:8080/api/public/blog/${blogId}`);
+      const response = await axios.get(`${API_URL}/public/blog/${blogId}`);
       setBlog({
         id: response.data.id,
         title: response.data.title,
@@ -49,7 +50,7 @@ const BlogDetail = () => {
       });
       
       // Fetch related articles
-      const relatedResponse = await axios.get('http://localhost:8080/api/public/blogs/latest');
+      const relatedResponse = await axios.get(`${API_URL}/public/blogs/latest`);
       setRelatedArticles(relatedResponse.data.map(article => ({
         id: article.id,
         title: article.title,

@@ -3,6 +3,10 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import ReactMarkdown from 'react-markdown';
+import axios from 'axios';
+
+// API base URL lấy từ config nhưng không bao gồm /api vì endpoint chat đã public
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8080';
 
 const ChatButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,24 +43,18 @@ const ChatButton = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
+      // Gọi trực tiếp đến endpoint /chat (đã được cấu hình là public trong SecurityConfig)
+      const response = await axios.post(`${API_BASE_URL}/chat`, {
+        message: userMessage
       });
 
-      if (response.ok) {
-        const data = await response.text();
-        setMessages(prev => [...prev, { text: data, sender: 'ai' }]);
+      if (response.status === 200) {
+        setMessages(prev => [...prev, { text: response.data, sender: 'ai' }]);
       } else {
-        setMessages(prev => [...prev, { 
-          text: 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.', 
-          sender: 'ai' 
-        }]);
+        throw new Error('Phản hồi không hợp lệ');
       }
     } catch (error) {
+      console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         text: 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.', 
         sender: 'ai' 

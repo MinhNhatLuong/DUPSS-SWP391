@@ -5,6 +5,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
 import { styled } from '@mui/material/styles';
+import { API_URL } from '../../services/config';
 
 // Create custom MenuItem component, override default styles
 const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
@@ -92,7 +93,7 @@ const AuthButtons = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +125,7 @@ const AuthButtons = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/refresh-token', {
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ const AuthButtons = () => {
     
     // Call logout API
     if (accessToken) {
-      fetch('http://localhost:8080/api/auth/logout', {
+      fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

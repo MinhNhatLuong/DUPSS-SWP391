@@ -12,6 +12,7 @@ import {
   Alert,
 } from '@mui/material';
 import { showErrorAlert, showSuccessAlert } from '../common/AlertNotification';
+import { API_URL } from '../../services/config';
 
 const AppointmentReview = () => {
   const { id } = useParams();
@@ -29,7 +30,7 @@ const AppointmentReview = () => {
   const fetchAppointmentDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/appointments/${id}`, {
+      const response = await fetch(`${API_URL}/appointments/${id}`, {
         method: 'GET'
       });
 
@@ -66,7 +67,7 @@ const AppointmentReview = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/appointments/${id}/review`, {
+      const response = await fetch(`${API_URL}/appointments/${id}/review`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

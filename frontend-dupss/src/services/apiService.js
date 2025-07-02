@@ -1,13 +1,14 @@
 import api from './authService';
 import { showErrorAlert } from '../components/common/AlertNotification';
+import { API_URL } from './config';
 
 /**
  * API Service - Cung cấp các phương thức để gọi API với xử lý lỗi và refresh token
  * Sử dụng instance api từ authService để tận dụng cơ chế refresh token
  */
 
-// Cấu hình API URL - Dễ dàng thay đổi khi deploy
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+// Re-export để các component khác không cần thay đổi
+export { API_URL };
 
 // Lưu trữ yêu cầu gọi lại nếu token hết hạn
 const storeRedirectAfterLogin = () => {

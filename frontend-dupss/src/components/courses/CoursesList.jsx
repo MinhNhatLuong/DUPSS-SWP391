@@ -11,6 +11,7 @@ import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
+import { API_URL } from '../../services/config';
 
 const FilterContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -84,7 +85,7 @@ function CoursesList() {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/topics');
+        const response = await axios.get(`${API_URL}/topics`);
         setTopics(response.data);
       } catch (error) {
         console.error('Error fetching topics:', error);
@@ -115,7 +116,7 @@ function CoursesList() {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        let url = `http://localhost:8080/api/public/courses?keyword=${searchQuery}&page=${currentPage}&sortBy=createdAt&sortDir=${sortDir}`;
+        let url = `${API_URL}/public/courses?keyword=${searchQuery}&page=${currentPage}&sortBy=createdAt&sortDir=${sortDir}`;
         
         if (topicId) {
           url += `&topicId=${topicId}`;

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL } from './apiService';
+import { API_URL } from './config';
 
 // Tạo một axios instance với config chung
 const api = axios.create({
