@@ -172,7 +172,7 @@ const Register = () => {
     }}>
       <Snackbar
         open={alert.open}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         sx={{ 
