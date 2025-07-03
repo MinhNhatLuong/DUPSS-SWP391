@@ -231,7 +231,7 @@ const Profile = () => {
         return 'Đã xét duyệt';
       case 'COMPLETED':
         return <Typography sx={{ color: '#2e7d32', fontWeight: 'bold' }}>Đã hoàn thành</Typography>;
-      case 'CANCELED':
+      case 'CANCELLED':
         return <Typography sx={{ color: '#d32f2f', fontWeight: 'bold' }}>Bị hủy</Typography>;
       default:
         return status;
@@ -920,7 +920,7 @@ const Profile = () => {
                             variant="contained"
                             color="error"
                             size="small"
-                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELED' || appointment.status === 'CONFIRMED'}
+                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELLED'}
                             onClick={() => handleCancelClick(appointment.id)}
                             sx={{fontWeight: 600}}
                           >

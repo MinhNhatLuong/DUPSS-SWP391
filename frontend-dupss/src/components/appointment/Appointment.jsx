@@ -6,6 +6,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import AppointmentForm from './AppointmentForm';
 import './Appointment.css';
 import { useEffect } from 'react';
+import AlertNotification from '../common/AlertNotification';
 
 const Appointment = () => {
   useEffect(() => {
@@ -14,6 +15,8 @@ const Appointment = () => {
 
   return (
     <Container maxWidth="lg" className="appointment-container">
+      <AlertNotification />
+      
       {/* Header */}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h3" component="h1" gutterBottom sx={{fontWeight: 600, color: '#0056b3'}}>
@@ -37,7 +40,7 @@ const Appointment = () => {
         <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
           <InfoIcon sx={{ color: '#3498db', mr: 2, mt: 0.5 }} />
           <Typography variant="body1" color="text.primary">
-            Khi bạn đặt lịch tư vấn, bạn sẽ nhận được đường link Google Meet qua email hoặc trong lịch sử tư vấn (nếu có tài khoản). Vui lòng kiểm tra email và đăng nhập đúng giờ để không bỏ lỡ buổi tư vấn.
+            Khi bạn đặt lịch tư vấn, bạn sẽ nhận được đường Link Meet qua email hoặc trong lịch sử tư vấn (nếu có tài khoản). Vui lòng kiểm tra email và đăng nhập đúng giờ để không bỏ lỡ buổi tư vấn.
           </Typography>
         </Box>
       </Paper>

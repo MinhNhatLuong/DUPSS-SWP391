@@ -32,6 +32,7 @@ import { format, parse } from 'date-fns';
 import { API_URL } from '../../services/config';
 import ConsultantSelector from './ConsultantSelector';
 import { createMeeting, getToken } from '../../services/videoService';
+import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 
 const AppointmentForm = () => {
   const [formData, setFormData] = useState({
@@ -211,8 +212,14 @@ const AppointmentForm = () => {
           message: 'Đăng ký cuộc hẹn thành công',
           severity: 'success'
         });
+        
         // Reset form but keep personal info if user is logged in
         handleReset();
+        
+        // Show a success alert notification when returning to ConsultantSelector
+        showSuccessAlert('Đặt lịch tư vấn thành công!');
+        
+        // Return to consultant selector
         setShowConsultantSelector(true);
       } catch (error) {
         // Set processing state to false on error

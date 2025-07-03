@@ -919,7 +919,7 @@ function CourseLearning() {
                                 handleVideoCompletion(video.id, video.completed);
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              color="success"
+                              sx={{color: "#0056b3"}}
                               size="small"
                             />
                           </ListItemIcon>

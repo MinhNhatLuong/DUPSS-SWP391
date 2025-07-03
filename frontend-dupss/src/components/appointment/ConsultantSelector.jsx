@@ -276,7 +276,7 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                   </Button>
                 </Box>
                 
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography variant="subtitle2" gutterBottom sx={{fontWeight: 600}}>
                   Các khung giờ sẵn có:
                 </Typography>
                 
