@@ -20,7 +20,7 @@ import {
   AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import axios from 'axios';
-import { format, addDays, subDays, isValid } from 'date-fns';
+import { format, addDays, subDays, isValid, isSameDay, isAfter, isBefore, parse } from 'date-fns';
 import { API_URL } from '../../services/config';
 
 const ConsultantSelector = ({ onSlotSelect }) => {
@@ -118,6 +118,15 @@ const ConsultantSelector = ({ onSlotSelect }) => {
       const [day, month, year] = currentDate.split('/').map(Number);
       const dateObj = new Date(year, month - 1, day); // month is 0-indexed in JS Date
       
+      // Get today's date (without time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Check if current date is already today or before today
+      if (!isAfter(dateObj, today)) {
+        return; // Do nothing if current date is today or earlier
+      }
+      
       // Subtract one day
       const previousDay = subDays(dateObj, 1);
       
@@ -168,6 +177,26 @@ const ConsultantSelector = ({ onSlotSelect }) => {
       });
     } catch (err) {
       console.error('Error calculating next day:', err);
+    }
+  };
+
+  // Function to check if date is today or earlier
+  const isPreviousButtonDisabled = (consultantId) => {
+    try {
+      if (!consultantDates[consultantId]) return false;
+      
+      const currentDate = consultantDates[consultantId];
+      const [day, month, year] = currentDate.split('/').map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Return true (disabled) if date is today or earlier
+      return !isAfter(dateObj, today);
+    } catch (err) {
+      console.error('Error checking date:', err);
+      return false;
     }
   };
 
@@ -246,6 +275,7 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                     size="small" 
                     onClick={() => handlePreviousDay(consultant.id)}
                     sx={{ minWidth: 'auto', px: 1 }}
+                    disabled={isPreviousButtonDisabled(consultant.id)}
                   >
                     &lt;
                   </Button>
@@ -262,7 +292,10 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                         <InputAdornment position="start">
                           <CalendarIcon fontSize="small" />
                         </InputAdornment>
-                      )
+                      ),
+                      inputProps: {
+                        min: format(new Date(), 'yyyy-MM-dd') // Prevent selecting past dates
+                      }
                     }}
                     sx={{ width: '180px' }}
                   />
