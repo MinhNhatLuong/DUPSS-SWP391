@@ -7,8 +7,7 @@ public enum AcademicTitle {
     ThS("Thạc sĩ"),
     CN("Cử nhân"),
     BS("Bác sĩ"),
-    TVV("Tư vấn viên"),
-    OTHER("Khác");
+    TVV("Tư vấn viên");
 
     private final String fullName;
 
