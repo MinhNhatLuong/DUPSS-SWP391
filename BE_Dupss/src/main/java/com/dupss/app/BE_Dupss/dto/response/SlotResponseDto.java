@@ -26,5 +26,4 @@ public class SlotResponseDto {
     private LocalTime endTime;
 
     private String consultantName;
-    private boolean isAvailable;
 } 

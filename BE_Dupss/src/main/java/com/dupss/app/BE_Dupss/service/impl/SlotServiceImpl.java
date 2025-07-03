@@ -114,7 +114,6 @@ public class SlotServiceImpl implements SlotService {
         responseDto.setStartTime(slot.getStartTime());
         responseDto.setEndTime(slot.getEndTime());
         responseDto.setConsultantName(slot.getConsultant().getFullname());
-        responseDto.setAvailable(slot.isAvailable());
         return responseDto;
     }
 } 
