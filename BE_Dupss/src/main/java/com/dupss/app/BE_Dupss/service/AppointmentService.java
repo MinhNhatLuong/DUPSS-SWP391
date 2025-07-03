@@ -74,11 +74,7 @@ public interface AppointmentService {
      * Tư vấn viên nhận cuộc hẹn chưa được phân công
      */
     AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
-    
-    /**
-     * Tư vấn viên duyệt cuộc hẹn và thêm link Google Meet
-     */
-    AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkGoogleMeet);
+
     
     /**
      * Tư vấn viên bắt đầu cuộc hẹn
