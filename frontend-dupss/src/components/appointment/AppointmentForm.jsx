@@ -308,6 +308,14 @@ const AppointmentForm = () => {
     );
     
     setShowConsultantSelector(false);
+    
+    // Scroll to top after state update
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }, 100);
   };
   
   const handleBackToConsultants = () => {
@@ -315,6 +323,14 @@ const AppointmentForm = () => {
     window.history.replaceState(null, '', window.location.pathname);
     setShowConsultantSelector(true);
     setSelectedSlot(null);
+    
+    // Scroll to top after state update
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }, 100);
   };
 
   return (
