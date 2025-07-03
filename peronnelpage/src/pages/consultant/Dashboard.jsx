@@ -5,6 +5,7 @@ import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText,
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
+import apiClient from '../../services/apiService';
 
 export default function ConsultantDashboard() {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
@@ -62,26 +63,26 @@ export default function ConsultantDashboard() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      // Get consultant's appointments
-      const appointmentsResponse = await axios.get(`/api/consultant/${userInfo.id}/appointments`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-
-      // Get appointment history
-      const historyResponse = await axios.get(`/api/appointments/consultant/${userInfo.id}/history`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-
-      // Get unassigned appointments
-      const pendingResponse = await axios.get(`/api/consultant/appointments/unassigned`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // Use Promise.all with apiClient
+      const [appointmentsResponse, historyResponse, pendingResponse] = await Promise.all([
+        apiClient.get(`/consultant/${userInfo.id}/appointments`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }),
+        
+        apiClient.get(`/appointments/consultant/${userInfo.id}/history`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }),
+        
+        apiClient.get(`/consultant/appointments/unassigned`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        })
+      ]);
 
       // Combine data
       const allAppointments = [...appointmentsResponse.data, ...historyResponse.data];
@@ -184,7 +185,7 @@ export default function ConsultantDashboard() {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.get(`/api/consultant/${userInfo.id}/appointments`, {
+      const response = await apiClient.get(`/consultant/${userInfo.id}/appointments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -282,9 +283,10 @@ export default function ConsultantDashboard() {
       }
 
       // Call the start appointment API
-      const response = await axios.put(`/api/appointments/${appointment.id}/start?consultantId=${userInfo.id}`, {}, {
+      const response = await apiClient.put(`/appointments/${appointment.id}/start?consultantId=${userInfo.id}`, {}, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
       

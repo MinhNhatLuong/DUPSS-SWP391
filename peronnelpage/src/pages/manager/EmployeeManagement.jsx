@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 
 import axios from 'axios';
+import apiClient from '../../services/apiService';
 
 export default function EmployeeManagement() {
   const [employees, setEmployees] = useState([]);
@@ -77,14 +78,14 @@ export default function EmployeeManagement() {
     setLoading(true);
     try {
       // Fetch consultants
-      const consultantsResponse = await axios.get('/api/manager/consultants', {
+      const consultantsResponse = await apiClient.get('/manager/consultants', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
 
       // Fetch staff
-      const staffResponse = await axios.get('/api/manager/staff', {
+      const staffResponse = await apiClient.get('/manager/staff', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -145,7 +146,7 @@ export default function EmployeeManagement() {
     // If employee is consultant, fetch their appointment history
     if (employee.type === 'consultant' || employee.role === 'CONSULTANT') {
       try {
-        const response = await axios.get(`/api/appointments/consultant/${employee.id}/history`, {
+        const response = await apiClient.get(`/appointments/consultant/${employee.id}/history`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }

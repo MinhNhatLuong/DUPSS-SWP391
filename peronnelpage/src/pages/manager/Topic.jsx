@@ -33,8 +33,8 @@ import {
   Search as SearchIcon,
   Topic as TopicIcon
 } from '@mui/icons-material';
-import axios from 'axios';
-import { getUserInfo } from '../../utils/auth';
+import { getAccessToken } from '../../utils/auth';
+import apiClient from '../../services/apiService';
 
 export default function Topic() {
   const [topics, setTopics] = useState([]);
@@ -103,11 +103,16 @@ export default function Topic() {
     setLoading(true);
     try {
       // Mặc định ban đầu hiển thị tất cả chủ đề
-      const response = await axios.get('/api/topics', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      let response;
+      if (filterOption === 'my-topics') {
+        response = await apiClient.get('/topics/me', {
+          headers: { Authorization: `Bearer ${getAccessToken()}` }
+        });
+      } else {
+        response = await apiClient.get('/topics', {
+          headers: { Authorization: `Bearer ${getAccessToken()}` }
+        });
+      }
       
       setTopics(response.data);
       setError(null);
@@ -269,15 +274,15 @@ export default function Topic() {
 
       if (confirmDialog.type === 'create') {
         // Create new topic
-        const response = await axios.post(
-          '/api/manager/topic',
+        const response = await apiClient.post(
+          '/manager/topic',
           {
             name: editDialog.name,
             description: editDialog.description
           },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              Authorization: `Bearer ${getAccessToken()}`
             }
           }
         );
@@ -299,15 +304,15 @@ export default function Topic() {
         });
       } else if (confirmDialog.type === 'edit') {
         // Update topic
-        await axios.patch(
-          `/api/manager/topic/${confirmDialog.topicId}`,
+        await apiClient.patch(
+          `/manager/topic/${confirmDialog.topicId}`,
           {
             name: editDialog.name,
             description: editDialog.description
           },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+              Authorization: `Bearer ${getAccessToken()}`
             }
           }
         );
@@ -338,9 +343,9 @@ export default function Topic() {
         });
       } else if (confirmDialog.type === 'delete') {
         // Delete topic using PATCH to update status
-        await axios.patch(`/api/manager/topic/delete/${confirmDialog.topicId}`, {}, {
+        await apiClient.patch(`/manager/topic/delete/${confirmDialog.topicId}`, {}, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            Authorization: `Bearer ${getAccessToken()}`
           }
         });
 
@@ -390,17 +395,13 @@ export default function Topic() {
       
       if (value === 'my-topics') {
         // Lấy chỉ chủ đề của tôi
-        response = await axios.get('/api/topics/me', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+        response = await apiClient.get('/topics/me', {
+          headers: { Authorization: `Bearer ${getAccessToken()}` }
         });
       } else {
         // Lấy tất cả chủ đề
-        response = await axios.get('/api/topics', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-          }
+        response = await apiClient.get('/topics', {
+          headers: { Authorization: `Bearer ${getAccessToken()}` }
         });
       }
       

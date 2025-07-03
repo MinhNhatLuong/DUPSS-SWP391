@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { Check as CheckIcon, Close as CloseIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import axios from 'axios';
+import apiClient from '../../services/apiService';
 
 const ContentReview = () => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -48,17 +49,17 @@ const ContentReview = () => {
       const token = localStorage.getItem('accessToken');
       
       if (selectedTab === 0) {
-        const response = await axios.get('/api/manager/courses/pending', {
+        const response = await apiClient.get('/manager/courses/pending', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCourses(response.data);
       } else if (selectedTab === 1) {
-        const response = await axios.get('/api/manager/blogs/pending', {
+        const response = await apiClient.get('/manager/blogs/pending', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setBlogs(response.data);
       } else if (selectedTab === 2) {
-        const response = await axios.get('/api/manager/surveys/pending', {
+        const response = await apiClient.get('/manager/surveys/pending', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSurveys(response.data);
@@ -89,16 +90,16 @@ const ContentReview = () => {
 
       if (selectedTab === 0) {
         // Course
-        endpoint = `/api/manager/courses/${selectedContent.id}/approve`;
+        endpoint = `/manager/courses/${selectedContent.id}/approve`;
       } else if (selectedTab === 1) {
         // Blog
-        endpoint = `/api/manager/blogs/${selectedContent.id}/approve`;
+        endpoint = `/manager/blogs/${selectedContent.id}/approve`;
       } else if (selectedTab === 2) {
         // Survey
-        endpoint = `/api/manager/surveys/${selectedContent.surveyId}/approve`;
+        endpoint = `/manager/surveys/${selectedContent.surveyId}/approve`;
       }
 
-      await axios.patch(endpoint, {}, {
+      await apiClient.post(endpoint, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
 
@@ -137,16 +138,18 @@ const ContentReview = () => {
 
       if (selectedTab === 0) {
         // Course
-        endpoint = `/api/manager/courses/${selectedContent.id}/reject`;
+        endpoint = `/manager/courses/${selectedContent.id}/reject`;
       } else if (selectedTab === 1) {
         // Blog
-        endpoint = `/api/manager/blogs/${selectedContent.id}/reject`;
+        endpoint = `/manager/blogs/${selectedContent.id}/reject`;
       } else if (selectedTab === 2) {
         // Survey
-        endpoint = `/api/manager/surveys/${selectedContent.surveyId}/reject`;
+        endpoint = `/manager/surveys/${selectedContent.surveyId}/reject`;
       }
 
-      await axios.patch(endpoint, {}, {
+      await apiClient.post(endpoint, {
+        reason: comment
+      }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
 

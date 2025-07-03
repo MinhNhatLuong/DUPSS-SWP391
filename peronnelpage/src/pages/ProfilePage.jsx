@@ -31,6 +31,7 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { format, parseISO } from 'date-fns';
 import axios from 'axios';
 import { getAccessToken, getUserInfo } from '../utils/auth';
+import apiClient from '../services/apiService';
 
 export default function ProfilePage() {
   // Function to update user information in localStorage and trigger update event
@@ -83,7 +84,7 @@ export default function ProfilePage() {
         throw new Error('Không tìm thấy access token');
       }
       
-      const response = await axios.post('/api/auth/me', { accessToken });
+      const response = await apiClient.post('/auth/me', { accessToken });
       const userData = response.data;
       setProfile(userData);
       
@@ -188,13 +189,8 @@ export default function ProfilePage() {
       }
       
       // Send update request
-      const response = await fetch('/api/auth/me', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-          // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
-        },
-        body: formData
+      const response = await apiClient.post('/auth/me', {
+        accessToken
       });
       
       if (response.status === 200) {

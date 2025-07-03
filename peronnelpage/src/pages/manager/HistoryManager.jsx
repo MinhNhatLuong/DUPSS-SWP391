@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import axios from 'axios';
+import apiClient from '../../services/apiService';
 
 const History = () => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -45,17 +46,17 @@ const History = () => {
       const token = localStorage.getItem('accessToken');
       
       if (selectedTab === 0) {
-        const response = await axios.get('/api/manager/courses/all', {
+        const response = await apiClient.get('/manager/courses/all', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCourses(response.data);
       } else if (selectedTab === 1) {
-        const response = await axios.get('/api/manager/blogs/all', {
+        const response = await apiClient.get('/manager/blogs/all', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setBlogs(response.data);
       } else if (selectedTab === 2) {
-        const response = await axios.get('/api/manager/surveys/all', {
+        const response = await apiClient.get('/manager/surveys/all', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSurveys(response.data);

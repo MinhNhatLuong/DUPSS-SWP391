@@ -40,6 +40,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getAccessToken, isAuthenticated, logout } from '../../utils/auth';
+import apiClient from '../../services/apiService';
+import { API_URL } from '../../services/config';
 
 const roleColors = {
   'ROLE_MEMBER': '#1976d2',
@@ -52,8 +54,6 @@ const roleColors = {
 
 const roleList = ['ROLE_MEMBER', 'ROLE_STAFF', 'ROLE_CONSULTANT', 'ROLE_MANAGER', 'ROLE_ADMIN'];
 const genderList = ['male', 'female', 'other'];
-
-const API_URL = 'http://localhost:8080'; // Update with your actual API base URL
 
 const searchCategories = [
   { value: 'all', label: 'Tất cả' },
@@ -77,23 +77,6 @@ const sortableFields = [
   { key: 'address', label: 'Địa chỉ' },
   { key: 'role', label: 'Vai trò' },
 ];
-
-// Create axios instance with authorization header
-const api = axios.create({
-  baseURL: API_URL,
-});
-
-// Add request interceptor to include the token in each request
-api.interceptors.request.use(
-  (config) => {
-    const token = getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -141,7 +124,7 @@ export default function AdminPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const apiResponse = await api.get('/api/admin/users');
+      const apiResponse = await apiClient.get('/admin/users');
       setUsers(apiResponse.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -247,7 +230,7 @@ export default function AdminPage() {
     
     setProcessing(true);
     try {
-      await api.delete(`/api/admin/users/${editUser.id}`);
+      await apiClient.delete(`/admin/users/${editUser.id}`);
       setUsers(prev => prev.filter(u => u.id !== editUser.id));
       setSelected(prev => prev.filter(id => id !== editUser.id));
       setNotification({
@@ -281,7 +264,7 @@ export default function AdminPage() {
     setProcessing(true);
     
     try {
-      await Promise.all(selected.map(id => api.delete(`/api/admin/users/${id}`)));
+      await Promise.all(selected.map(id => apiClient.delete(`/admin/users/${id}`)));
       setUsers(prev => prev.filter(user => !selected.includes(user.id)));
       setSelected([]);
       setNotification({
@@ -382,7 +365,7 @@ export default function AdminPage() {
         role: form.role
       };
       
-      const response = await api.post(`/api/admin/users`, payload);
+      const response = await apiClient.post('/admin/users', payload);
       setUsers(prev => [...prev, response.data]);
       
       setNotification({
@@ -418,7 +401,7 @@ export default function AdminPage() {
         role: form.role
       };
       
-      await api.patch(`/api/admin/users/${editUser.id}`, payload);
+      await apiClient.patch(`/admin/users/${editUser.id}`, payload);
       
       // Update local state
       setUsers(prev => 

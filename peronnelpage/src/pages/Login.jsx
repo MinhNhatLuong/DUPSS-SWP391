@@ -20,6 +20,8 @@ import {
   Lock,
 } from '@mui/icons-material';
 import { getAccessToken, setUserInfo, checkAndRefreshToken } from '../utils/auth';
+import apiClient from '../services/apiService';
+import { API_URL } from '../services/config';
 
 const Login = ({ updateUserInfo }) => {
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ const Login = ({ updateUserInfo }) => {
       const token = getAccessToken();
       if (token) {
         try {
-          const response = await axios.post('http://localhost:8080/api/auth/me', {
+          const response = await apiClient.post('/auth/me', {
             accessToken: token
           });
           
@@ -56,7 +58,7 @@ const Login = ({ updateUserInfo }) => {
             if (refreshSuccess) {
               // Nếu refresh thành công, lấy lại thông tin người dùng
               try {
-                const userResponse = await axios.post('http://localhost:8080/api/auth/me', {
+                const userResponse = await apiClient.post('/auth/me', {
                   accessToken: getAccessToken()
                 });
                 setUserInfo(userResponse.data);
@@ -97,7 +99,7 @@ const Login = ({ updateUserInfo }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         username: formData.username,
         password: formData.password
       });
@@ -110,7 +112,7 @@ const Login = ({ updateUserInfo }) => {
       
       // Gọi API lấy thông tin người dùng
       try {
-        const userResponse = await axios.post('http://localhost:8080/api/auth/me', {
+        const userResponse = await apiClient.post('/auth/me', {
           accessToken: response.data.accessToken
         });
         

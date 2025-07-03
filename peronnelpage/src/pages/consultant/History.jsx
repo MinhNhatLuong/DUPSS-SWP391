@@ -32,6 +32,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import LinkIcon from '@mui/icons-material/Link';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
+import apiClient from '../../services/apiService';
 
 const statusMap = {
   all: 'Tất cả',
@@ -105,36 +106,43 @@ export default function History() {
   });
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      setLoading(true);
+    const fetchHistory = async () => {
       try {
+        setLoading(true);
+        
         const userInfo = getUserInfo();
         if (!userInfo || !userInfo.id) {
           throw new Error('Không tìm thấy thông tin người dùng');
         }
-
-        const response = await axios.get(`/api/appointments/consultant/${userInfo.id}/history`, {
+        
+        const response = await apiClient.get(`/appointments/consultant/${userInfo.id}/history`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`
           }
         });
         
-        console.log('API response:', response.data);
-        setAppointments(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching appointment history:', err);
-        setError(
-          err.response?.data?.message || 
-          err.message || 
-          'Đã xảy ra lỗi khi tải lịch sử cuộc hẹn'
-        );
+        // Process the response data
+        const history = response.data.map(item => ({
+          id: item.id,
+          clientName: item.fullName || item.email || 'Khách hàng',
+          date: item.appointmentDate,
+          time: item.timeSlot,
+          status: item.status,
+          topic: item.topicName || 'Chưa xác định',
+          feedback: item.feedback || null,
+          rating: item.rating || null
+        }));
+        
+        setAppointments(history);
+      } catch (error) {
+        console.error('Error fetching history:', error);
+        setError(error.message || 'Đã xảy ra lỗi khi tải lịch sử');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAppointments();
+    fetchHistory();
   }, []);
 
   const handleSort = (col) => {
@@ -293,21 +301,21 @@ export default function History() {
                 ) : (
                   sortedRows.map(row => (
                     <TableRow key={row.id}>
-                      <TableCell>{row.customerName}</TableCell>
+                      <TableCell>{row.clientName}</TableCell>
                       <TableCell>{row.email || '—'}</TableCell>
                       <TableCell>{row.phoneNumber || '—'}</TableCell>
                       <TableCell>
-                        {formatDate(row.appointmentDate)} {formatTime(row.appointmentTime)}
+                        {formatDate(row.date)} {formatTime(row.time)}
                       </TableCell>
-                      <TableCell>{row.topicName}</TableCell>
+                      <TableCell>{row.topic}</TableCell>
                       <TableCell>{formatDateTime(row.checkInTime)}</TableCell>
                       <TableCell>{formatDateTime(row.checkOutTime)}</TableCell>
                       <TableCell>
-                        {row.reviewScore ? (
+                        {row.rating ? (
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Rating value={row.reviewScore} readOnly size="small" precision={0.5} />
+                            <Rating value={row.rating} readOnly size="small" precision={0.5} />
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                              ({row.reviewScore})
+                              ({row.rating})
                             </Typography>
                           </Box>
                         ) : '—'}
@@ -325,19 +333,6 @@ export default function History() {
                             <InfoIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        {row.linkGoogleMeet && (
-                          <Tooltip title="Link Google Meet">
-                            <IconButton 
-                              href={row.linkGoogleMeet} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              size="small"
-                              sx={{ ml: 1 }}
-                            >
-                              <LinkIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -367,15 +362,15 @@ export default function History() {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <Typography variant="body2"><strong>Khách hàng:</strong> {detailDialog.appointment.customerName}</Typography>
+                    <Typography variant="body2"><strong>Khách hàng:</strong> {detailDialog.appointment.clientName}</Typography>
                     <Typography variant="body2"><strong>Email:</strong> {detailDialog.appointment.email || '—'}</Typography>
                     <Typography variant="body2"><strong>Số điện thoại:</strong> {detailDialog.appointment.phoneNumber || '—'}</Typography>
                     <Typography variant="body2">
-                      <strong>Thời gian:</strong> {formatDate(detailDialog.appointment.appointmentDate)} {formatTime(detailDialog.appointment.appointmentTime)}
+                      <strong>Thời gian:</strong> {formatDate(detailDialog.appointment.date)} {formatTime(detailDialog.appointment.time)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="body2"><strong>Chủ đề:</strong> {detailDialog.appointment.topicName}</Typography>
+                    <Typography variant="body2"><strong>Chủ đề:</strong> {detailDialog.appointment.topic}</Typography>
                     <Typography variant="body2"><strong>Trạng thái:</strong> {statusMap[detailDialog.appointment.status] || detailDialog.appointment.status}</Typography>
                     <Typography variant="body2"><strong>Check-in:</strong> {formatDateTime(detailDialog.appointment.checkInTime)}</Typography>
                     <Typography variant="body2"><strong>Check-out:</strong> {formatDateTime(detailDialog.appointment.checkOutTime)}</Typography>
@@ -383,55 +378,30 @@ export default function History() {
                 </Grid>
               </Box>
               
-              {detailDialog.appointment.linkGoogleMeet && (
+              {detailDialog.appointment.feedback && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                    Link Google Meet
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    component="a" 
-                    href={detailDialog.appointment.linkGoogleMeet}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ color: 'primary.main', textDecoration: 'none' }}
-                  >
-                    {detailDialog.appointment.linkGoogleMeet}
-                  </Typography>
-                </Box>
-              )}
-              
-              {detailDialog.appointment.consultantNote && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                    Ghi chú của tư vấn viên
+                    Đánh giá từ khách hàng
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
                     <Typography variant="body2">
-                      {detailDialog.appointment.consultantNote}
+                      {detailDialog.appointment.feedback}
                     </Typography>
                   </Paper>
                 </Box>
               )}
               
-              {detailDialog.appointment.reviewScore > 0 && (
+              {detailDialog.appointment.rating > 0 && (
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                     Đánh giá từ khách hàng
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Rating value={detailDialog.appointment.reviewScore} readOnly precision={0.5} />
+                    <Rating value={detailDialog.appointment.rating} readOnly precision={0.5} />
                     <Typography variant="body2" sx={{ ml: 1 }}>
-                      ({detailDialog.appointment.reviewScore}/5)
+                      ({detailDialog.appointment.rating}/5)
                     </Typography>
                   </Box>
-                  {detailDialog.appointment.customerReview && (
-                    <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
-                      <Typography variant="body2">
-                        {detailDialog.appointment.customerReview}
-                      </Typography>
-                    </Paper>
-                  )}
                 </Box>
               )}
             </DialogContent>
