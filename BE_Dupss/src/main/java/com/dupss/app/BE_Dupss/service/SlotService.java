@@ -17,12 +17,12 @@ public interface SlotService {
     /**
      * Lấy tất cả các slot của một tư vấn viên
      */
-    List<Slot> getSlotsByConsultantId(Long consultantId);
+    List<SlotResponseDto> getSlotsByConsultantId(Long consultantId);
     
     /**
      * Lấy các slot khả dụng của một tư vấn viên vào một ngày cụ thể
      */
-    List<Slot> getAvailableSlotsByConsultantAndDate(Long consultantId, LocalDate date);
+    List<SlotResponseDto> getAvailableSlotsByConsultantAndDate(Long consultantId, LocalDate date);
     
     /**
      * Cập nhật trạng thái khả dụng của slot

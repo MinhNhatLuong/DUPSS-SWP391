@@ -48,7 +48,7 @@ public class BlogServiceImpl implements BlogService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        User author = userRepository.findByUsername(username)
+        User author = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Create new blog
@@ -95,7 +95,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<BlogResponse> getBlogsByAuthor(String authorName) {
 
-        User author = userRepository.findByUsername(authorName)
+        User author = userRepository.findByUsernameAndEnabledTrue(authorName)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         List<Blog> blogs = blogRepository.findByAuthor(author);
         return blogs.stream()
@@ -131,7 +131,7 @@ public class BlogServiceImpl implements BlogService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Check if user has STAFF or MANAGER role

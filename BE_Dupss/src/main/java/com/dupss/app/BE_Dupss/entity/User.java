@@ -20,7 +20,7 @@ import java.util.*;
 @Builder
 @Entity
 
-@Inheritance(strategy = InheritanceType.JOINED)
+//@Inheritance(strategy = InheritanceType.JOINED)
 
 @Table (name = "users",
         uniqueConstraints = {
@@ -30,18 +30,28 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private String username;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String fullname;
+
     private String avatar;
     private String gender;
     private LocalDate yob;
+
     @Column(nullable = false)
     private String email;
     private String phone;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
 
-
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Consultant consultantProfile;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

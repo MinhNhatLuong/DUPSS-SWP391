@@ -46,7 +46,7 @@ public class CourseEnrollmentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Check if user has MEMBER role
@@ -90,7 +90,7 @@ public class CourseEnrollmentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Check if user has MEMBER role
@@ -110,7 +110,7 @@ public class CourseEnrollmentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         CourseEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
@@ -138,7 +138,7 @@ public class CourseEnrollmentService {
     public void markVideoAsWatched(Long videoId, boolean watchedStatus) throws MessagingException, UnsupportedEncodingException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         VideoCourse video = videoCourseRepository.findById(videoId)
@@ -184,7 +184,7 @@ public class CourseEnrollmentService {
     public QuizResultResponse submitCourseQuiz(Long courseId, SurveyResultRequest request) throws MessagingException, UnsupportedEncodingException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Course course = courseRepository.findById(courseId)

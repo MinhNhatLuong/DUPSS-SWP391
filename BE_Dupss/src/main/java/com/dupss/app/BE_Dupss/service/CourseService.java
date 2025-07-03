@@ -48,7 +48,7 @@ public class CourseService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Check if user has STAFF or MANAGER role
@@ -294,7 +294,7 @@ public class CourseService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Check if user has STAFF or MANAGER role

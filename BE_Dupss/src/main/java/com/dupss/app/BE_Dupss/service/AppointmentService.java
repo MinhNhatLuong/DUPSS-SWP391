@@ -48,7 +48,7 @@ public interface AppointmentService {
     /**
      * Cập nhật trạng thái cuộc hẹn (lấy consultantId từ người dùng đăng nhập)
      */
-    AppointmentResponseDto updateAppointmentStatus(Long id, String status);
+//    AppointmentResponseDto updateAppointmentStatus(Long id, String status);
     
     /**
      * User hủy cuộc hẹn

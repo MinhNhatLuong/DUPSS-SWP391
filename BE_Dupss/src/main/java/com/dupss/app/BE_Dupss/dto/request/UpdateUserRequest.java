@@ -36,5 +36,10 @@ public class UpdateUserRequest {
     @Pattern(regexp = "(84|0[3|5|7|8|9])+([0-9]{8})\\b", message = "Phone invalid!!" )
     private String phone;
     private String address;
+
+    //ìnformation for consultant profile
+    private String bio;
+    private String certificates;
+
     private ERole role;
 }

@@ -45,7 +45,7 @@ public class TopicServiceImpl implements TopicService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        User creator = userRepository.findByUsername(username)
+        User creator = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (topicRepository.existsByNameIgnoreCase(request.getName())) {

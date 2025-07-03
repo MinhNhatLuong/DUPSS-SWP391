@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.entity.Consultant;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
@@ -63,7 +64,7 @@ public class UserService implements CommandLineRunner {
     }
 
     private void createAdminUserIfNotExists() {
-        if (userRepository.findByUsername(adminUsername).isEmpty()) {
+        if (userRepository.findByUsernameAndEnabledTrue(adminUsername).isEmpty()) {
             log.info("Creating admin user: {}", adminUsername);
 
             User adminUser = User.builder()
@@ -81,7 +82,7 @@ public class UserService implements CommandLineRunner {
 
     public RegisterResponse createUser(RegisterRequest request) {
         Optional<User> byEmail = userRepository.findByEmail(request.getEmail());
-        Optional<User> byUsername = userRepository.findByUsername(request.getUsername());
+        Optional<User> byUsername = userRepository.findByUsernameAndEnabledTrue(request.getUsername());
         if(byEmail.isPresent()) {
             throw new RuntimeException("Email existed");
         }
@@ -164,7 +165,7 @@ public class UserService implements CommandLineRunner {
 
 //         Giải mã token để lấy username
         String username = jwtService.getUsernameFromToken(token);
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameAndEnabledTrue(username)
                 .map(user -> UserDetailResponse.builder()
                         .id(user.getId())
                         .username(user.getUsername())
@@ -183,7 +184,7 @@ public class UserService implements CommandLineRunner {
     public UpdateUserResponse updateUserProfile(UpdateUserRequest request) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với username: " + username));
 
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) &&
@@ -217,6 +218,24 @@ public class UserService implements CommandLineRunner {
         }
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if(request.getBio() != null) {
+            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
+                Consultant consultant = user.getConsultantProfile();
+                consultant.setBio(request.getBio());
+            } else {
+                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
+            }
+        }
+
+        if(request.getBio() != null) {
+            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
+                Consultant consultant = user.getConsultantProfile();
+                consultant.setCertificates(request.getCertificates());
+            } else {
+                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
+            }
+        }
 
         if (request.getRole() != null) {
             if (isAdmin) {

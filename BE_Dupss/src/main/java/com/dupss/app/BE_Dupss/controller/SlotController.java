@@ -22,104 +22,15 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class SlotController {
 
-//    private final SlotService slotService;
-//    private final ConsultantRepository consultantRepository;
-//
-//    /**
-//     * API tạo slot thời gian mới cho tư vấn viên
-//     * Chỉ tư vấn viên mới có thể tạo slot của chính họ
-//     */
-//    @PostMapping
-//    @PreAuthorize("hasAuthority('ROLE_CONSULTANT')")
-//    public ResponseEntity<SlotResponseDto> createSlot(@Valid @RequestBody SlotRequestDto requestDto) {
-        // Lấy thông tin tư vấn viên
-//        Consultant consultant = consultantRepository.findById(requestDto.getConsultantId())
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + requestDto.getConsultantId()));
-//
-//        // Tạo đối tượng Slot từ requestDto
-//        Slot slot = new Slot();
-//        slot.setDate(requestDto.getDate());
-//        slot.setStartTime(requestDto.getStartTime());
-//        slot.setEndTime(requestDto.getEndTime());
-//        slot.setConsultant(consultant);
-//        slot.setAvailable(requestDto.isAvailable());
-        
-        // Lưu slot
-//        Slot createdSlot = slotService.createSlot(requestDto);
-        
-        // Chuyển đổi thành SlotResponseDto
-//        SlotResponseDto responseDto = mapToResponseDto(createdSlot);
-//        SlotResponseDto responseDto = slotService.createSlot(requestDto);
-//
-//        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
-//    }
-//
-//    /**
-//     * API lấy tất cả các slot của một tư vấn viên
-//     */
-//    @GetMapping("/consultant/{consultantId}")
-//    public ResponseEntity<List<SlotResponseDto>> getSlotsByConsultantId(@PathVariable Long consultantId) {
-//        List<Slot> slots = slotService.getSlotsByConsultantId(consultantId);
-//        List<SlotResponseDto> responseDtos = slots.stream()
-//                .map(this::mapToResponseDto)
-//                .collect(Collectors.toList());
-//        return ResponseEntity.ok(responseDtos);
-//    }
-//
-//    /**
-//     * API lấy các slot khả dụng của một tư vấn viên vào một ngày cụ thể
-//     * Dùng cho việc hiển thị các slot khả dụng để khách hàng đặt lịch
-//     */
-//    @GetMapping("/available")
-//    public ResponseEntity<List<SlotResponseDto>> getAvailableSlots(
-//            @RequestParam Long consultantId,
-//            @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate date) {
-//        List<Slot> availableSlots = slotService.getAvailableSlotsByConsultantAndDate(consultantId, date);
-//        List<SlotResponseDto> responseDtos = availableSlots.stream()
-//                .map(this::mapToResponseDto)
-//                .collect(Collectors.toList());
-//        return ResponseEntity.ok(responseDtos);
-//    }
-//
-//    /**
-//     * API cập nhật trạng thái khả dụng của slot
-//     * Chỉ tư vấn viên mới có thể cập nhật slot của chính họ
-//     */
-//    @PatchMapping("/{slotId}/availability")
-//    public ResponseEntity<SlotResponseDto> updateSlotAvailability(
-//            @PathVariable Long slotId,
-//            @RequestParam boolean isAvailable,
-//            @RequestParam Long consultantId) {
-//        Slot updatedSlot = slotService.updateSlotAvailability(slotId, isAvailable, consultantId);
-//        SlotResponseDto responseDto = mapToResponseDto(updatedSlot);
-//        return ResponseEntity.ok(responseDto);
-//    }
-//
-//    /**
-//     * API xóa slot
-//     * Chỉ tư vấn viên mới có thể xóa slot của chính họ
-//     */
-//    @DeleteMapping("/{slotId}")
-//    public ResponseEntity<Void> deleteSlot(
-//            @PathVariable Long slotId,
-//            @RequestParam Long consultantId) {
-//        slotService.deleteSlot(slotId, consultantId);
-//        return ResponseEntity.noContent().build();
-//    }
-//
-//    /**
-//     * Chuyển đổi từ Slot entity sang SlotResponseDto
-//     */
-//    private SlotResponseDto mapToResponseDto(Slot slot) {
-//        SlotResponseDto responseDto = new SlotResponseDto();
-//        responseDto.setId(slot.getId());
-//        responseDto.setDate(slot.getDate());
-//        responseDto.setStartTime(slot.getStartTime());
-//        responseDto.setEndTime(slot.getEndTime());
-//        responseDto.setConsultantId(slot.getConsultant().getId());
-//        responseDto.setConsultantName(slot.getConsultant().getFullname());
-//        responseDto.setAvailable(slot.isAvailable());
-//        return responseDto;
-//    }
+    private final SlotService slotService;
+
+    @GetMapping("/consultant/{consultantId}")
+    public ResponseEntity<List<SlotResponseDto>> getSlotsByConsultantIdAndDate(@PathVariable Long consultantId, @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate date) {
+        if(date == null) {
+            date = LocalDate.now();
+        }
+        List<SlotResponseDto> res = slotService.getAvailableSlotsByConsultantAndDate(consultantId, date);
+        return ResponseEntity.ok(res);
+    }
 }
 

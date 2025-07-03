@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.entity.Consultant;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
@@ -67,7 +68,7 @@ public class AdminService {
     @Transactional
     public CreateUserResponse createUser(CreateUserRequest request) {
         // Check if username already exists
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userRepository.findByUsernameAndEnabledTrue(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username đã tồn tại");
         }
 
@@ -87,6 +88,12 @@ public class AdminService {
                 .role(request.getRole())
                 .enabled(true)
                 .build();
+
+        if (request.getRole() == ERole.ROLE_CONSULTANT) {
+            Consultant consul = new Consultant();
+            consul.setUser(user);
+            user.setConsultantProfile(consul);
+        }
 
         User savedUser = userRepository.save(user);
         log.info("Admin created user: {}", savedUser.getUsername());

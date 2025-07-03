@@ -155,7 +155,7 @@
                   th:switch="${appointment.status}">
                 <span th:case="'PENDING'">Chờ xác nhận</span>
                 <span th:case="'CONFIRMED'">Đã xác nhận</span>
-                <span th:case="'CANCELED'">Đã hủy</span>
+                <span th:case="'CANCELLED'">Đã hủy</span>
                 <span th:case="'COMPLETED'">Đã hoàn thành</span>
                 <span th:case="*">Không xác định</span>
             </span>

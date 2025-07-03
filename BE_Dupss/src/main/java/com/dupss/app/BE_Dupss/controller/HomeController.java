@@ -2,19 +2,18 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.*;
-import com.dupss.app.BE_Dupss.service.BlogService;
-import com.dupss.app.BE_Dupss.service.CourseEnrollmentService;
-import com.dupss.app.BE_Dupss.service.CourseService;
-import com.dupss.app.BE_Dupss.service.SurveyService;
+import com.dupss.app.BE_Dupss.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,8 @@ public class HomeController {
     private final BlogService blogService;
     private final SurveyService surveyService;
     private final CourseEnrollmentService courseEnrollmentService;
+    private final ConsultantService consultantService;
+    private final SlotService slotService;
 
     @GetMapping("/courses")
     public ResponseEntity<Map<String, Object>> getAllCourses(
@@ -129,6 +130,21 @@ public class HomeController {
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    @GetMapping("/consultants/available")
+    public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
+        List<ConsultantResponse> consultants = consultantService.getAllConsultantsWithAvailableSlots(LocalDate.now());
+        return ResponseEntity.ok(consultants);
+    }
+
+    @GetMapping("/slots/consultant/{consultantId}")
+    public ResponseEntity<List<SlotResponseDto>> getSlotsByConsultantIdAndDate(@PathVariable Long consultantId, @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate date) {
+        if(date == null) {
+            date = LocalDate.now();
+        }
+        List<SlotResponseDto> res = slotService.getAvailableSlotsByConsultantAndDate(consultantId, date);
+        return ResponseEntity.ok(res);
     }
 
 }

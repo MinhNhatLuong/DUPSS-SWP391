@@ -27,29 +27,28 @@ public class EmailServiceImpl implements EmailService {
     
     @Value("${spring.mail.username}")
     private String fromEmail;
-    
+
 
     @Async
-
     @Override
     public void sendAppointmentConfirmation(Appointment appointment) {
         try {
             log.info("Bắt đầu gửi email xác nhận đặt lịch cho cuộc hẹn ID: {}", appointment.getId());
-            
+
             String subject = "Xác nhận đặt lịch tư vấn thành công";
-            
+
             Context context = new Context();
             context.setVariable("appointment", appointment);
-            
+
             String content = templateEngine.process("email/appointment-confirmation", context);
             if (content == null || content.trim().isEmpty()) {
                 throw new RuntimeException("Không thể tạo nội dung email từ template");
             }
-            
+
             sendEmail(appointment.getEmail(), subject, content);
             log.info("Email xác nhận đặt lịch đã được gửi thành công tới: {}", appointment.getEmail());
         } catch (Exception e) {
-            log.error("Lỗi khi gửi email xác nhận đặt lịch cho cuộc hẹn ID {}: {}", 
+            log.error("Lỗi khi gửi email xác nhận đặt lịch cho cuộc hẹn ID {}: {}",
                      appointment.getId(), e.getMessage(), e);
             // Không throw exception để không ảnh hưởng đến luồng chính
         }

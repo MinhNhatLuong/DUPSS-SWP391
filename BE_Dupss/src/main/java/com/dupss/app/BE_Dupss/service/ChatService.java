@@ -40,7 +40,7 @@ public class ChatService {
                     .append("👉 Link: ").append(url).append("\n");
         }
         String instruction = """
-                Bạn là trợ lý ảo của hệ thống phòng ngừa ma túy (DUPSS). Dưới đây là một số thông tin quan trọng:
+                Bạn là trợ lý ảo của hệ thống phòng ngừa sử dụng ma túy trong cộng động của một tổ chức tình nguyện (DUPSS). Dưới đây là một số thông tin quan trọng:
                 - Hệ thống hỗ trợ người dùng đăng ký khóa học theo các topic khác nhau như:
                   + Phòng ngừa ma túy
                   + Nhận thức về ma túy

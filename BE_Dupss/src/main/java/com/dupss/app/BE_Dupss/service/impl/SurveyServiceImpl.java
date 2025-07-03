@@ -32,12 +32,9 @@ public class SurveyServiceImpl implements SurveyService {
 
     private final SurveyRepo surveyRepository;
     private final SurveyResultRepo surveyResultRepository;
-    private final SurveyConditionRepo surveyConditionRepository;
-    private final SurveyQuestionRepo surveyQuestionRepository;
     private final SurveyOptionRepo surveyOptionRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
-    private final ObjectMapper objectMapper;
 
 
     @Override
@@ -45,7 +42,7 @@ public class SurveyServiceImpl implements SurveyService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        User author = userRepository.findByUsername(username)
+        User author = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Survey savedSurvey = createAndSaveSurveyEntity(request, coverImage, author);
@@ -158,7 +155,7 @@ public class SurveyServiceImpl implements SurveyService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Survey survey = surveyRepository.findById(request.getSurveyId())
@@ -209,7 +206,7 @@ public class SurveyServiceImpl implements SurveyService {
     public List<SurveyResultResponse> getSubmittedSurveys() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return surveyResultRepository.findByUser(user).stream()
@@ -302,8 +299,7 @@ public class SurveyServiceImpl implements SurveyService {
             if (currentUser != null) {
                 // Nếu không phải STAFF, MANAGER hoặc ADMIN và không phải người tạo khảo sát
                 if (currentUser.getRole() != ERole.ROLE_STAFF && 
-                    currentUser.getRole() != ERole.ROLE_MANAGER && 
-                    currentUser.getRole() != ERole.ROLE_ADMIN && 
+                    currentUser.getRole() != ERole.ROLE_MANAGER &&
                     !Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
                     
                     // Chỉ cho phép xem khảo sát đã được phê duyệt
@@ -361,7 +357,7 @@ public class SurveyServiceImpl implements SurveyService {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Lấy thông tin khảo sát

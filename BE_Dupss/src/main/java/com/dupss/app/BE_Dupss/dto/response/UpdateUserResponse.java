@@ -28,6 +28,11 @@ public class UpdateUserResponse {
     private String email;
     private String phone;
     private String address;
+
+    //ìnformation for consultant profile
+    private String bio;
+    private String certificates;
+
     private ERole role;
     private String message;
 

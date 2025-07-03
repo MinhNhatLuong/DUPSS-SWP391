@@ -236,7 +236,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         course.setStatus(ApprovalStatus.APPROVED);
@@ -258,7 +258,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         course.setStatus(ApprovalStatus.REJECTED);
@@ -280,7 +280,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         blog.setStatus(ApprovalStatus.APPROVED);
@@ -302,7 +302,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         blog.setStatus(ApprovalStatus.REJECTED);
@@ -324,7 +324,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         survey.setStatus(ApprovalStatus.APPROVED);
@@ -346,7 +346,7 @@ public class ManagerController {
         // Lấy thông tin người dùng hiện tại
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        User currentUser = userRepository.findByUsername(username)
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
         
         survey.setStatus(ApprovalStatus.REJECTED);

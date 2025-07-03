@@ -15,13 +15,12 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Slot {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "date", nullable = false)
-    private Date date;
+    private LocalDate date;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;

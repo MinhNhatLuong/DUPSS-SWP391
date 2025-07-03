@@ -17,15 +17,14 @@ public class SlotResponseDto {
     private Long id;
     
     @JsonFormat(pattern = "dd/MM/yyyy")
-    private Date date;
+    private LocalDate date;
     
     @JsonFormat(pattern = "HH:mm")
     private LocalTime startTime;
     
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
-    
-    private Long consultantId;
+
     private String consultantName;
     private boolean isAvailable;
 } 

@@ -86,7 +86,7 @@ public class AuthenticationService {
 
         String username = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(user);
@@ -99,7 +99,7 @@ public class AuthenticationService {
     public ResponseEntity<ChangePasswordResponse> changePassword(ChangePasswordRequest request, String username) {
         try {
             // Lấy thông tin người dùng
-            User user = userRepository.findByUsername(username)
+            User user = userRepository.findByUsernameAndEnabledTrue(username)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
             // Xác thực mật khẩu cũ
