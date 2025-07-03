@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: BE_Dupss
+  profiles:
+    active: @spring.profiles.active@ # Chay trong moi truong production
+#    active: @spring.profiles.active@  . chay all moi truong (dev-test-prod)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    root: info
+    web: info

@@ -1,0 +1,89 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  devtools:
+    add-properties: true
+
+  datasource:
+    url: jdbc:mysql://mysql:3306/dupss_db
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: dupss.system312@gmail.com
+    password: kisrjwdiumujrcto
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML
+
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+
+  ai:
+    openai:
+      api-key: AIzaSyBJxuDyW4t6dJo44I0CYLnJ7IF36O9-nPQ
+      chat:
+        base-url: https://generativelanguage.googleapis.com
+        completions-path: /v1beta/openai/chat/completions
+        options:
+          model: gemini-2.0-flash
+
+  application:
+    name: BE_Dupss
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+app:
+  jwtSecret: dupssSecretKey123456789012345678901234567890123456789012345678901234567890
+  jwtExpirationMs: 86400000
+
+jwt:
+  secret-key: dupssSecretKey123456789012345678901234567890123456789012345678901234567890
+  secretKey: abc1prod  # (dành riêng cho môi trường prod nếu khác với jwt.secret-key)
+
+cloudinary:
+  name: dxkvlbzzu
+  api_key: 415576174393987
+  api_secret: FR9H84PhyIrD4gWc_BuOKD1Io5o
+
+admin:
+  username: admin
+  password: Admin@123
+  email: admin@dupss.com
