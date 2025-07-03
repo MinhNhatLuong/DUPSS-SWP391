@@ -64,7 +64,25 @@ const AppointmentForm = () => {
     fetchTopics();
     // Check authentication status
     checkAuthStatus();
+
+    // Add event listener for browser's back button
+    window.addEventListener('popstate', handlePopState);
+
+    // Clean up the event listener when component unmounts
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
+
+  // Handle browser's back button
+  const handlePopState = (event) => {
+    if (event.state && event.state.phase === 'appointmentForm') {
+      setShowConsultantSelector(false);
+    } else {
+      setShowConsultantSelector(true);
+      setSelectedSlot(null);
+    }
+  };
 
   const fetchTopics = async () => {
     try {
@@ -221,6 +239,8 @@ const AppointmentForm = () => {
         
         // Return to consultant selector
         setShowConsultantSelector(true);
+        // Reset browser history state
+        window.history.replaceState(null, '', window.location.pathname);
       } catch (error) {
         // Set processing state to false on error
         setIsProcessing(false);
@@ -279,10 +299,20 @@ const AppointmentForm = () => {
       consultantName: slot.consultantName,
       slotId: slot.id
     }));
+    
+    // Add browser history entry when moving to form view
+    window.history.pushState(
+      { phase: 'appointmentForm' }, 
+      '', 
+      window.location.pathname
+    );
+    
     setShowConsultantSelector(false);
   };
   
   const handleBackToConsultants = () => {
+    // Update browser history when going back to consultant selection
+    window.history.replaceState(null, '', window.location.pathname);
     setShowConsultantSelector(true);
     setSelectedSlot(null);
   };
