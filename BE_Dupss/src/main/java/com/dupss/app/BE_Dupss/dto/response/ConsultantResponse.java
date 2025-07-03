@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConsultantResponse {
+    private Long id;
     private String consultantName;
     private String avatar;
     private String certificates;

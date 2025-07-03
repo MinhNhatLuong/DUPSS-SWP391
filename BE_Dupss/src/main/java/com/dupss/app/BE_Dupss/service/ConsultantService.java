@@ -24,6 +24,7 @@ public class ConsultantService {
         for (User consultant : consultants) {
             ConsultantResponse dto = new ConsultantResponse();
             String consultantName = "";
+            dto.setId(consultant.getId());
             dto.setConsultantName(consultant.getFullname());
             dto.setAvatar(consultant.getAvatar());
             dto.setCertificates(consultant.getConsultantProfile().getCertificates());
