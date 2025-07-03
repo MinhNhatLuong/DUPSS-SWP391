@@ -38,11 +38,18 @@ const ConsultantSelector = ({ onSlotSelect }) => {
   // Initialize dates and fetch slots when consultants are loaded
   useEffect(() => {
     if (consultants.length > 0) {
+      // Check if current time is past 5:00 PM
+      const now = new Date();
+      const isPastFivePM = now.getHours() >= 17;
+      
+      // If it's past 5:00 PM, use tomorrow's date as default
+      const defaultDate = isPastFivePM ? addDays(now, 1) : now;
+      const formattedDefaultDate = format(defaultDate, 'dd/MM/yyyy');
+      
       // Initialize dates for all consultants
-      const today = format(new Date(), 'dd/MM/yyyy');
       const initialDates = {};
       consultants.forEach(consultant => {
-        initialDates[consultant.id] = today;
+        initialDates[consultant.id] = formattedDefaultDate;
       });
       setConsultantDates(initialDates);
       
@@ -189,11 +196,25 @@ const ConsultantSelector = ({ onSlotSelect }) => {
       const [day, month, year] = currentDate.split('/').map(Number);
       const dateObj = new Date(year, month - 1, day);
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const now = new Date();
+      // Check if current time is past 5:00 PM
+      const isPastFivePM = now.getHours() >= 17;
       
-      // Return true (disabled) if date is today or earlier
-      return !isAfter(dateObj, today);
+      // Set minimum allowed date based on time
+      let minAllowedDate;
+      if (isPastFivePM) {
+        // If it's past 5:00 PM, minimum allowed date is tomorrow
+        minAllowedDate = addDays(new Date(), 1);
+      } else {
+        // Otherwise, minimum allowed date is today
+        minAllowedDate = new Date();
+      }
+      
+      // Reset hours to ensure clean date comparison
+      minAllowedDate.setHours(0, 0, 0, 0);
+      
+      // Return true (disabled) if date is minimum allowed date or earlier
+      return !isAfter(dateObj, minAllowedDate);
     } catch (err) {
       console.error('Error checking date:', err);
       return false;
