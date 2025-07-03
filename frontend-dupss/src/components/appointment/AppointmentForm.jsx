@@ -293,7 +293,7 @@ const AppointmentForm = () => {
         <ConsultantSelector onSlotSelect={handleSlotSelect} />
       ) : (
         <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-          <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+          <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, textAlign: "center", fontWeight: 600, color: '#0056b3' }}>
             Thông tin đặt lịch hẹn
           </Typography>
           
