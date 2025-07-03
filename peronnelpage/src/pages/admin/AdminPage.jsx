@@ -674,10 +674,14 @@ export default function AdminPage() {
                           background: roleColors[user.role] || '#757575',
                           color: '#fff',
                           borderRadius: '12px',
-                          px: 1.5,
-                          py: 0.5,
+                          px: 2,
+                          py: 0.7,
                           fontSize: '0.85rem',
-                          fontWeight: 500,
+                          fontWeight: 600,
+                          display: 'inline-block',
+                          minWidth: '110px',
+                          textAlign: 'center',
+                          boxShadow: '0px 1px 3px rgba(0,0,0,0.1)'
                         }}
                       >
                         {translateRole(user.role)}
