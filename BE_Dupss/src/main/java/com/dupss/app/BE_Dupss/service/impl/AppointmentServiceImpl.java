@@ -551,7 +551,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setAppointmentDate(appointment.getAppointmentDate());
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
-        responseDto.setConsultantName(appointment.getCustomerName());
+        responseDto.setConsultantName(appointment.getConsultant().getFullname());
         
         // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân công" và consultantId = null
 //        if (appointment.getConsultant() != null && appointment.getConsultant().getId() != 2L) {
