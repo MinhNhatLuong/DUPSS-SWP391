@@ -58,6 +58,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         Slot selectedSlot = slotRepository.findById(requestDto.getSlotId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy slot với ID: " + requestDto.getSlotId()));
 
+        LocalDateTime appointmentDateTime = LocalDateTime.of(selectedSlot.getDate(), selectedSlot.getStartTime());
+        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Không được chọn ngày giờ trong quá khứ");
+        }
+
         // Kiểm tra slot đã được đặt chưa
         if (!selectedSlot.isAvailable()) {
             throw new IllegalStateException("Slot này đã được đặt. Vui lòng chọn slot khác.");
