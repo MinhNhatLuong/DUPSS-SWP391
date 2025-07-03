@@ -31,6 +31,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format, parse } from 'date-fns';
+import { API_URL } from '../../services/config';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -75,7 +76,17 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Set processing state to true for button loading indicator
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setAlert({
+        open: true,
+        message: 'Mật khẩu không khớp!',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    // Set processing state to true
     setProcessing(true);
     
     try {
@@ -98,7 +109,7 @@ const Register = () => {
       };
       
       const response = await axios.post(
-        'http://localhost:8080/api/auth/register',
+        `${API_URL}/auth/register`,
         payload
       );
       
@@ -161,7 +172,7 @@ const Register = () => {
     }}>
       <Snackbar
         open={alert.open}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         sx={{ 

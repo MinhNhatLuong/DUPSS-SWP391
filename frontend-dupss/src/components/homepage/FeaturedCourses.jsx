@@ -8,6 +8,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import { API_URL } from '../../services/config';
 
 const CourseCard = styled(Card)(({ theme }) => ({
   backgroundColor: 'white',
@@ -72,7 +73,7 @@ const FeaturedCourses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/public/courses/latest');
+        const response = await axios.get(`${API_URL}/public/courses/latest`);
         setCoursesData(response.data);
         setLoading(false);
       } catch (error) {

@@ -5,6 +5,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { RelatedArticles } from './index';
 import axios from 'axios';
+import { API_URL } from '../../services/config';
 
 const FilterContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -51,7 +52,7 @@ const BlogsList = () => {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/topics');
+        const response = await axios.get(`${API_URL}/topics`);
         setTopics(response.data);
       } catch (error) {
         console.error('Error fetching topics:', error);
@@ -82,7 +83,7 @@ const BlogsList = () => {
     const fetchBlogs = async () => {
       setLoading(true);
       try {
-        let url = `http://localhost:8080/api/public/blogs?keyword=${searchQuery}&page=${currentPage}&sortBy=createdAt&sortDir=${sortDir}`;
+        let url = `${API_URL}/public/blogs?keyword=${searchQuery}&page=${currentPage}&sortBy=createdAt&sortDir=${sortDir}`;
         
         if (selectedTopic) {
           url += `&topic=${selectedTopic}`;

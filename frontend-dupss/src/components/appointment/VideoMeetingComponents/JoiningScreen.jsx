@@ -195,7 +195,12 @@ const JoiningScreen = ({
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Typography variant="h5" fontWeight="bold" textAlign="center" mb={4}>
+        <Typography variant="h5" fontWeight="bold" textAlign="center" mb={4} 
+        sx={
+          {
+            fontWeight: 600, 
+            color: '#0056b3'
+          }}>
           Chuẩn bị vào buổi tư vấn
         </Typography>
         

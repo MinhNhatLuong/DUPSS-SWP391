@@ -282,7 +282,7 @@ function CourseDetail() {
     <Container maxWidth="lg" sx={{ py: 5 }}>
       <Snackbar 
         open={alertOpen} 
-        autoHideDuration={6000} 
+        autoHideDuration={3000} 
         onClose={handleAlertClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         sx={{ 

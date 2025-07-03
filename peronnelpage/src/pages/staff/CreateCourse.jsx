@@ -26,34 +26,37 @@ import {
 import axios from 'axios';
 // Import TinyMCE Editor - need to install: npm install @tinymce/tinymce-react
 import { Editor } from '@tinymce/tinymce-react';
+import apiClient from '../../services/apiService';
+import { API_URL } from '../../services/config';
+import { getAccessToken } from '../../utils/auth';
 
 // API Base URL - adjust this based on your backend configuration
-const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
+// const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
 
-// Helper function to get auth token
-const getAuthToken = () => {
-  // Try to get token from localStorage
-  const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken');
-  
-  if (!token) {
-    console.warn('No auth token found in localStorage');
-  }
-  
-  return token;
-};
+// Helper function to get auth token - not needed anymore as we're using apiClient
+// const getAuthToken = () => {
+//   // Try to get token from localStorage
+//   const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken');
+//   
+//   if (!token) {
+//     console.warn('No auth token found in localStorage');
+//   }
+//   
+//   return token;
+// };
 
-// Create axios instance with auth headers
-const createAuthAxios = () => {
-  const token = getAuthToken();
-  
-  return axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Accept': '*/*'
-    }
-  });
-};
+// Create axios instance with auth headers - not needed anymore as we're using apiClient
+// const createAuthAxios = () => {
+//   const token = getAuthToken();
+//   
+//   return axios.create({
+//     baseURL: API_BASE_URL,
+//     headers: {
+//       'Authorization': token ? `Bearer ${token}` : '',
+//       'Accept': '*/*'
+//     }
+//   });
+// };
 
 const CreateCourse = () => {
   // Reference to track if component is mounted
@@ -93,18 +96,14 @@ const CreateCourse = () => {
       try {
         setApiError(null);
         
-        // Fetch topics with simpler approach
+        // Fetch topics with apiClient
         try {
-          const topicsUrl = `${API_BASE_URL}/api/topics`;
-          console.log('Fetching topics from:', topicsUrl);
+          console.log('Fetching topics...');
           
-          // Simple fetch without auth headers first to test API
-          const response = await fetch(topicsUrl);
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
+          // Use apiClient instead of fetch
+          const response = await apiClient.get('/topics');
+          const data = response.data;
           
-          const data = await response.json();
           console.log('Topics API response:', data);
           
           // Even if the API returns empty array, we'll handle it gracefully
@@ -362,50 +361,65 @@ const CreateCourse = () => {
     showSnackbar('Đang xử lý yêu cầu...', 'warning');
 
     try {
-      console.log('Submitting course data:', course);
+      setIsSubmitting(true);
+      const token = getAccessToken();
       
-      // Prepare form data for multipart submission
+      // Build the final data structure based on all collected course information
+      const courseData = {
+        title: course.title,
+        topicId: course.topicId,
+        description: course.description,
+        content: currentContent,
+        duration: course.duration,
+        coverImage: course.coverImage,
+        modules: course.modules,
+        quiz: course.quiz
+      };
+
+      // Prepare form data for submission with files
       const formData = new FormData();
-      formData.append('title', course.title);
-      formData.append('topicId', course.topicId);
-      formData.append('description', course.description);
-      formData.append('content', currentContent);
-      formData.append('duration', course.duration);
+      formData.append('title', courseData.title);
+      formData.append('topicId', courseData.topicId);
+      formData.append('description', courseData.description);
+      formData.append('content', courseData.content);
+      formData.append('duration', courseData.duration);
       
-      if (course.coverImage) {
-        formData.append('coverImage', course.coverImage);
+      if (courseData.coverImage) {
+        formData.append('coverImage', courseData.coverImage);
       }
       
       // Append modules as JSON string
-      formData.append('modules', JSON.stringify(course.modules));
+      formData.append('modules', JSON.stringify(courseData.modules));
       
       // Append quiz data
-      if (course.quiz && course.quiz.sections.length > 0) {
+      if (courseData.quiz && courseData.quiz.sections.length > 0) {
         const quizData = {
-          title: course.title,
-          description: course.description,
-          imageCover: course.coverImage ? course.coverImage.name : "",
-          sections: course.quiz.sections,
-          conditions: course.quiz.conditions
+          title: courseData.title,
+          description: courseData.description,
+          imageCover: courseData.coverImage ? courseData.coverImage.name : "",
+          sections: courseData.quiz.sections,
+          conditions: courseData.quiz.conditions
         };
         formData.append('quiz', JSON.stringify(quizData));
       }
       
-      // Create authorized axios instance for submission
-      const authAxios = createAuthAxios();
-      
-      // Submit the course
-      const submitUrl = `/api/staff/course`;
-      console.log('Submitting course to:', API_BASE_URL + submitUrl);
-      
-      const response = await authAxios.post(submitUrl, formData, {
-        headers: { 
+      // Log for debugging
+      console.log('Submitting course form data with modules:', courseData.modules.length);
+
+      // Set header for multipart form data
+      const config = {
+        headers: {
           'Content-Type': 'multipart/form-data',
-          // Auth headers are already added in the authAxios instance
-        },
-        // Add timeout to prevent infinite loading
-        timeout: 30000
-      });
+          'Authorization': `Bearer ${token}`
+        }
+      };
+      
+      // Use the API_URL with axios (since apiClient doesn't handle FormData well)
+      const submitUrl = `${API_URL}/staff/courses`;
+      console.log('Submitting to URL:', submitUrl);
+      
+      // Using axios directly here because we need to handle FormData with specific config
+      const response = await axios.post(submitUrl, formData, config);
       
       console.log('Course creation response:', response);
       showSnackbar('Khóa học đã được tạo thành công!', 'success');

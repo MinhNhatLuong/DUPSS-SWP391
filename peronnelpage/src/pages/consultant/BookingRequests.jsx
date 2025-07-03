@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { styled } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -22,6 +24,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
+import apiClient from '../../services/apiService';
 import NotificationService from '../../services/NotificationService';
 
 // VideoSDK API constants
@@ -82,14 +85,9 @@ export default function BookingRequests() {
   }, []);
 
   const fetchRequests = async () => {
-    setLoading(true);
     try {
-      const userInfo = getUserInfo();
-      if (!userInfo || !userInfo.id) {
-        throw new Error('Không tìm thấy thông tin người dùng');
-      }
-
-      const response = await axios.get(`/api/appointments/unassigned`, {
+      setLoading(true);
+      const response = await apiClient.get(`/appointments/unassigned`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -98,13 +96,13 @@ export default function BookingRequests() {
       setRequests(response.data);
       setTotalPages(Math.ceil(response.data.length / requestsPerPage));
       setError(null);
-    } catch (err) {
-      console.error('Error fetching booking requests:', err);
-      setError(
-        err.response?.data?.message ||
-        err.message ||
-        'Đã xảy ra lỗi khi tải yêu cầu tư vấn'
-      );
+    } catch (error) {
+      console.error('Error fetching appointment requests:', error);
+      setSnackbar({
+        open: true,
+        message: 'Không thể tải yêu cầu đặt lịch',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -139,14 +137,14 @@ export default function BookingRequests() {
       }
       
       // Generate meeting link
-      const linkGoogleMeet = `http://localhost:5173/appointment/${videoCallId}/meeting`;
+      const linkGoogleMeet = `https://dupss.vercel.app/appointment/${videoCallId}/meeting`;
       
       const userInfo = getUserInfo();
       if (!userInfo || !userInfo.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await axios.put(`/api/appointments/${selected.id}/approve?consultantId=${userInfo.id}`, {
+      const response = await apiClient.put(`/appointments/${selected.id}/approve?consultantId=${userInfo.id}`, {
         linkGoogleMeet,
         videoCallId // Add videoCallId to the request
       }, {

@@ -6,6 +6,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import html2canvas from 'html2canvas';
 import axios from 'axios';
 import { showErrorAlert } from '../common/AlertNotification';
+import { API_URL } from '../../services/config';
 
 const CourseCertificate = () => {
   const { courseId, userId } = useParams();
@@ -19,7 +20,7 @@ const CourseCertificate = () => {
     const fetchCertificateData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/public/course/${courseId}/cert/${userId}`);
+        const response = await axios.get(`${API_URL}/public/course/${courseId}/cert/${userId}`);
         setCertificate(response.data);
       } catch (error) {
         console.error("Error fetching certificate data:", error);

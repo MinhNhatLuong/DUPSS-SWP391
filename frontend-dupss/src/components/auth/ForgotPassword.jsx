@@ -9,14 +9,18 @@ import {
   Link, 
   InputAdornment
 } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { 
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  VpnKey as VpnKeyIcon
+} from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
+import { API_URL } from '../../services/config';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -42,7 +46,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8080/api/auth/password/forgot', {
+      const response = await fetch(`${API_URL}/auth/password/forgot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +85,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8080/api/auth/password/reset', {
+      const response = await fetch(`${API_URL}/auth/password/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

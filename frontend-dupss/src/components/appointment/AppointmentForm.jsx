@@ -27,6 +27,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format, parse } from 'date-fns';
+import { API_URL } from '../../services/config';
 
 const AppointmentForm = () => {
   const [formData, setFormData] = useState({
@@ -57,7 +58,7 @@ const AppointmentForm = () => {
 
   const fetchTopics = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/topics');
+      const response = await axios.get(`${API_URL}/topics`);
       setTopics(response.data);
     } catch (error) {
       console.error('Error fetching topics:', error);
@@ -70,7 +71,7 @@ const AppointmentForm = () => {
 
     try {
       // Check authentication status with POST method
-      const response = await axios.post('http://localhost:8080/api/auth/me', {
+      const response = await axios.post(`${API_URL}/auth/me`, {
         accessToken
       });
       
@@ -100,7 +101,7 @@ const AppointmentForm = () => {
     if (!accessToken) return;
 
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/refresh-token', {
+      const response = await axios.post(`${API_URL}/auth/refresh-token`, {
         accessToken
       });
       
@@ -208,7 +209,7 @@ const AppointmentForm = () => {
         };
 
         // Submit the appointment
-        const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+        const response = await axios.post(`${API_URL}/appointments`, appointmentData);
         
         // Set processing state to false
         setIsProcessing(false);
@@ -482,7 +483,7 @@ const AppointmentForm = () => {
       {/* Success/Error notification */}
       <Snackbar 
         open={alert.open} 
-        autoHideDuration={6000} 
+        autoHideDuration={3000} 
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         sx={{ 

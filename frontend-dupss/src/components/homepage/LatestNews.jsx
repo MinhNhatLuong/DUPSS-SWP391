@@ -4,6 +4,7 @@ import { Box, Typography, Card, CardContent, Chip } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import { API_URL } from '../../services/config';
 
 const ArticleCard = styled(Card)(({ theme }) => ({
   backgroundColor: 'white',
@@ -98,7 +99,7 @@ const LatestNews = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await axios.get('/api/public/blogs/latest');
+        const response = await axios.get(`${API_URL}/public/blogs/latest`);
         setNewsData(response.data);
         setLoading(false);
       } catch (error) {

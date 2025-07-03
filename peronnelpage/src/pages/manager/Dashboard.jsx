@@ -22,8 +22,12 @@ import { format, parseISO, subDays } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../../services/apiService';
+import { API_URL } from '../../services/config';
+import { getAccessToken, isAuthenticated } from '../../utils/auth';
 
-const API_BASE_URL = 'http://localhost:8080';
+// Remove hardcoded URL
+// const API_BASE_URL = 'http://localhost:8080';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -40,82 +44,77 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
     fetchDashboardData();
   }, []);
   
-  // Function to check if user is authenticated
-  const checkAuth = () => {
-    const token = getAuthToken();
-    if (!token) {
-      console.warn('No authentication token found. Redirecting to login.');
-      navigate('/login');
-      return false;
-    }
-    
-    try {
-      // Basic validation: check if token is expired
-      // This is a simple check - JWT validation should be done on server
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      
-      const { exp } = JSON.parse(jsonPayload);
-      const expired = Date.now() >= exp * 1000;
-      
-      if (expired) {
-        console.warn('Token expired. Redirecting to login.');
-        localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('accessToken');
-        navigate('/login');
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error validating token:', error);
-      navigate('/login');
-      return false;
-    }
-  };
+  // Function to check if user is authenticated - not needed as we now use isAuthenticated from auth.js
+  // const checkAuth = () => {
+  //   const token = getAuthToken();
+  //   if (!token) {
+  //     console.warn('No authentication token found. Redirecting to login.');
+  //     navigate('/login');
+  //     return false;
+  //   }
+  //   
+  //   try {
+  //     // Basic validation: check if token is expired
+  //     // This is a simple check - JWT validation should be done on server
+  //     const base64Url = token.split('.')[1];
+  //     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  //     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+  //       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  //     }).join(''));
+  //     
+  //     const { exp } = JSON.parse(jsonPayload);
+  //     const expired = Date.now() >= exp * 1000;
+  //     
+  //     if (expired) {
+  //       console.warn('Token expired. Redirecting to login.');
+  //       localStorage.removeItem('token');
+  //       localStorage.removeItem('accessToken');
+  //       sessionStorage.removeItem('token');
+  //       sessionStorage.removeItem('accessToken');
+  //       navigate('/login');
+  //       return false;
+  //     }
+  //     
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Error validating token:', error);
+  //     navigate('/login');
+  //     return false;
+  //   }
+  // };
 
-  const getAuthToken = () => {
-    const token = localStorage.getItem('token') || 
-                  localStorage.getItem('accessToken') || 
-                  sessionStorage.getItem('token') || 
-                  sessionStorage.getItem('accessToken');
-    
-    if (!token) {
-      return null;
-    }
-    
-    return token;
-  };
+  // getAuthToken() function not needed as we now use getAccessToken from auth.js
+  // const getAuthToken = () => {
+  //   const token = localStorage.getItem('token') || 
+  //                 localStorage.getItem('accessToken') || 
+  //                 sessionStorage.getItem('token') || 
+  //                 sessionStorage.getItem('accessToken');
+  //   
+  //   if (!token) {
+  //     return null;
+  //   }
+  //   
+  //   return token;
+  // };
 
   const fetchDashboardData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Verify authentication before proceeding
-      if (!checkAuth()) {
-        return;
-      }
+      // No need to verify authentication before proceeding
+      // if (!checkAuth()) {
+      //   return;
+      // }
       
-      // Get auth token
-      const token = getAuthToken();
-      
-      // Create headers with authorization
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'accept': '*/*'
-      };
-
-      // Using Promise.all to fetch data in parallel with auth headers
+      // Using Promise.all to fetch data in parallel with apiClient
       const [
         staffResponse,
         consultantsResponse,
@@ -123,11 +122,11 @@ const Dashboard = () => {
         coursesAllResponse,
         blogsAllResponse,
       ] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/manager/staff`, { headers }),
-        axios.get(`${API_BASE_URL}/api/manager/consultants`, { headers }),
-        axios.get(`${API_BASE_URL}/api/manager/surveys/all`, { headers }),
-        axios.get(`${API_BASE_URL}/api/manager/courses/all`, { headers }),
-        axios.get(`${API_BASE_URL}/api/manager/blogs/all`, { headers }),
+        apiClient.get('/manager/staff'),
+        apiClient.get('/manager/consultants'),
+        apiClient.get('/manager/surveys/all'),
+        apiClient.get('/manager/courses/all'),
+        apiClient.get('/manager/blogs/all'),
       ]);
 
       // Process staff & consultants count

@@ -69,7 +69,7 @@ const SurveyDetail = () => {
     });
     
     if (!answeredAll) {
-      alert('Vui lòng trả lời tất cả các câu hỏi');
+      showErrorAlert('Vui lòng trả lời tất cả các câu hỏi');
       return;
     }
     

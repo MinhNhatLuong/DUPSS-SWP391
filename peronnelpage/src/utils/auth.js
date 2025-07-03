@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from '../services/config';
 
 /**
  * Xóa token khỏi localStorage và đăng xuất người dùng
@@ -10,7 +11,7 @@ export const logout = async (callback) => {
     
     if (accessToken) {
       // Gọi API logout - truyền accessToken trong request body
-      await axios.post('/api/auth/logout', { accessToken });
+      await axios.post(`${API_URL}/auth/logout`, { accessToken });
     }
   } catch (error) {
     console.error('Logout error:', error);
@@ -79,7 +80,7 @@ export const checkAndRefreshToken = async () => {
   
   try {
     // Kiểm tra token hiện tại
-    await axios.post('http://localhost:8080/api/auth/me', { accessToken });
+    await axios.post(`${API_URL}/auth/me`, { accessToken });
     return true;
   } catch (err) {
     if (err.response && err.response.status === 401) {
@@ -100,7 +101,7 @@ export const refreshAccessToken = async () => {
   if (!refreshToken) return false;
   
   try {
-    const response = await axios.post('http://localhost:8080/api/auth/refresh-token', {
+    const response = await axios.post(`${API_URL}/auth/refresh-token`, {
       refreshToken
     });
     

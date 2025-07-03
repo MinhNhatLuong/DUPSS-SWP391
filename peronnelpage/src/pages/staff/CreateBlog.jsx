@@ -26,8 +26,8 @@ import {
 import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
 import { getAccessToken } from '../../utils/auth';
-
-const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
+import apiClient from '../../services/apiService';
+import { API_URL } from '../../services/config';
 
 const CreateBlog = () => {
   const editorRef = useRef(null);
@@ -68,7 +68,7 @@ const CreateBlog = () => {
   const fetchTopics = async () => {
     setLoadingTopics(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/topics`);
+      const response = await apiClient.get('/topics');
       console.log('Topics fetched:', response.data);
       setTopics(response.data);
     } catch (error) {
@@ -193,8 +193,8 @@ const CreateBlog = () => {
         tags: blog.tags
       });
       
-      // Make the API call with full URL
-      const response = await axios.post(`${API_BASE_URL}/api/staff/blog`, formData, {
+      // Use apiClient with proper URL
+      const response = await axios.post(`${API_URL}/staff/blog`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

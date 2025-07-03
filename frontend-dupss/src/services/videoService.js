@@ -1,3 +1,5 @@
+import { API_URL } from './config';
+
 const API_BASE_URL = "https://api.videosdk.live";
 // In a production app, you would load this from environment variable
 const VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiJhMjNhMzBmMC1lNWNhLTRkOWQtYjk3Yy01YmQ2MGJjZjliMGIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTc1MTIwNTgwMiwiZXhwIjoxNzU4OTgxODAyfQ.Y_YDe_65H93elUAa_h6Qh0cnZCgvPYIKRSFDERebZ5U";
@@ -80,7 +82,7 @@ export const validateMeeting = async ({ roomId, token }) => {
  */
 export const saveMeetingInfo = async (meetingData) => {
   try {
-    const response = await fetch('/api/appointments/video-meeting', {
+    const response = await fetch(`${API_URL}/appointments/video-meeting`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,

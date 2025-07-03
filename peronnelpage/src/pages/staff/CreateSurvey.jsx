@@ -21,8 +21,8 @@ import {
 import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
 import { getAccessToken, checkAndRefreshToken } from '../../utils/auth';
-
-const API_BASE_URL = 'http://localhost:8080'; // Update this to match your backend URL
+import apiClient from '../../services/apiService';
+import { API_URL } from '../../services/config';
 
 const CreateSurvey = () => {
   const editorRef = useRef(null);
@@ -186,7 +186,7 @@ const CreateSurvey = () => {
       // Submit the survey using the project's authentication pattern
       const response = await axios({
         method: 'post',
-        url: `${API_BASE_URL}/api/survey`,
+        url: `${API_URL}/survey`,
         data: formData,
         headers: {
           'Content-Type': 'multipart/form-data',
