@@ -18,6 +18,7 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
 
     List<Slot> findByConsultantAndDateAndAvailable(User consultant, LocalDate date, boolean b);
     List<Slot> findByConsultantAndAvailableTrue(User consultant);
+    Optional<Slot> findByConsultantAndDateAndStartTime(User consultant, LocalDate date, LocalTime startTime);
     boolean existsByConsultantAndDateAndStartTime(User consultant, LocalDate date, LocalTime startTime);
 //    List<Slot> findByConsultant(Consultant consultant);
 //    List<Slot> findByConsultantAndDate(Consultant consultant, LocalDate date);

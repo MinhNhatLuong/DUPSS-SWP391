@@ -91,8 +91,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setGuest(true);
         }
         appointment.setStatus("CONFIRMED");
-        appointment.setLinkMeet(requestDto.getMeetingUrl());
+        selectedSlot.setAvailable(false);
+        slotRepository.save(selectedSlot);
 
+        appointment.setLinkMeet(requestDto.getMeetingUrl());
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
         try {
@@ -228,8 +230,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         String previousStatus = appointment.getStatus();
 
         // Cập nhật trạng thái thành CANCELED
-        appointment.setStatus("CANCELED");
+        appointment.setStatus("CANCELLED");
         Appointment updatedAppointment = appointmentRepository.save(appointment);
+
+        Optional<Slot> selectedSlot = slotRepository.findByConsultantAndDateAndStartTime(
+                appointment.getConsultant(),
+                appointment.getAppointmentDate(),
+                appointment.getAppointmentTime()
+        );
+        selectedSlot.ifPresent(slot -> {
+            slot.setAvailable(false);
+            slotRepository.save(slot);
+        });
 
         // Gửi email thông báo hủy cuộc hẹn
         emailService.sendAppointmentStatusUpdate(updatedAppointment, previousStatus);
