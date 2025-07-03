@@ -239,7 +239,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getAppointmentTime()
         );
         selectedSlot.ifPresent(slot -> {
-            slot.setAvailable(false);
+            slot.setAvailable(true);
             slotRepository.save(slot);
         });
 
