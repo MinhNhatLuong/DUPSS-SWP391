@@ -16,22 +16,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConsultantService {
     private final UserRepository userRepository;
-    private final SlotService slotService;
 
-    public List<ConsultantResponse> getAllConsultantsWithAvailableSlots(LocalDate date) {
+    public List<ConsultantResponse> getAllConsultants() {
         List<User> consultants = userRepository.findByRoleAndEnabled(ERole.ROLE_CONSULTANT, true);
         List<ConsultantResponse> result = new ArrayList<>();
 
         for (User consultant : consultants) {
-            List<SlotResponseDto> slots = slotService.getAvailableSlotsByConsultantAndDate(consultant.getId(), date);
             ConsultantResponse dto = new ConsultantResponse();
+            String consultantName = "";
             dto.setConsultantName(consultant.getFullname());
             dto.setAvatar(consultant.getAvatar());
             dto.setCertificates(consultant.getConsultantProfile().getCertificates());
             dto.setBio(consultant.getConsultantProfile().getBio());
-            if (!slots.isEmpty()) {
-                dto.setAvailableSlots(slots);
+            if(consultant.getConsultantProfile().getAcademicTitle() != null) {
+                consultantName = consultant.getConsultantProfile().getAcademicTitle() + " " + consultant.getFullname();
+            } else {
+                consultantName = consultant.getFullname();
             }
+            dto.setConsultantName(consultantName);
             result.add(dto);
         }
         return result;

@@ -134,7 +134,7 @@ public class HomeController {
 
     @GetMapping("/consultants/available")
     public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
-        List<ConsultantResponse> consultants = consultantService.getAllConsultantsWithAvailableSlots(LocalDate.now());
+        List<ConsultantResponse> consultants = consultantService.getAllConsultants();
         return ResponseEntity.ok(consultants);
     }
 

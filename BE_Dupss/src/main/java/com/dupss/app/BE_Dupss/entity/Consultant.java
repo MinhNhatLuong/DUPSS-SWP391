@@ -19,6 +19,9 @@ public class Consultant {
     @Column(columnDefinition = "NVARCHAR(1000)")
     private String bio;
 
+    @Enumerated(EnumType.STRING)
+    private AcademicTitle academicTitle;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;

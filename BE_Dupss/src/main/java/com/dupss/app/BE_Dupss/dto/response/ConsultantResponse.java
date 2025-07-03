@@ -14,5 +14,4 @@ public class ConsultantResponse {
     private String avatar;
     private String certificates;
     private String bio;
-    private List<SlotResponseDto> availableSlots;
 }
