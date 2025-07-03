@@ -64,7 +64,8 @@ public class UserService implements CommandLineRunner {
     }
 
     private void createAdminUserIfNotExists() {
-        if (userRepository.findByUsernameAndEnabledTrue(adminUsername).isEmpty()) {
+        if (userRepository.findByUsernameAndEnabledTrue(adminUsername).isEmpty() && 
+            userRepository.findByEmail(adminEmail).isEmpty()) {
             log.info("Creating admin user: {}", adminUsername);
 
             User adminUser = User.builder()
@@ -73,10 +74,13 @@ public class UserService implements CommandLineRunner {
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
                     .role(ERole.ROLE_ADMIN)
+                    .enabled(true)
                     .build();
 
             userRepository.save(adminUser);
             log.info("Admin user created successfully");
+        } else {
+            log.info("Admin user already exists, skipping creation");
         }
     }
 

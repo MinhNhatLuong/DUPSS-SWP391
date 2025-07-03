@@ -13,7 +13,7 @@ services:
       - dupss-network
 
   backend:
-    image: datdevv/dupss:1.0.0
+    image: datdevv/dupss:1.0.1
     container_name: dupss-backend
     ports:
       - "8080:8080"
