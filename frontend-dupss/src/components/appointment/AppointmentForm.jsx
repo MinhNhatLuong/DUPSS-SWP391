@@ -10,7 +10,8 @@ import {
   InputAdornment,
   Alert,
   Snackbar,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
 import { 
   Person as PersonIcon,
@@ -18,7 +19,8 @@ import {
   Email as EmailIcon,
   CalendarToday as CalendarIcon,
   AccessTime as AccessTimeIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  Person
 } from '@mui/icons-material';
 import axios from 'axios';
 import './AppointmentForm.css';
@@ -28,6 +30,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format, parse } from 'date-fns';
 import { API_URL } from '../../services/config';
+import ConsultantSelector from './ConsultantSelector';
+import { createMeeting, getToken } from '../../services/videoService';
 
 const AppointmentForm = () => {
   const [formData, setFormData] = useState({
@@ -36,7 +40,9 @@ const AppointmentForm = () => {
     email: '',
     appointmentDate: '',
     appointmentTime: '',
-    topicId: ''
+    topicId: '',
+    consultantName: '',
+    slotId: null
   });
 
   const [errors, setErrors] = useState({});
@@ -48,6 +54,9 @@ const AppointmentForm = () => {
     message: '',
     severity: 'success'
   });
+  
+  const [showConsultantSelector, setShowConsultantSelector] = useState(true);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   useEffect(() => {
     // Fetch topics when component mounts
@@ -151,23 +160,6 @@ const AppointmentForm = () => {
       newErrors.email = 'Email không hợp lệ';
     }
     
-    // Validate appointment date
-    if (!formData.appointmentDate) {
-      newErrors.appointmentDate = 'Ngày hẹn là bắt buộc';
-    }
-    
-    // Validate appointment time
-    if (!formData.appointmentTime) {
-      newErrors.appointmentTime = 'Giờ hẹn là bắt buộc';
-    } else {
-      const time = formData.appointmentTime;
-      const [hours] = time.split(':').map(Number);
-      
-      if (hours < 8 || hours >= 21) {
-        newErrors.appointmentTime = 'Giờ hẹn phải từ 8:00 đến 21:00';
-      }
-    }
-    
     // Validate topic
     if (!formData.topicId) {
       newErrors.topicId = 'Chủ đề tư vấn là bắt buộc';
@@ -175,18 +167,6 @@ const AppointmentForm = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const formatDateForApi = (dateString) => {
-    if (!dateString) return '';
-    
-    // 无论输入格式如何，都将其转换为dd/mm/yyyy格式
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    
-    return `${day}/${month}/${year}`;
   };
 
   const handleSubmit = async (e) => {
@@ -197,14 +177,25 @@ const AppointmentForm = () => {
         // Set processing state to true for button loading indicator
         setIsProcessing(true);
         
+        // Get VideoSDK token and create a meeting
+        const token = await getToken();
+        const { meetingId, err } = await createMeeting({ token });
+        
+        if (err || !meetingId) {
+          throw new Error(err || 'Không thể tạo cuộc họp video');
+        }
+        
+        // Generate meeting URL
+        const meetingUrl = `https://dupss.vercel.app/appointment/${meetingId}/meeting`;
+        
         // Format the data for API
         const appointmentData = {
           customerName: formData.fullName,
           phoneNumber: formData.phoneNumber,
           email: formData.email,
-          appointmentDate: formatDateForApi(formData.appointmentDate),
-          appointmentTime: formData.appointmentTime,
           topicId: parseInt(formData.topicId),
+          slotId: parseInt(formData.slotId),
+          meetingUrl: meetingUrl,
           userId: userId // Include userId (will be null if not logged in)
         };
 
@@ -222,6 +213,7 @@ const AppointmentForm = () => {
         });
         // Reset form but keep personal info if user is logged in
         handleReset();
+        setShowConsultantSelector(true);
       } catch (error) {
         // Set processing state to false on error
         setIsProcessing(false);
@@ -244,18 +236,22 @@ const AppointmentForm = () => {
         ...prev,
         appointmentDate: '',
         appointmentTime: '',
-        topicId: ''
+        topicId: '',
+        consultantName: '',
+        slotId: null
       }));
     } else {
       // If not logged in, clear all fields
-    setFormData({
-      fullName: '',
-      phoneNumber: '',
-      email: '',
-      appointmentDate: '',
-      appointmentTime: '',
-      topicId: ''
-    });
+      setFormData({
+        fullName: '',
+        phoneNumber: '',
+        email: '',
+        appointmentDate: '',
+        appointmentTime: '',
+        topicId: '',
+        consultantName: '',
+        slotId: null
+      });
     }
     setErrors({});
   };
@@ -266,249 +262,269 @@ const AppointmentForm = () => {
       open: false
     });
   };
+  
+  const handleSlotSelect = (slot) => {
+    setSelectedSlot(slot);
+    setFormData(prev => ({
+      ...prev,
+      appointmentDate: slot.date,
+      appointmentTime: `${slot.startTime} - ${slot.endTime}`,
+      consultantName: slot.consultantName,
+      slotId: slot.id
+    }));
+    setShowConsultantSelector(false);
+  };
+  
+  const handleBackToConsultants = () => {
+    setShowConsultantSelector(true);
+    setSelectedSlot(null);
+  };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-      <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
-        Thông tin đặt lịch hẹn
-      </Typography>
-      
-      <Box component="form" onSubmit={handleSubmit} noValidate>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Full Name */}
-          <TextField
-            fullWidth
-            required
-            id="fullName"
-            name="fullName"
-            label="Họ và Tên"
-            value={formData.fullName}
-            onChange={handleChange}
-            error={!!errors.fullName}
-            helperText={errors.fullName}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+    <>
+      {showConsultantSelector ? (
+        <ConsultantSelector onSlotSelect={handleSlotSelect} />
+      ) : (
+        <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+            Thông tin đặt lịch hẹn
+          </Typography>
           
-          {/* Phone Number */}
-          <TextField
-            fullWidth
-            id="phoneNumber"
-            name="phoneNumber"
-            label="Số điện thoại"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-          
-          {/* Email */}
-          <TextField
-            fullWidth
-            required
-            id="email"
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            error={!!errors.email}
-            helperText={errors.email}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-          
-          {/* Date and Time Row */}
-          <Box sx={{ display: 'flex', width: '100%', gap: 2 }}>
-            {/* Appointment Date */}
-            <TextField
-              label="Ngày hẹn"
-              type="date"
-              fullWidth
-              required
-              id="appointmentDate"
-              name="appointmentDate"
-              value={formData.appointmentDate || ''}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  appointmentDate: e.target.value
-                });
-              }}
-              error={!!errors.appointmentDate}
-              helperText={errors.appointmentDate}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarIconX />
-                  </InputAdornment>
-                )
-              }}
-              sx={{ flex: 1 }}
-            />
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Full Name */}
+              <TextField
+                fullWidth
+                required
+                id="fullName"
+                name="fullName"
+                label="Họ và Tên"
+                value={formData.fullName}
+                onChange={handleChange}
+                error={!!errors.fullName}
+                helperText={errors.fullName}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Phone Number */}
+              <TextField
+                fullWidth
+                id="phoneNumber"
+                name="phoneNumber"
+                label="Số điện thoại"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Email */}
+              <TextField
+                fullWidth
+                required
+                id="email"
+                name="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Topic */}
+              <TextField
+                select
+                fullWidth
+                required
+                id="topicId"
+                name="topicId"
+                label="Chủ đề tư vấn"
+                value={formData.topicId}
+                onChange={handleChange}
+                error={!!errors.topicId}
+                helperText={errors.topicId || ''}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CategoryIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              >
+                <MenuItem value="">-- Chọn chủ đề --</MenuItem>
+                {topics.map((topic) => (
+                  <MenuItem key={topic.id} value={topic.id}>
+                    {topic.topicName}
+                  </MenuItem>
+                ))}
+              </TextField>
+              
+              {/* Divider between personal info and appointment info */}
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                  Thông tin cuộc hẹn
+                </Typography>
+              </Divider>
+              
+              {/* Consultant Name */}
+              <TextField
+                fullWidth
+                required
+                id="consultantName"
+                name="consultantName"
+                label="Nhân viên tư vấn"
+                value={formData.consultantName}
+                InputProps={{
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Person />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Appointment Date */}
+              <TextField
+                fullWidth
+                required
+                id="appointmentDate"
+                name="appointmentDate"
+                label="Ngày hẹn"
+                value={formData.appointmentDate}
+                InputProps={{
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CalendarIconX />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              
+              {/* Appointment Time */}
+              <TextField
+                fullWidth
+                required
+                id="appointmentTime"
+                name="appointmentTime"
+                label="Giờ hẹn"
+                value={formData.appointmentTime}
+                InputProps={{
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AccessTimeIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
             
-            {/* Appointment Time */}
-            <TextField
-              fullWidth
-              required
-              id="appointmentTime"
-              name="appointmentTime"
-              label="Giờ hẹn"
-              type="time"
-              value={formData.appointmentTime}
-              onChange={handleChange}
-              error={!!errors.appointmentTime}
-              helperText={errors.appointmentTime || "Giờ hẹn chỉ cho phép đặt  từ 8:00 đến 21:00"}
-              inputProps={{
-                step: 60, // Step is in seconds, 60 = 1 minute (removes seconds)
-                min: '08:00',
-                max: '21:00'
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccessTimeIcon />
-                  </InputAdornment>
-                )
-              }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{ flex: 1 }}
-            />
+            <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isProcessing}
+                sx={{ 
+                  flex: 2, 
+                  py: 1.5,
+                  bgcolor: '#1976d2',
+                  '&:hover': {
+                    bgcolor: '#3f8dda'
+                  },
+                  position: 'relative',
+                  fontWeight: 600
+                }}
+              >
+                {isProcessing ? (
+                  <>
+                    <CircularProgress 
+                      size={24} 
+                      sx={{ 
+                        color: 'white',
+                        position: 'absolute',
+                        left: '50%',
+                        marginLeft: '-12px'
+                      }}
+                    />
+                    <span style={{ visibility: 'hidden' }}>Đặt lịch hẹn</span>
+                  </>
+                ) : 'Đặt lịch hẹn'}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={handleBackToConsultants}
+                sx={{ 
+                  flex: 1, 
+                  py: 1.5,
+                  color: '#2c3e50',
+                  borderColor: '#e5e7eb',
+                  bgcolor: '#f1f2f6',
+                  '&:hover': {
+                    bgcolor: '#e5e7eb',
+                    borderColor: '#d1d5db'
+                  },
+                  fontWeight: 600
+                }}
+              >
+                Quay lại
+              </Button>
+            </Box>
           </Box>
-          
-          {/* Topic */}
-          <TextField
-            select
-            fullWidth
-            required
-            id="topicId"
-            name="topicId"
-            label="Chủ đề tư vấn"
-            value={formData.topicId}
-            onChange={handleChange}
-            error={!!errors.topicId}
-            helperText={errors.topicId || ''}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CategoryIcon />
-                </InputAdornment>
-              ),
-            }}
-          >
-            <MenuItem value="">-- Chọn chủ đề --</MenuItem>
-            {topics.map((topic) => (
-              <MenuItem key={topic.id} value={topic.id}>
-                {topic.topicName}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
-        
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={isProcessing}
-            sx={{ 
-              flex: 2, 
-              py: 1.5,
-              bgcolor: '#1976d2',
-              '&:hover': {
-                bgcolor: '#3f8dda'
-              },
-              position: 'relative',
-              fontWeight: 600
-            }}
-          >
-            {isProcessing ? (
-              <>
-                <CircularProgress 
-                  size={24} 
-                  sx={{ 
-                    color: 'white',
-                    position: 'absolute',
-                    left: '50%',
-                    marginLeft: '-12px'
-                  }}
-                />
-                <span style={{ visibility: 'hidden' }}>Đặt lịch hẹn</span>
-              </>
-            ) : 'Đặt lịch hẹn'}
-          </Button>
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={handleReset}
-            disabled={isProcessing}
-            sx={{ 
-              flex: 1, 
-              py: 1.5,
-              color: '#2c3e50',
-              borderColor: '#e5e7eb',
-              bgcolor: '#f1f2f6',
-              '&:hover': {
-                bgcolor: '#e5e7eb',
-                borderColor: '#d1d5db'
-              },
-              fontWeight: 600
-            }}
-          >
-            Xóa form
-          </Button>
-        </Box>
-      </Box>
 
-      {/* Success/Error notification */}
-      <Snackbar 
-        open={alert.open} 
-        autoHideDuration={3000} 
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={alert.severity}
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px'
-          }}
-        >
-          {alert.message}
-        </Alert>
-      </Snackbar>
-    </Paper>
+          {/* Success/Error notification */}
+          <Snackbar 
+            open={alert.open} 
+            autoHideDuration={3000} 
+            onClose={handleCloseAlert}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            sx={{ 
+              '& .MuiPaper-root': { 
+                width: '320px',
+                fontSize: '1.1rem',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+              }
+            }}
+          >
+            <Alert 
+              onClose={handleCloseAlert} 
+              severity={alert.severity}
+              variant="filled"
+              sx={{ 
+                width: '100%',
+                fontSize: '1rem',
+                fontWeight: 500,
+                padding: '12px 16px'
+              }}
+            >
+              {alert.message}
+            </Alert>
+          </Snackbar>
+        </Paper>
+      )}
+    </>
   );
 };
 
