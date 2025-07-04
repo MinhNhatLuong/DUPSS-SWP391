@@ -226,7 +226,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra nếu cuộc hẹn đã hoàn thành hoặc đã hủy rồi
-        if (appointment.getStatus().equals("COMPLETED") || appointment.getStatus().equals("CANCELED")) {
+        if (appointment.getStatus().equals("COMPLETED") || appointment.getStatus().equals("CANCELLED")) {
             throw new IllegalArgumentException("Không thể hủy cuộc hẹn đã " +
                     (appointment.getStatus().equals("COMPLETED") ? "hoàn thành" : "hủy"));
         }
@@ -265,7 +265,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra nếu cuộc hẹn đã hoàn thành hoặc đã hủy rồi
-        if (appointment.getStatus().equals("COMPLETED") || appointment.getStatus().equals("CANCELED")) {
+        if (appointment.getStatus().equals("COMPLETED") || appointment.getStatus().equals("CANCELLED")) {
             throw new IllegalArgumentException("Không thể hủy cuộc hẹn đã " +
                     (appointment.getStatus().equals("COMPLETED") ? "hoàn thành" : "hủy"));
         }
@@ -274,7 +274,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         String previousStatus = appointment.getStatus();
 
         // Cập nhật trạng thái thành CANCELED
-        appointment.setStatus("CANCELED");
+        appointment.setStatus("CANCELLED");
         Appointment updatedAppointment = appointmentRepository.save(appointment);
 
         // Gửi email thông báo hủy cuộc hẹn
@@ -291,7 +291,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         
         // Danh sách các trạng thái cần lấy: COMPLETED và CANCELED
-        List<String> statuses = List.of("COMPLETED", "CANCELED");
+        List<String> statuses = List.of("COMPLETED", "CANCELLED");
         
         // Lấy danh sách các cuộc hẹn có trạng thái là COMPLETED hoặc CANCELED
         List<Appointment> appointments = appointmentRepository.findByConsultantAndStatusIn(consultantOptional.get(), statuses);
@@ -471,7 +471,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         String previousStatus = appointment.getStatus();
 
         // Cập nhật thông tin
-        appointment.setStatus("CANCELED");
+        appointment.setStatus("CANCELLED");
         appointment.setConsultantNote(reason);
         
         // Lưu vào database

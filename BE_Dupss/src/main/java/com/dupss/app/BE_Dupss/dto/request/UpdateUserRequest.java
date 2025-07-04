@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import com.dupss.app.BE_Dupss.entity.AcademicTitle;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.validation.MinAge;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -37,9 +38,10 @@ public class UpdateUserRequest {
     private String phone;
     private String address;
 
+    private ERole role;
+
     //ìnformation for consultant profile
     private String bio;
     private String certificates;
-
-    private ERole role;
+    private AcademicTitle academicTitle;
 }

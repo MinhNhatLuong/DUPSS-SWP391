@@ -12,6 +12,7 @@ import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -47,9 +48,9 @@ public class AdminController {
     }
 
 
-    @PostMapping("/users")
+    @PostMapping(value = "/users", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<CreateUserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<CreateUserResponse> createUser(@Valid @ModelAttribute CreateUserRequest request) {
         try {
             CreateUserResponse response = adminService.createUser(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -63,9 +64,9 @@ public class AdminController {
     }
 
 
-    @PatchMapping("/users/{userId}")
+    @PatchMapping(value = "/users/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<?> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @Valid @ModelAttribute UpdateUserRequest request) {
         try {
             UpdateUserResponse response = adminService.updateUser(userId, request);
             return ResponseEntity.ok(response);

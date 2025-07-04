@@ -91,6 +91,9 @@ public class AdminService {
 
         if (request.getRole() == ERole.ROLE_CONSULTANT) {
             Consultant consul = new Consultant();
+            consul.setBio(request.getBio());
+            consul.setCertificates(request.getCertificates());
+            consul.setAcademicTitle(request.getAcademicTitle());
             consul.setUser(user);
             user.setConsultantProfile(consul);
         }
@@ -139,6 +142,18 @@ public class AdminService {
         if (request.getRole() != null) {
             user.setRole(request.getRole());
         }
+        if(request.getRole() == ERole.ROLE_CONSULTANT) {
+            Consultant consultant = user.getConsultantProfile();
+            if (request.getBio() != null) {
+                consultant.setBio(request.getBio());
+            }
+            if (request.getCertificates() != null) {
+                consultant.setCertificates(request.getCertificates());
+            }
+            if (request.getAcademicTitle() != null) {
+                consultant.setAcademicTitle(request.getAcademicTitle());
+            }
+        }
 
         User updatedUser = userRepository.save(user);
         log.info("Admin updated user: {}", updatedUser.getUsername());
@@ -146,9 +161,7 @@ public class AdminService {
         return UpdateUserResponse.builder()
 
                 .id(updatedUser.getId())
-
                 .username(updatedUser.getUsername())
-
                 .fullname(updatedUser.getFullname())
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
