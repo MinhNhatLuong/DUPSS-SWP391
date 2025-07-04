@@ -17,7 +17,8 @@ import {
   Select,
   MenuItem,
   Snackbar,
-  Alert
+  Alert,
+  Divider
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -25,7 +26,9 @@ import {
   Email as EmailIcon,
   CalendarToday as CalendarIcon,
   Home as HomeIcon,
-  Wc as WcIcon
+  Wc as WcIcon,
+  Description as DescriptionIcon,
+  School as SchoolIcon
 } from '@mui/icons-material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { format, parseISO } from 'date-fns';
@@ -35,7 +38,7 @@ import apiClient from '../services/apiService';
 
 export default function ProfilePage() {
   // Function to update user information in localStorage and trigger update event
-  const updateUserInfoInStorage = (fullName, avatar) => {
+  const updateUserInfoInStorage = (fullName, avatar, academicTitle, bio) => {
     try {
       // Get current user info
       const currentUserInfo = getUserInfo();
@@ -45,7 +48,9 @@ export default function ProfilePage() {
         const updatedUserInfo = {
           ...currentUserInfo,
           fullName: fullName || currentUserInfo.fullName,
-          avatar: avatar || currentUserInfo.avatar
+          avatar: avatar || currentUserInfo.avatar,
+          academicTitle: academicTitle || currentUserInfo.academicTitle,
+          bio: bio || currentUserInfo.bio
         };
         
         // Save back to localStorage
@@ -55,7 +60,9 @@ export default function ProfilePage() {
         const updateEvent = new CustomEvent('user-profile-updated', {
           detail: {
             fullName: updatedUserInfo.fullName,
-            avatar: updatedUserInfo.avatar
+            avatar: updatedUserInfo.avatar,
+            academicTitle: updatedUserInfo.academicTitle,
+            bio: updatedUserInfo.bio
           }
         });
         document.dispatchEvent(updateEvent);
@@ -175,6 +182,17 @@ export default function ProfilePage() {
       if (profile.gender) formData.append('gender', profile.gender);
       if (profile.address) formData.append('address', profile.address);
       
+      // Add consultant-specific fields if user is a consultant
+      const userInfo = getUserInfo();
+      const isConsultant = userInfo?.role && 
+                          (userInfo.role.includes('ROLE_CONSULTANT') || 
+                           userInfo.role === 'consultant');
+      
+      if (isConsultant) {
+        if (profile.bio) formData.append('bio', profile.bio);
+        if (profile.certificates) formData.append('certificates', profile.certificates);
+      }
+      
       // Format and add birth date if available
       if (birthDate) {
         const formattedDate = formatDateForApi(birthDate);
@@ -189,32 +207,34 @@ export default function ProfilePage() {
       }
       
       // Send update request
-      const response = await apiClient.post('/auth/me', {
-        accessToken
+      const response = await apiClient.patch('/auth/update-profile', formData, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
-      if (response.status === 200) {
-        const data = await response.json();
-        setSnackbar({
-          open: true,
-          message: 'Cập nhật thông tin thành công!',
-          severity: 'success'
-        });
-        
-        // Update avatar file state after successful save
-        setAvatarFile(null);
-        
-        // Update user info in localStorage to reflect in header
-        updateUserInfoInStorage(profile.fullName, profile.avatarPreview || profile.avatar);
-        
-        // Refresh user data
-        setTimeout(() => {
-          fetchUserProfile();
-        }, 1000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Cập nhật thất bại!');
-      }
+      setSnackbar({
+        open: true,
+        message: 'Cập nhật thông tin thành công!',
+        severity: 'success'
+      });
+      
+      // Update avatar file state after successful save
+      setAvatarFile(null);
+      
+      // Update user info in localStorage to reflect in header
+      updateUserInfoInStorage(
+        profile.fullName, 
+        profile.avatarPreview || profile.avatar, 
+        profile.academicTitle,
+        profile.bio
+      );
+      
+      // Refresh user data
+      setTimeout(() => {
+        fetchUserProfile();
+      }, 1000);
     } catch (error) {
       console.error('Error updating profile:', error);
       setSnackbar({
@@ -429,6 +449,55 @@ export default function ProfilePage() {
                     }}
                   />
                 </Box>
+
+                {/* Consultant-specific fields */}
+                {profile.role && (profile.role.includes('ROLE_CONSULTANT') || profile.role === 'consultant') && (
+                  <>
+                    <Divider sx={{ mt: 2, mb: 2 }}>
+                      <Typography variant="subtitle1" color="primary">Thông tin tư vấn viên</Typography>
+                    </Divider>
+                    
+                    {/* Bio - full width */}
+                    <TextField
+                      fullWidth
+                      id="bio"
+                      name="bio"
+                      label="Tiểu sử"
+                      multiline
+                      rows={4}
+                      value={profile.bio || ''}
+                      onChange={handleChange}
+                      helperText="Giới thiệu về bản thân, kinh nghiệm và chuyên môn của bạn"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <DescriptionIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    
+                    {/* Certificates - full width */}
+                    <TextField
+                      fullWidth
+                      id="certificates"
+                      name="certificates"
+                      label="Chứng chỉ"
+                      multiline
+                      rows={3}
+                      value={profile.certificates || ''}
+                      onChange={handleChange}
+                      helperText="Liệt kê các chứng chỉ, bằng cấp của bạn (cách nhau bằng dấu phẩy)"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <SchoolIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </>
+                )}
               </Box>
 
               <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>

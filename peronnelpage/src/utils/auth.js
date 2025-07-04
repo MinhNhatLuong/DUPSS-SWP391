@@ -57,16 +57,52 @@ export const getRefreshToken = () => {
  * @param {Object} userInfo - Thông tin người dùng
  */
 export const setUserInfo = (userInfo) => {
-  localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  // Đảm bảo lưu tất cả các trường từ API response
+  const requiredFields = [
+    'id', 
+    'username', 
+    'email', 
+    'phone', 
+    'fullName', 
+    'gender',
+    'yob', 
+    'avatar', 
+    'role',
+    'address',
+    'bio',
+    'academicTitle',
+    'certificates'
+  ];
+   
+  // Lọc chỉ giữ lại các trường cần thiết từ đối tượng userInfo
+  const filteredInfo = {};
+  requiredFields.forEach(field => {
+    if (userInfo[field] !== undefined) {
+      filteredInfo[field] = userInfo[field];
+    }
+  });
+   
+  localStorage.setItem('userInfo', JSON.stringify(filteredInfo));
+   
+  // Kích hoạt sự kiện để thông báo cập nhật
+  const event = new CustomEvent('user-info-updated');
+  window.dispatchEvent(event);
 };
 
 /**
  * Lấy thông tin người dùng từ localStorage
- * @returns {Object|null} - Thông tin người dùng hoặc null nếu không có
+ * @returns {Object|null} - Thông tin người dùng hoặc null nếu không tìm thấy
  */
 export const getUserInfo = () => {
-  const userInfo = localStorage.getItem('userInfo');
-  return userInfo ? JSON.parse(userInfo) : null;
+  const userInfoStr = localStorage.getItem('userInfo');
+  if (!userInfoStr) return null;
+   
+  try {
+    return JSON.parse(userInfoStr);
+  } catch (error) {
+    console.error('Error parsing user info:', error);
+    return null;
+  }
 };
 
 /**
@@ -113,4 +149,28 @@ export const refreshAccessToken = async () => {
     logout();
     return false;
   }
+};
+
+/**
+ * Cập nhật thông tin người dùng trong localStorage
+ * @param {Object} profileData - Dữ liệu cập nhật
+ */
+export const updateUserProfile = (profileData) => {
+  const currentInfo = getUserInfo();
+  if (!currentInfo) return;
+   
+  // Kết hợp thông tin hiện tại với thông tin mới
+  const updatedInfo = {
+    ...currentInfo,
+    ...profileData
+  };
+   
+  // Lưu vào localStorage
+  localStorage.setItem('userInfo', JSON.stringify(updatedInfo));
+   
+  // Kích hoạt sự kiện custom để các component khác (như Header) biết có sự thay đổi
+  const event = new CustomEvent('user-profile-updated', {
+    detail: updatedInfo
+  });
+  document.dispatchEvent(event);
 }; 

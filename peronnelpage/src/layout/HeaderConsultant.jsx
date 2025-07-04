@@ -25,6 +25,17 @@ import {
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
+// Map học hàm/học vị sang định dạng hiển thị đầy đủ theo enum AcademicTitle
+const academicTitleMap = {
+  'GS': 'Giáo sư',
+  'PGS': 'Phó Giáo sư',
+  'TS': 'Tiến sĩ',
+  'ThS': 'Thạc sĩ',
+  'CN': 'Cử nhân',
+  'BS': 'Bác sĩ',
+  'TVV': 'Tư vấn viên',
+};
+
 const HeaderConsultant = ({ userName }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -40,7 +51,9 @@ const HeaderConsultant = ({ userName }) => {
       setUserInfo(prevInfo => ({
         ...prevInfo,
         fullName: updatedInfo.fullName || prevInfo?.fullName,
-        avatar: updatedInfo.avatar || prevInfo?.avatar
+        avatar: updatedInfo.avatar || prevInfo?.avatar,
+        academicTitle: updatedInfo.academicTitle || prevInfo?.academicTitle,
+        bio: updatedInfo.bio || prevInfo?.bio
       }));
     };
     
@@ -94,6 +107,18 @@ const HeaderConsultant = ({ userName }) => {
     return 'C';
   };
 
+  // Hiển thị tên đầy đủ với học hàm/học vị (nếu có)
+  const getFormattedName = () => {
+    const displayName = userName || 'Consultant';
+    const title = userInfo?.academicTitle;
+    
+    if (title && academicTitleMap[title]) {
+      return `${academicTitleMap[title]} ${displayName}`;
+    }
+    
+    return displayName;
+  };
+
   return (
     <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
       <Toolbar>
@@ -121,7 +146,7 @@ const HeaderConsultant = ({ userName }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName || 'Consultant'}
+            {getFormattedName()}
           </Typography>
           <IconButton
             onClick={handleClick}
