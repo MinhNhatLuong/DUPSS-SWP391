@@ -154,8 +154,6 @@ public class UserService implements CommandLineRunner {
 
 //    @PreAuthorize("isAuthenticated()")
     public UserDetailResponse getCurrentUserInfo(AccessTokenRequest accessToken) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
         String token = accessToken.getAccessToken();
 
         // Kiểm tra token hợp lệ
@@ -169,19 +167,42 @@ public class UserService implements CommandLineRunner {
 
 //         Giải mã token để lấy username
         String username = jwtService.getUsernameFromToken(token);
+//        return userRepository.findByUsernameAndEnabledTrue(username)
+//                .map(user -> UserDetailResponse.builder()
+//                        .id(user.getId())
+//                        .username(user.getUsername())
+//                        .email(user.getEmail())
+//                        .phone(user.getPhone())
+//                        .fullName(user.getFullname())
+//                        .gender(user.getGender())
+//                        .yob(user.getYob())
+//                        .avatar(user.getAvatar())
+//                        .address(user.getAddress())
+//                        .bio(user.getConsultantProfile().getBio())
+//                        .certificates(user.getConsultantProfile().getCertificates())
+//                        .academicTitle(user.getConsultantProfile().getAcademicTitle())
+//                        .role(user.getRole().name())
+//                        .build())
+//                .orElseThrow(() -> new RuntimeException("User not found"));
         return userRepository.findByUsernameAndEnabledTrue(username)
-                .map(user -> UserDetailResponse.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .phone(user.getPhone())
-                        .fullName(user.getFullname())
-                        .gender(user.getGender())
-                        .yob(user.getYob())
-                        .avatar(user.getAvatar())
-                        .address(user.getAddress())
-                        .role(user.getRole().name())
-                        .build())
+                .map(user -> {
+                    Consultant consultant = user.getConsultantProfile();
+                    return UserDetailResponse.builder()
+                            .id(user.getId())
+                            .username(user.getUsername())
+                            .email(user.getEmail())
+                            .phone(user.getPhone())
+                            .fullName(user.getFullname())
+                            .gender(user.getGender())
+                            .yob(user.getYob())
+                            .avatar(user.getAvatar())
+                            .address(user.getAddress())
+                            .bio(consultant != null ? consultant.getBio() : null)
+                            .certificates(consultant != null ? consultant.getCertificates() : null)
+                            .academicTitle(consultant != null ? consultant.getAcademicTitle() : null)
+                            .role(user.getRole().name())
+                            .build();
+                })
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
