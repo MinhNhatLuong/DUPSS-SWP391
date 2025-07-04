@@ -223,22 +223,37 @@ public class UserService implements CommandLineRunner {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-        if(request.getBio() != null) {
-            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
-                Consultant consultant = user.getConsultantProfile();
-                consultant.setBio(request.getBio());
-            } else {
-                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
-            }
-        }
+//        if(request.getBio() != null) {
+//            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
+//                Consultant consultant = user.getConsultantProfile();
+//                consultant.setBio(request.getBio());
+//            } else {
+//                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
+//            }
+//        }
+//
+//        if(request.getBio() != null) {
+//            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
+//                Consultant consultant = user.getConsultantProfile();
+//                consultant.setCertificates(request.getCertificates());
+//            } else {
+//                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
+//            }
+//        }
 
-        if(request.getBio() != null) {
-            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
-                Consultant consultant = user.getConsultantProfile();
-                consultant.setCertificates(request.getCertificates());
-            } else {
-                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
+        if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
+            Consultant consultant = user.getConsultantProfile();
+            if (request.getBio() != null) {
+                consultant.setBio(request.getBio());
             }
+            if (request.getCertificates() != null) {
+                consultant.setCertificates(request.getCertificates());
+            }
+            if (request.getAcademicTitle() != null) {
+                consultant.setAcademicTitle(request.getAcademicTitle());
+            }
+        } else if (request.getBio() != null || request.getCertificates() != null || request.getAcademicTitle() != null) {
+            throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
         }
 
         if (request.getRole() != null) {
@@ -261,6 +276,9 @@ public class UserService implements CommandLineRunner {
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
                 .address(updatedUser.getAddress())
+                .bio(updatedUser.getConsultantProfile().getBio())
+                .certificates(updatedUser.getConsultantProfile().getCertificates())
+                .academicTitle(updatedUser.getConsultantProfile().getAcademicTitle())
                 .role(updatedUser.getRole())
                 .message("Cập nhật người dùng thành công")
                 .build();

@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.dupss.app.BE_Dupss.entity.AcademicTitle;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,7 @@ public class UpdateUserResponse {
     //ìnformation for consultant profile
     private String bio;
     private String certificates;
+    private AcademicTitle academicTitle;
 
     private ERole role;
     private String message;

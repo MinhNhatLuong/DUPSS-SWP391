@@ -3,10 +3,10 @@ server:
 
 spring:
   application:
-    name: BE_Dupss
+    name: dupss_db
   profiles:
-    active: prod  # Chay trong moi truong production
-#    active: @spring.profiles.active@  . chay all moi truong (dev-test-prod)
+#    active: prod  # Chay trong moi truong production
+    active: @spring.profiles.active@  #. chay all moi truong (dev-test-prod)
 
 management:
   endpoints:

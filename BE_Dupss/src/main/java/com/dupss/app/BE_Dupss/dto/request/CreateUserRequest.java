@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
+import com.dupss.app.BE_Dupss.entity.AcademicTitle;
 import com.dupss.app.BE_Dupss.entity.ERole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -35,4 +36,9 @@ public class CreateUserRequest {
     
     @NotNull(message = "Role không được để trống")
     private ERole role;
+
+    // Thông tin cho hồ sơ tư vấn viên
+    private String bio;
+    private String certificates;
+    private AcademicTitle academicTitle;
 } 
