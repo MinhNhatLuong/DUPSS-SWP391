@@ -38,7 +38,7 @@ const statusMap = {
   all: 'Tất cả',
   CONFIRMED: 'Đã xác nhận',
   COMPLETED: 'Đã hoàn thành',
-  CANCELED: 'Đã hủy',
+  CANCELLED: 'Đã hủy',
 };
 
 const columns = [
@@ -161,7 +161,7 @@ export default function History() {
     switch (status) {
       case 'COMPLETED': return 'success';
       case 'CONFIRMED': return 'info';
-      case 'CANCELED': return 'error';
+      case 'CANCELLED': return 'error';
       default: return 'default';
     }
   };
