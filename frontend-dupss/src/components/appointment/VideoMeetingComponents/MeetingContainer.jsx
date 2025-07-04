@@ -394,7 +394,6 @@ const ParticipantView = (props) => {
       }}>
         <Typography variant="body2" color="white" sx={{ mr: 1 }}>
           {isLocal ? "Bạn" : displayName || "Khách"}
-          {screenShareOn && " (Đang chia sẻ màn hình)"}
         </Typography>
         {micOn ? <MicIcon fontSize="small" color="primary" /> : <MicOffIcon fontSize="small" color="error" />}
         {webcamOn ? <VideocamIcon fontSize="small" color="primary" sx={{ ml: 0.5 }} /> : <VideocamOffIcon fontSize="small" color="error" sx={{ ml: 0.5 }} />}
@@ -1104,22 +1103,6 @@ const MeetingContainer = ({ onMeetingLeave }) => {
             }}
           >
             {localWebcamOn ? <VideocamIcon /> : <VideocamOffIcon />}
-          </IconButton>
-        </Tooltip>
-        
-        <Tooltip title={localScreenShareOn ? "Dừng chia sẻ màn hình" : "Chia sẻ màn hình"}>
-          <IconButton
-            onClick={toggleScreenShare}
-            sx={{ 
-              p: 1.5,
-              bgcolor: localScreenShareOn ? 'warning.main' : 'grey.700',
-              color: 'white',
-              '&:hover': {
-                bgcolor: localScreenShareOn ? 'warning.dark' : 'grey.900',
-              }
-            }}
-          >
-            {localScreenShareOn ? <StopScreenShareIcon /> : <ScreenShareIcon />}
           </IconButton>
         </Tooltip>
         
