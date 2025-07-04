@@ -16,7 +16,7 @@ public class Consultant {
 
     private String certificates;
 
-    @Column(columnDefinition = "NVARCHAR(1000)")
+    @Column(columnDefinition = "NVARCHAR(5000)")
     private String bio;
 
     @Enumerated(EnumType.STRING)
