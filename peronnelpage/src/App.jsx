@@ -13,7 +13,6 @@ import HeaderConsultant from './layout/HeaderConsultant';
 import ConsultantDashboard from './pages/consultant/Dashboard';
 import Schedule from './pages/consultant/Schedule';
 import SlotRegistration from './pages/consultant/SlotRegistration';
-import BookingRequests from './pages/consultant/BookingRequests';
 import History from './pages/consultant/History';
 import HeaderStaff from './layout/HeaderStaff';
 import StaffDashboard from './pages/staff/Dashboard';
@@ -170,7 +169,6 @@ function App() {
                       <Route path="dashboard" element={<ConsultantDashboard />} />
                       <Route path="schedule" element={<Schedule />} />
                       <Route path="slot-registration" element={<SlotRegistration />} />
-                      <Route path="requests" element={<BookingRequests />} />
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="history" element={<History />} />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />

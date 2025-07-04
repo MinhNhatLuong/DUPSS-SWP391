@@ -83,7 +83,6 @@ const HeaderConsultant = ({ userName }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/consultant/dashboard' },
     { text: 'Lịch làm việc', icon: <CalendarMonthIcon />, path: '/consultant/schedule' },
     { text: 'Đăng ký slot', icon: <EventAvailableIcon />, path: '/consultant/slot-registration' },
-    { text: 'Yêu  cầu tư vấn', icon: <AssignmentIcon />, path: '/consultant/requests' },
     { text: 'Lịch sử', icon: <HistoryIcon />, path: '/consultant/history' },
   ];
 

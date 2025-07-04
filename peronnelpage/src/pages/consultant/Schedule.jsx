@@ -36,8 +36,17 @@ import apiClient from '../../services/apiService';
 dayjs.extend(weekOfYear);
 
 // Khung giờ từ 7h đến 24h (nửa đêm)
-const TIME_SLOTS = Array.from({ length: 18 }, (_, i) => 7 + i); // 7h-24h
-const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']; // Cả tuần
+const TIME_SLOTS = [
+  { id: 1, time: '8:00 - 9:00' },
+  { id: 2, time: '9:00 - 10:00' },
+  { id: 3, time: '10:00 - 11:00' },
+  { id: 4, time: '11:00 - 12:00' },
+  { id: 5, time: '13:00 - 14:00' },
+  { id: 6, time: '14:00 - 15:00' },
+  { id: 7, time: '15:00 - 16:00' },
+  { id: 8, time: '16:00 - 17:00' },
+];
+const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6']; // Thứ 2 đến thứ 6
 
 const statusColor = {
   CONFIRMED: 'info',
@@ -114,7 +123,7 @@ export default function Schedule() {
   const [consultantNote, setConsultantNote] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   
-  const weekDays = Array.from({ length: 7 }, (_, i) => weekStart.clone().add(i, 'day'));
+  const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.clone().add(i, 'day'));
 
   // Lấy dữ liệu từ API
   useEffect(() => {
@@ -130,74 +139,10 @@ export default function Schedule() {
     }
   }, [weekStart, selectedYear]);
   
-  // Kiểm tra và tự động hủy các cuộc hẹn quá 24 giờ
+  // Remove the useEffect for auto-cancellation after 24 hours
   useEffect(() => {
-    const checkExpiredAppointments = async () => {
-      const now = dayjs();
-      
-      // Kiểm tra từng cuộc hẹn
-      for (const appt of appointments) {
-        if (appt.status !== 'CONFIRMED') continue;
-        
-        // Chuyển đổi ngày và giờ hẹn sang đối tượng dayjs
-        const appointmentDate = dayjs(appt.appointmentDate, 'DD/MM/YYYY');
-        
-        let appointmentHour = 0;
-        let appointmentMinute = 0;
-        
-        if (typeof appt.appointmentTime === 'string') {
-          const timeParts = appt.appointmentTime.split(':');
-          appointmentHour = parseInt(timeParts[0]);
-          appointmentMinute = parseInt(timeParts[1]);
-        } else if (appt.appointmentTime && appt.appointmentTime.hour !== undefined) {
-          appointmentHour = appt.appointmentTime.hour || 0;
-          appointmentMinute = appt.appointmentTime.minute || 0;
-        }
-        
-        const appointmentDateTime = appointmentDate.hour(appointmentHour).minute(appointmentMinute);
-        const timeDiff = now.diff(appointmentDateTime, 'hour');
-        
-        // Nếu đã qua 24 giờ kể từ thời điểm hẹn và vẫn ở trạng thái CONFIRMED
-        if (timeDiff >= 24) {
-          try {
-            const userInfo = getUserInfo();
-            if (!userInfo || !userInfo.id) {
-              console.error('Không tìm thấy thông tin người dùng');
-              continue;
-            }
-            
-            // Tự động hủy cuộc hẹn dựa vào loại người dùng
-            if (appt.guest) {
-              // Sử dụng API hủy cho guest
-              await cancelGuestAppointment(appt);
-            } else {
-              // Sử dụng API hủy cho user
-              await cancelUserAppointment(appt);
-            }
-            
-            // Cập nhật danh sách lịch hẹn
-            setAppointments(prev => 
-              prev.map(item => item.id === appt.id ? { ...item, status: 'CANCELED' } : item)
-            );
-            
-            console.log(`Tự động hủy cuộc hẹn ID ${appt.id} sau 24 giờ`);
-          } catch (error) {
-            console.error(`Lỗi khi tự động hủy cuộc hẹn ID ${appt.id}:`, error);
-          }
-        }
-      }
-    };
-    
-    // Kiểm tra mỗi giờ
-    const timer = setInterval(checkExpiredAppointments, 3600000); // 1 giờ
-    
-    // Kiểm tra ngay khi danh sách cuộc hẹn thay đổi
-    if (appointments.length > 0) {
-      checkExpiredAppointments();
-    }
-    
-    return () => clearInterval(timer);
-  }, [appointments]);
+    fetchAppointments();
+  }, [weekStart]);
   
 
 
@@ -213,7 +158,8 @@ export default function Schedule() {
       const startDate = weekStart.format('YYYY-MM-DD');
       const endDate = weekStart.clone().add(6, 'day').format('YYYY-MM-DD');
 
-      const response = await apiClient.get(`/appointments/consultant/${userInfo.id}`, {
+      // Fetch appointments
+      const appointmentsResponse = await apiClient.get(`/appointments/consultant/${userInfo.id}`, {
         params: {
           startDate,
           endDate
@@ -223,7 +169,57 @@ export default function Schedule() {
         }
       });
       
-      setAppointments(response.data);
+      // Fetch registered slots for each day in the week
+      const slotsPromises = weekDays.map(async (day) => {
+        try {
+          const date = day.format('DD/MM/YYYY');
+          const response = await apiClient.get(`/public/slots/consultant/${userInfo.id}`, {
+            params: { date }
+          });
+          return response.data || [];
+        } catch (error) {
+          console.error(`Error fetching slots for ${day.format('DD/MM/YYYY')}:`, error);
+          return [];
+        }
+      });
+      
+      const allSlotsResponses = await Promise.all(slotsPromises);
+      // Flatten the array of arrays
+      const registeredSlots = allSlotsResponses.flat();
+      
+      // Convert registered slots to a format similar to appointments
+      const slotsAsAppointments = registeredSlots.map(slot => {
+        return {
+          ...slot,
+          id: slot.id || `slot-${Math.random().toString(36).substr(2, 9)}`,
+          isRegisteredSlot: true, // Mark as registered slot without appointment
+          appointmentDate: slot.date, // Ensure the date is properly set
+          appointmentTime: slot.startTime // Ensure the time is properly set
+        };
+      });
+      
+      // Merge appointments and slots, avoiding duplicates
+      // A slot is a duplicate if there's already an appointment at the same date and time
+      const mergedData = [...appointmentsResponse.data];
+      
+      slotsAsAppointments.forEach(slot => {
+        // Check if this slot already has an appointment
+        const hasAppointment = appointmentsResponse.data.some(appt => 
+          appt.appointmentDate === slot.appointmentDate && 
+          (
+            (typeof appt.appointmentTime === 'string' && appt.appointmentTime === slot.appointmentTime) ||
+            (appt.appointmentTime?.hour === parseInt(slot.appointmentTime.split(':')[0]) &&
+             appt.appointmentTime?.minute === parseInt(slot.appointmentTime.split(':')[1]))
+          )
+        );
+        
+        // If this slot doesn't have an appointment, add it to the merged data
+        if (!hasAppointment) {
+          mergedData.push(slot);
+        }
+      });
+      
+      setAppointments(mergedData);
       setError(null);
     } catch (err) {
       console.error('Error fetching appointments:', err);
@@ -303,13 +299,24 @@ export default function Schedule() {
   };
 
   // Tìm lịch hẹn cho từng ô
-  function findAppointment(day, hour) {
+  function findAppointment(day, slotId) {
     const dateString = day.format('DD/MM/YYYY');
     
+    // Map slotId to corresponding hour
+    let hour;
+    switch(slotId) {
+      case 1: hour = 8; break;  // 8:00 - 9:00
+      case 2: hour = 9; break;  // 9:00 - 10:00
+      case 3: hour = 10; break; // 10:00 - 11:00
+      case 4: hour = 11; break; // 11:00 - 12:00
+      case 5: hour = 13; break; // 13:00 - 14:00
+      case 6: hour = 14; break; // 14:00 - 15:00
+      case 7: hour = 15; break; // 15:00 - 16:00
+      case 8: hour = 16; break; // 16:00 - 17:00
+      default: return null;
+    }
+    
     return appointments.find(appt => {
-      // Bỏ qua các cuộc hẹn có trạng thái PENDING
-      if (appt.status === 'PENDING') return false;
-      
       // Parse the appointment time from the database format
       let appointmentHour = null;
       if (typeof appt.appointmentTime === 'string') {
@@ -829,7 +836,7 @@ export default function Schedule() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Lịch tư vấn (Cả tuần)
+        Lịch tư vấn (Thứ 2 - Thứ 6)
       </Typography>
       
       <Grid container spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
@@ -893,7 +900,7 @@ export default function Schedule() {
             <Table size="small" sx={{ minWidth: 900, tableLayout: 'fixed', borderRadius: 3 }}>
               <TableHead>
                 <TableRow sx={{ background: '#e3f2fd' }}>
-                  <TableCell sx={{ width: 70, fontWeight: 700, background: '#e3f2fd', color: '#1976d2', fontSize: 16 }}>Giờ</TableCell>
+                  <TableCell sx={{ width: 100, fontWeight: 700, background: '#e3f2fd', color: '#1976d2', fontSize: 16 }}>Slot</TableCell>
                   {weekDays.map((d, idx) => (
                     <TableCell key={idx} align="center" sx={{ fontWeight: 700, background: '#e3f2fd', color: '#1976d2', fontSize: 16 }}>
                       <div>{WEEK_DAYS[idx]}</div>
@@ -903,22 +910,33 @@ export default function Schedule() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {TIME_SLOTS.map((hour) => (
-                  <TableRow key={hour} sx={{ height: 60, '&:hover': { background: '#f1f8ff' } }}>
-                    <TableCell sx={{ fontWeight: 600, background: '#f5f5f5', fontSize: 15 }}>{hour}:00</TableCell>
+                {TIME_SLOTS.map((slot) => (
+                  <TableRow key={slot.id} sx={{ height: 60, '&:hover': { background: '#f1f8ff' } }}>
+                    <TableCell sx={{ fontWeight: 600, background: '#f5f5f5', fontSize: 15 }}>
+                      Slot {slot.id}
+                      <br />
+                      <span style={{ fontSize: '0.8rem', color: '#666' }}>{slot.time}</span>
+                    </TableCell>
                     {weekDays.map((d, idx) => {
-                      const appt = findAppointment(d, hour);
+                      const appt = findAppointment(d, slot.id);
                       const status = appt ? getAppointmentStatus(appt) : null;
+                      
+                      // Determine if the slot is registered but has no customer
+                      const isRegisteredOnly = appt && !appt.customerName;
+                      
                       return (
                         <TableCell key={idx} align="center" sx={{ p: 0, border: '1px solid #e3e3e3', borderLeft: 0, borderRight: 0 }}>
                           {appt ? (
-                            <Tooltip title={`${appt.topicName} - ${appt.customerName}`} arrow>
+                            <Tooltip title={isRegisteredOnly ? "Slot đã đăng ký" : `${appt.topicName || 'Không có chủ đề'} - ${appt.customerName || 'Chưa có khách hàng'}`} arrow>
                               <Box
                                 sx={{
-                                  bgcolor: '#e3f2fd',
-                                  border: `2px solid ${status === 'COMPLETED' ? '#388e3c' : 
-                                                      status === 'ongoing' ? '#ffa726' : 
-                                                      status === 'CANCELED' ? '#d32f2f' : '#42a5f5'}`,
+                                  bgcolor: isRegisteredOnly ? '#e8f5e9' : '#e3f2fd',
+                                  border: `2px solid ${
+                                    isRegisteredOnly ? '#81c784' : 
+                                    status === 'COMPLETED' ? '#388e3c' : 
+                                    status === 'ongoing' ? '#ffa726' : 
+                                    status === 'CANCELED' ? '#d32f2f' : '#42a5f5'
+                                  }`,
                                   color: '#222',
                                   borderRadius: 2,
                                   px: 1,
@@ -936,28 +954,39 @@ export default function Schedule() {
                                 }}
                                 onClick={() => setDialog({ open: true, appt })}
                               >
-                                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{appt.customerName}</div>
-                                <div style={{ fontSize: 13, color: '#1976d2', marginBottom: 2 }}>{appt.topicName}</div>
-                                <div style={{ fontSize: 12, color: '#666', marginBottom: 2 }}>
-                                  {formatTime(appt.appointmentTime)} - {
-                                    typeof appt.appointmentTime === 'string' 
-                                      ? (() => {
-                                          const parts = appt.appointmentTime.split(':');
-                                          const hour = parseInt(parts[0]);
-                                          return `${(hour + 1).toString().padStart(2, '0')}:${parts[1]}`;
-                                        })()
-                                      : formatTime({
-                                          hour: (appt.appointmentTime?.hour || 0) + 1,
-                                          minute: appt.appointmentTime?.minute || 0
-                                        })
-                                  }
-                                </div>
-                                <Chip
-                                  label={statusLabel[status] || status}
-                                  color={statusColor[status] || 'default'}
-                                  size="small"
-                                  sx={{ mt: 0.5 }}
-                                />
+                                {isRegisteredOnly ? (
+                                  // Display for registered slot without customer
+                                  <>
+                                    <div style={{ fontWeight: 600, fontSize: 15 }}>Slot đã đăng ký</div>
+                                    <div style={{ fontSize: 13, color: '#388e3c' }}>Sẵn sàng nhận khách</div>
+                                  </>
+                                ) : (
+                                  // Display for booked appointments
+                                  <>
+                                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{appt.customerName}</div>
+                                    <div style={{ fontSize: 13, color: '#1976d2', marginBottom: 2 }}>{appt.topicName}</div>
+                                    <div style={{ fontSize: 12, color: '#666', marginBottom: 2 }}>
+                                      {formatTime(appt.appointmentTime)} - {
+                                        typeof appt.appointmentTime === 'string' 
+                                          ? (() => {
+                                              const parts = appt.appointmentTime.split(':');
+                                              const hour = parseInt(parts[0]);
+                                              return `${(hour + 1).toString().padStart(2, '0')}:${parts[1]}`;
+                                            })()
+                                          : formatTime({
+                                              hour: (appt.appointmentTime?.hour || 0) + 1,
+                                              minute: appt.appointmentTime?.minute || 0
+                                            })
+                                      }
+                                    </div>
+                                    <Chip
+                                      label={statusLabel[status] || status}
+                                      color={statusColor[status] || 'default'}
+                                      size="small"
+                                      sx={{ mt: 0.5 }}
+                                    />
+                                  </>
+                                )}
                               </Box>
                             </Tooltip>
                           ) : null}
@@ -973,64 +1002,94 @@ export default function Schedule() {
       )}
       
       <Dialog open={dialog.open} onClose={() => setDialog({ open: false, appt: null })} maxWidth="sm" fullWidth>
-        <DialogTitle>Chi tiết lịch hẹn</DialogTitle>
+        <DialogTitle>
+          {dialog.appt?.isRegisteredSlot ? 'Chi tiết slot đã đăng ký' : 'Chi tiết lịch hẹn'}
+        </DialogTitle>
         <DialogContent>
           {dialog.appt && (
             <Box>
-              <Typography sx={{ mb: 1 }}><b>Khách hàng:</b> {dialog.appt.customerName}</Typography>
-              <Typography sx={{ mb: 1 }}><b>Email:</b> {dialog.appt.email || 'Không có'}</Typography>
-              <Typography sx={{ mb: 1 }}><b>Số điện thoại:</b> {dialog.appt.phoneNumber || 'Không có'}</Typography>
-              <Typography sx={{ mb: 1 }}><b>Chủ đề tư vấn:</b> {dialog.appt.topicName}</Typography>
-              <Typography sx={{ mb: 1 }}>
-                <b>Thời gian:</b> {formatTime(dialog.appt.appointmentTime)} - {
-                  typeof dialog.appt.appointmentTime === 'string' 
-                    ? (() => {
-                        const parts = dialog.appt.appointmentTime.split(':');
-                        const hour = parseInt(parts[0]);
-                        return `${(hour + 1).toString().padStart(2, '0')}:${parts[1]}`;
-                      })()
-                    : formatTime({
-                        hour: (dialog.appt.appointmentTime?.hour || 0) + 1,
-                        minute: dialog.appt.appointmentTime?.minute || 0
-                      })
-                } {dialog.appt.appointmentDate}
-              </Typography>
-              <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> {statusLabel[getAppointmentStatus(dialog.appt)] || dialog.appt.status}</Typography>
-              
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
-                {/* Nút 1: vào cuộc hẹn */}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleStartAppointment(dialog.appt.id)}
-                  disabled={!canStartAppointment(dialog.appt)}
-                  sx={{ 
-                    opacity: canStartAppointment(dialog.appt) ? 1 : 0.5
-                  }}
-                >
-                  {canStartAppointment(dialog.appt) ? 'vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
-                </Button>
-                
-                {/* Nút 2: Hoàn thành */}
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => handleComplete(dialog.appt)}
-                  disabled={dialog.appt.status !== 'CONFIRMED'}
-                >
-                  Hoàn thành
-                </Button>
-                
-                {/* Nút 3: Hủy bỏ */}
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleCancel(dialog.appt)}
-                  disabled={dialog.appt.status !== 'CONFIRMED' && dialog.appt.status !== 'PENDING'}
-                >
-                  Hủy bỏ
-                </Button>
-              </Box>
+              {dialog.appt.isRegisteredSlot ? (
+                // Display for registered slot without customer
+                <>
+                  <Typography sx={{ mb: 1 }}><b>Ngày:</b> {dialog.appt.appointmentDate}</Typography>
+                  <Typography sx={{ mb: 1 }}>
+                    <b>Giờ:</b> {formatTime(dialog.appt.appointmentTime)} - {
+                      typeof dialog.appt.appointmentTime === 'string' 
+                        ? (() => {
+                            const parts = dialog.appt.appointmentTime.split(':');
+                            const hour = parseInt(parts[0]);
+                            return `${(hour + 1).toString().padStart(2, '0')}:${parts[1]}`;
+                          })()
+                        : formatTime({
+                            hour: (dialog.appt.appointmentTime?.hour || 0) + 1,
+                            minute: dialog.appt.appointmentTime?.minute || 0
+                          })
+                    }
+                  </Typography>
+                  <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> Sẵn sàng nhận khách</Typography>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Slot này đã được đăng ký và sẵn sàng cho khách hàng đặt lịch.
+                  </Alert>
+                </>
+              ) : (
+                // Display for booked appointments
+                <>
+                  <Typography sx={{ mb: 1 }}><b>Khách hàng:</b> {dialog.appt.customerName}</Typography>
+                  <Typography sx={{ mb: 1 }}><b>Email:</b> {dialog.appt.email || 'Không có'}</Typography>
+                  <Typography sx={{ mb: 1 }}><b>Số điện thoại:</b> {dialog.appt.phoneNumber || 'Không có'}</Typography>
+                  <Typography sx={{ mb: 1 }}><b>Chủ đề tư vấn:</b> {dialog.appt.topicName}</Typography>
+                  <Typography sx={{ mb: 1 }}>
+                    <b>Thời gian:</b> {formatTime(dialog.appt.appointmentTime)} - {
+                      typeof dialog.appt.appointmentTime === 'string' 
+                        ? (() => {
+                            const parts = dialog.appt.appointmentTime.split(':');
+                            const hour = parseInt(parts[0]);
+                            return `${(hour + 1).toString().padStart(2, '0')}:${parts[1]}`;
+                          })()
+                        : formatTime({
+                            hour: (dialog.appt.appointmentTime?.hour || 0) + 1,
+                            minute: dialog.appt.appointmentTime?.minute || 0
+                          })
+                    } {dialog.appt.appointmentDate}
+                  </Typography>
+                  <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> {statusLabel[getAppointmentStatus(dialog.appt)] || dialog.appt.status}</Typography>
+                  
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
+                    {/* Nút 1: vào cuộc hẹn */}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleStartAppointment(dialog.appt.id)}
+                      disabled={!canStartAppointment(dialog.appt)}
+                      sx={{ 
+                        opacity: canStartAppointment(dialog.appt) ? 1 : 0.5
+                      }}
+                    >
+                      {canStartAppointment(dialog.appt) ? 'vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
+                    </Button>
+                    
+                    {/* Nút 2: Hoàn thành */}
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={() => handleComplete(dialog.appt)}
+                      disabled={dialog.appt.status !== 'CONFIRMED'}
+                    >
+                      Hoàn thành
+                    </Button>
+                    
+                    {/* Nút 3: Hủy bỏ */}
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleCancel(dialog.appt)}
+                      disabled={dialog.appt.status !== 'CONFIRMED' && dialog.appt.status !== 'PENDING'}
+                    >
+                      Hủy bỏ
+                    </Button>
+                  </Box>
+                </>
+              )}
             </Box>
           )}
         </DialogContent>

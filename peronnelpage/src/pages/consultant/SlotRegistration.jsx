@@ -72,7 +72,7 @@ const TIME_SLOTS = [
 ];
 
 // Day names in Vietnamese
-const DAY_NAMES = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+const DAY_NAMES = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'];
 
 export default function SlotRegistration() {
   const [weekStart, setWeekStart] = useState(getStartOfWeek(dayjs()));
@@ -80,13 +80,19 @@ export default function SlotRegistration() {
   const [weeksInYear, setWeeksInYear] = useState(getWeeksInYear(selectedYear));
   const [registeredSlots, setRegisteredSlots] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [slotDialog, setSlotDialog] = useState({ open: false, day: null, date: null });
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [registering, setRegistering] = useState(false);
   
+  // Add state for confirmation dialog
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    open: false, 
+    date: null, 
+    slot: null 
+  });
+
   // Generate weekdays from weekStart
-  const weekDays = Array.from({ length: 6 }, (_, i) => weekStart.clone().add(i, 'day'));
+  const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.clone().add(i, 'day'));
   
   // Update weeks list when year changes
   useEffect(() => {
@@ -216,30 +222,41 @@ export default function SlotRegistration() {
     });
   };
 
-  // Open dialog to register a new slot
-  const openSlotDialog = (day, date) => {
-    setSlotDialog({ open: true, day, date });
-    setSelectedSlot(null);
+  // Open confirmation dialog for slot registration
+  const handleRegisterConfirmation = (date, slot) => {
+    setConfirmDialog({
+      open: true,
+      date: date,
+      slot: slot
+    });
   };
 
-  // Close slot dialog
-  const closeSlotDialog = () => {
-    setSlotDialog({ open: false, day: null, date: null });
-    setSelectedSlot(null);
+  // Close confirmation dialog
+  const closeConfirmDialog = () => {
+    setConfirmDialog({
+      open: false,
+      date: null,
+      slot: null
+    });
+    setSelectedTimeSlot(null);
   };
 
-  // Handle slot selection
-  const handleSlotSelect = (slot) => {
-    setSelectedSlot(slot);
+  // Handle direct slot selection
+  const handleSlotSelect = (slot, day) => {
+    if (!isSlotRegistered(day, slot.start.hour)) {
+      setSelectedTimeSlot(slot);
+      // Open confirmation directly
+      handleRegisterConfirmation(day, slot);
+    }
   };
 
   // Register a new slot
   const registerSlot = async () => {
-    if (!selectedSlot || !slotDialog.date) return;
+    if (!confirmDialog.slot || !confirmDialog.date) return;
     
     // Lưu lại ngày và slot đã chọn để cập nhật UI ngay lập tức
-    const selectedDate = slotDialog.date;
-    const selectedSlotTime = selectedSlot;
+    const selectedDate = confirmDialog.date;
+    const selectedSlotTime = confirmDialog.slot;
     
     setRegistering(true);
     try {
@@ -280,7 +297,7 @@ export default function SlotRegistration() {
       });
       
       // Close dialog trước
-      closeSlotDialog();
+      closeConfirmDialog();
       
       // Refresh lại toàn bộ danh sách từ server ngay lập tức
       await fetchRegisteredSlots();
@@ -373,12 +390,19 @@ export default function SlotRegistration() {
                 {DAY_NAMES[index]} ({day.format('DD/MM/YYYY')})
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ p: 3, bgcolor: '#f5f5f5' }}>
-              <Grid container spacing={2}>
+            <AccordionDetails sx={{ p: 3, pb: 3, bgcolor: '#f5f5f5' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
                 {TIME_SLOTS.map((slot, slotIndex) => {
-                                     const isRegistered = isSlotRegistered(day, slot.start.hour);
+                  const isRegistered = isSlotRegistered(day, slot.start.hour);
+                  
                   return (
-                    <Grid item xs={12} sm={6} md={3} key={slotIndex}>
+                    <Box 
+                      key={slotIndex} 
+                      sx={{ 
+                        width: 'calc(25% - 12px)', 
+                        mb: 2 
+                      }}
+                    >
                       {isRegistered ? (
                         <Button
                           disabled
@@ -401,88 +425,67 @@ export default function SlotRegistration() {
                         </Button>
                       ) : (
                         <Button 
-                          variant="outlined"
+                          variant={selectedTimeSlot === slot ? "contained" : "outlined"}
                           fullWidth
                           sx={{
                             p: 2,
                             minHeight: 60,
                             borderRadius: 2,
-                            borderColor: '#1976d2',
-                            color: '#1976d2',
+                            borderColor: selectedTimeSlot === slot ? '#1976d2' : '#c0c0c0',
+                            backgroundColor: selectedTimeSlot === slot ? '#e3f2fd' : '#f5f5f5',
+                            color: selectedTimeSlot === slot ? '#1976d2' : '#666',
+                            fontWeight: selectedTimeSlot === slot ? 'bold' : 'normal',
                             '&:hover': {
                               bgcolor: '#e3f2fd',
-                              borderColor: '#1976d2'
+                              borderColor: '#1976d2',
+                              color: '#1976d2'
                             }
                           }}
-                          onClick={() => openSlotDialog(DAY_NAMES[index], day)}
+                          onClick={() => handleSlotSelect(slot, day)}
                         >
-                          Thêm slot
+                          {slot.label}
                         </Button>
                       )}
-                    </Grid>
+                    </Box>
                   );
                 })}
-              </Grid>
+              </Box>
             </AccordionDetails>
           </Accordion>
         ))}
       </Box>
       
-      {/* Slot registration dialog */}
-      <Dialog open={slotDialog.open} onClose={closeSlotDialog} maxWidth="sm" fullWidth>
+      {/* Confirmation dialog */}
+      <Dialog open={confirmDialog.open} onClose={closeConfirmDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          Chọn slot tư vấn cho {slotDialog.day} ({slotDialog.date?.format('DD/MM/YYYY')})
+          Xác nhận đăng ký slot
         </DialogTitle>
         <DialogContent sx={{ pb: 4 }}>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            {TIME_SLOTS.map((slot, index) => {
-              const isRegistered = slotDialog.date && isSlotRegistered(slotDialog.date, slot.start.hour);
-              return (
-                <Grid item xs={12} sm={6} key={index}>
-                  {isRegistered ? (
-                    <Button
-                      disabled
-                      sx={{
-                        bgcolor: '#f5f5f5',
-                        border: '1px solid #e0e0e0',
-                        borderRadius: 1,
-                        p: 1.5,
-                        minHeight: 40,
-                        color: '#9e9e9e',
-                        '&.Mui-disabled': {
-                          color: '#9e9e9e'
-                        }
-                      }}
-                      fullWidth
-                    >
-                      {slot.label}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant={selectedSlot === slot ? "contained" : "outlined"}
-                      fullWidth
-                      onClick={() => handleSlotSelect(slot)}
-                      sx={{ 
-                        p: 1.5
-                      }}
-                    >
-                      {slot.label}
-                    </Button>
-                  )}
-                </Grid>
-              );
-            })}
-          </Grid>
+          {confirmDialog.slot && confirmDialog.date && (
+            <Box sx={{ pt: 1 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                Bạn có muốn đăng ký slot này không?
+              </Typography>
+              <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderRadius: 1, mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  <strong>Thời gian:</strong> {confirmDialog.slot.label}
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  <strong>Ngày:</strong> {confirmDialog.date.format('DD/MM/YYYY')}
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={closeSlotDialog}>Hủy</Button>
+          <Button onClick={closeConfirmDialog}>Hủy</Button>
           <Button 
             variant="contained" 
             onClick={registerSlot}
-            disabled={!selectedSlot || registering}
+            disabled={registering}
             startIcon={registering && <CircularProgress size={20} color="inherit" />}
           >
-            {registering ? 'Đang đăng ký...' : 'Đăng ký'}
+            {registering ? 'Đang đăng ký...' : 'Xác nhận đăng ký'}
           </Button>
         </DialogActions>
       </Dialog>
