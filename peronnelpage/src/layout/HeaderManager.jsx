@@ -159,6 +159,12 @@ const HeaderManager = ({ userName }) => {
             </ListItemIcon>
             Profile
           </MenuItem>
+          <MenuItem onClick={() => navigate('/manager/change-password')}>
+            <ListItemIcon>
+              <Settings fontSize="small" />
+            </ListItemIcon>
+            Đổi mật khẩu
+          </MenuItem>
           <Divider />
           <MenuItem onClick={handleLogout} disabled={loggingOut}>
             <ListItemIcon>

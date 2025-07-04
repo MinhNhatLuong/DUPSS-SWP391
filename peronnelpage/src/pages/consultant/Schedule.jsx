@@ -51,7 +51,7 @@ const WEEK_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6']; // Thứ 2 đến thứ 6
 const statusColor = {
   CONFIRMED: 'info',
   COMPLETED: 'success',
-  CANCELED: 'error',
+  CANCELLED: 'error',
   PENDING: 'default',
   ongoing: 'warning',
 };
@@ -59,7 +59,7 @@ const statusColor = {
 const statusLabel = {
   CONFIRMED: 'Đã xác nhận',
   COMPLETED: 'Đã hoàn thành',
-  CANCELED: 'Đã hủy',
+  CANCELLED: 'Đã hủy',
   PENDING: 'Chờ xác nhận',
   ongoing: 'Đang diễn ra',
 };
@@ -673,7 +673,7 @@ export default function Schedule() {
 
         // Cập nhật danh sách lịch hẹn
         setAppointments(prev => 
-          prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'CANCELED' } : appt)
+          prev.map(appt => appt.id === appointmentId ? { ...appt, status: 'CANCELLED' } : appt)
         );
       }
       
@@ -935,7 +935,7 @@ export default function Schedule() {
                                     isRegisteredOnly ? '#81c784' : 
                                     status === 'COMPLETED' ? '#388e3c' : 
                                     status === 'ongoing' ? '#ffa726' : 
-                                    status === 'CANCELED' ? '#d32f2f' : '#42a5f5'
+                                    status === 'CANCELLED' ? '#d32f2f' : '#42a5f5'
                                   }`,
                                   color: '#222',
                                   borderRadius: 2,

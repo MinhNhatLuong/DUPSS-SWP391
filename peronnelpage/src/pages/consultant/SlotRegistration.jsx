@@ -90,7 +90,7 @@ export default function SlotRegistration() {
     date: null, 
     slot: null 
   });
-
+  
   // Generate weekdays from weekStart
   const weekDays = Array.from({ length: 5 }, (_, i) => weekStart.clone().add(i, 'day'));
   
@@ -393,7 +393,7 @@ export default function SlotRegistration() {
             <AccordionDetails sx={{ p: 3, pb: 3, bgcolor: '#f5f5f5' }}>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
                 {TIME_SLOTS.map((slot, slotIndex) => {
-                  const isRegistered = isSlotRegistered(day, slot.start.hour);
+                                     const isRegistered = isSlotRegistered(day, slot.start.hour);
                   
                   return (
                     <Box 

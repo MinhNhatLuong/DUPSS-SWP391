@@ -20,6 +20,7 @@ import CreateBlog from './pages/staff/CreateBlog';
 import CreateCourse from './pages/staff/CreateCourse';
 import CreateSurvey from './pages/staff/CreateSurvey';
 import ProfilePage from './pages/ProfilePage';
+import ChangePassword from './pages/ChangePassword';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
@@ -126,6 +127,7 @@ function App() {
                     <Routes>
                       <Route path="dashboard" element={<AdminPage />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="change-password" element={<ChangePassword />} />
                       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -149,6 +151,7 @@ function App() {
                       <Route path="history" element={<HistoryManager />} />
                       <Route path="topics" element={<Topic />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="change-password" element={<ChangePassword />} />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -170,6 +173,7 @@ function App() {
                       <Route path="schedule" element={<Schedule />} />
                       <Route path="slot-registration" element={<SlotRegistration />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="change-password" element={<ChangePassword />} />
                       <Route path="history" element={<History />} />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
                     </Routes>
@@ -193,6 +197,7 @@ function App() {
                       <Route path="create-course" element={<CreateCourse />} />
                       <Route path="create-survey" element={<CreateSurvey />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="change-password" element={<ChangePassword />} />
                       <Route path="*" element={<Navigate to="/staff/dashboard" replace />} />
                     </Routes>
                   </main>
