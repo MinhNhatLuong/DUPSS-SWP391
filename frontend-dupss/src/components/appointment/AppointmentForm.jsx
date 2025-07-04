@@ -241,6 +241,12 @@ const AppointmentForm = () => {
         setShowConsultantSelector(true);
         // Reset browser history state
         window.history.replaceState(null, '', window.location.pathname);
+        
+        // Scroll to top after successful booking
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       } catch (error) {
         // Set processing state to false on error
         setIsProcessing(false);
