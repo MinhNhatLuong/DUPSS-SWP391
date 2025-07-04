@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,6 +76,14 @@ public class SlotServiceImpl implements SlotService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
 
         List<Slot> slots = slotRepository.findByConsultantAndDateAndAvailable(consultant, date, true);
+
+        if (date.equals(LocalDate.now())) {
+            LocalTime now = LocalTime.now();
+            slots = slots.stream()
+                    .filter(slot -> slot.getStartTime().isAfter(now))
+                    .toList();
+        }
+
         return slots.stream()
                 .map(this::mapToResponseDto)
                 .toList();
