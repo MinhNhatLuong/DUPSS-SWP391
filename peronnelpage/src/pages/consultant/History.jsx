@@ -27,9 +27,11 @@ import {
   Button,
   Rating,
   Grid,
+  Link,
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import LinkIcon from '@mui/icons-material/Link';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import axios from 'axios';
 import { getUserInfo } from '../../utils/auth';
 import apiClient from '../../services/apiService';
@@ -121,19 +123,8 @@ export default function History() {
           }
         });
         
-        // Process the response data
-        const history = response.data.map(item => ({
-          id: item.id,
-          clientName: item.fullName || item.email || 'Khách hàng',
-          date: item.appointmentDate,
-          time: item.timeSlot,
-          status: item.status,
-          topic: item.topicName || 'Chưa xác định',
-          feedback: item.feedback || null,
-          rating: item.rating || null
-        }));
-        
-        setAppointments(history);
+        // The response data is already in the correct format, so we can use it directly
+        setAppointments(response.data || []);
       } catch (error) {
         console.error('Error fetching history:', error);
         setError(error.message || 'Đã xảy ra lỗi khi tải lịch sử');
@@ -168,8 +159,20 @@ export default function History() {
 
   const formatTime = (timeObj) => {
     if (!timeObj) return '';
-    if (typeof timeObj === 'string') return timeObj;
+    
+    if (typeof timeObj === 'string') {
+      // Handle string time format
+      const parts = timeObj.split(':');
+      if (parts.length >= 2) {
+        return `${parts[0]}:${parts[1]}`;
+      }
+      return timeObj;
+    }
+    
+    // Handle object with hour, minute
     const { hour, minute } = timeObj;
+    if (hour === undefined || minute === undefined) return '';
+    
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   };
 
@@ -178,8 +181,13 @@ export default function History() {
     // If already in DD/MM/YYYY format, return as is
     if (dateStr.includes('/')) return dateStr;
     // Otherwise format it
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN');
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('vi-VN');
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return dateStr;
+    }
   };
 
   // Format datetime for check-in, check-out
@@ -300,22 +308,22 @@ export default function History() {
                   </TableRow>
                 ) : (
                   sortedRows.map(row => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.clientName}</TableCell>
+                    <TableRow key={row.id} hover>
+                      <TableCell>{row.customerName}</TableCell>
                       <TableCell>{row.email || '—'}</TableCell>
                       <TableCell>{row.phoneNumber || '—'}</TableCell>
                       <TableCell>
-                        {formatDate(row.date)} {formatTime(row.time)}
+                        {formatDate(row.appointmentDate)} {formatTime(row.appointmentTime)}
                       </TableCell>
-                      <TableCell>{row.topic}</TableCell>
+                      <TableCell>{row.topicName}</TableCell>
                       <TableCell>{formatDateTime(row.checkInTime)}</TableCell>
                       <TableCell>{formatDateTime(row.checkOutTime)}</TableCell>
                       <TableCell>
-                        {row.rating ? (
+                        {row.reviewScore > 0 ? (
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Rating value={row.rating} readOnly size="small" precision={0.5} />
+                            <Rating value={row.reviewScore} readOnly size="small" precision={0.5} />
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                              ({row.rating})
+                              ({row.reviewScore})
                             </Typography>
                           </Box>
                         ) : '—'}
@@ -361,45 +369,67 @@ export default function History() {
                   Thông tin chung
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2"><strong>Khách hàng:</strong> {detailDialog.appointment.clientName}</Typography>
-                    <Typography variant="body2"><strong>Email:</strong> {detailDialog.appointment.email || '—'}</Typography>
-                    <Typography variant="body2"><strong>Số điện thoại:</strong> {detailDialog.appointment.phoneNumber || '—'}</Typography>
-                    <Typography variant="body2">
-                      <strong>Thời gian:</strong> {formatDate(detailDialog.appointment.date)} {formatTime(detailDialog.appointment.time)}
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Khách hàng:</strong> {detailDialog.appointment.customerName}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Email:</strong> {detailDialog.appointment.email || '—'}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Số điện thoại:</strong> {detailDialog.appointment.phoneNumber || '—'}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      <strong>Thời gian:</strong> {formatDate(detailDialog.appointment.appointmentDate)} {formatTime(detailDialog.appointment.appointmentTime)}
                     </Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Loại khách:</strong> {detailDialog.appointment.guest ? 'Khách vãng lai' : 'Người dùng đã đăng ký'}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2"><strong>Chủ đề:</strong> {detailDialog.appointment.topic}</Typography>
-                    <Typography variant="body2"><strong>Trạng thái:</strong> {statusMap[detailDialog.appointment.status] || detailDialog.appointment.status}</Typography>
-                    <Typography variant="body2"><strong>Check-in:</strong> {formatDateTime(detailDialog.appointment.checkInTime)}</Typography>
-                    <Typography variant="body2"><strong>Check-out:</strong> {formatDateTime(detailDialog.appointment.checkOutTime)}</Typography>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Chủ đề:</strong> {detailDialog.appointment.topicName}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Trạng thái:</strong> {statusMap[detailDialog.appointment.status] || detailDialog.appointment.status}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Check-in:</strong> {formatDateTime(detailDialog.appointment.checkInTime)}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}><strong>Check-out:</strong> {formatDateTime(detailDialog.appointment.checkOutTime)}</Typography>
+                    {detailDialog.appointment.linkGoogleMeet && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                        <VideocamIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                        <Link href={detailDialog.appointment.linkGoogleMeet} target="_blank" rel="noopener">
+                          Link phòng họp
+                        </Link>
+                      </Box>
+                    )}
                   </Grid>
                 </Grid>
               </Box>
               
-              {detailDialog.appointment.feedback && (
+              {detailDialog.appointment.consultantNote && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                    Đánh giá từ khách hàng
+                    Ghi chú của tư vấn viên
                   </Typography>
-                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
+                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f5f7fa' }}>
                     <Typography variant="body2">
-                      {detailDialog.appointment.feedback}
+                      {detailDialog.appointment.consultantNote}
                     </Typography>
                   </Paper>
                 </Box>
               )}
               
-              {detailDialog.appointment.rating > 0 && (
+              {detailDialog.appointment.customerReview && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Phản hồi từ khách hàng
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
+                    <Typography variant="body2">
+                      {detailDialog.appointment.customerReview}
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+              
+              {detailDialog.appointment.reviewScore > 0 && (
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                     Đánh giá từ khách hàng
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Rating value={detailDialog.appointment.rating} readOnly precision={0.5} />
+                    <Rating value={detailDialog.appointment.reviewScore} readOnly precision={0.5} />
                     <Typography variant="body2" sx={{ ml: 1 }}>
-                      ({detailDialog.appointment.rating}/5)
+                      ({detailDialog.appointment.reviewScore}/5)
                     </Typography>
                   </Box>
                 </Box>
