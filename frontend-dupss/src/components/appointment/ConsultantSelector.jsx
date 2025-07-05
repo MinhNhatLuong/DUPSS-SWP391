@@ -268,11 +268,11 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                     alt={consultant.consultantName}
                     sx={{ width: 120, height: 120, mb: 2 }}
                   />
-                  <Typography variant="h6" component="h2" sx={{ fontWeight: 600, textAlign: 'center' }}>
+                  <Typography variant="h6" component="h2" sx={{ fontWeight: 600, textAlign: 'center', color: '#0056b3' }}>
                     {consultant.consultantName}
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="#000000" sx={{textAlign: 'justify'}}>
                   {consultant.bio}
                 </Typography>
               </Box>

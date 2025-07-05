@@ -170,10 +170,10 @@ export default function ProfilePage() {
         throw new Error('Không tìm thấy access token');
       }
       
-      // Prepare FormData for multipart/form-data submission (for avatar upload)
+      // Prepare FormData for multipart/form-data submission
       const formData = new FormData();
       
-      // Add required fields
+      // Add required fields with correct field names matching the API
       formData.append('fullname', profile.fullName);
       formData.append('email', profile.email);
       formData.append('phone', profile.phone || '');
@@ -206,10 +206,9 @@ export default function ProfilePage() {
         formData.append('avatar', avatarFile);
       }
       
-      // Send update request
-      const response = await apiClient.patch('/auth/update-profile', formData, {
+      // Send update request with multipart/form-data content type
+      const response = await apiClient.patch('/auth/me', formData, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -239,7 +238,7 @@ export default function ProfilePage() {
       console.error('Error updating profile:', error);
       setSnackbar({
         open: true,
-        message: error.message || 'Không thể cập nhật thông tin. Vui lòng thử lại sau.',
+        message: error.response?.data?.message || 'Không thể cập nhật thông tin. Vui lòng thử lại sau.',
         severity: 'error'
       });
     } finally {

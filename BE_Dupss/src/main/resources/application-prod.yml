@@ -76,7 +76,7 @@ app:
 
 jwt:
   secret-key: dupssSecretKey123456789012345678901234567890123456789012345678901234567890
-  secretKey: abc1prod  # (dành riêng cho môi trường prod nếu khác với jwt.secret-key)
+#  secretKey: abc1prod  # (dành riêng cho môi trường prod nếu khác với jwt.secret-key)
 
 cloudinary:
   name: dxkvlbzzu

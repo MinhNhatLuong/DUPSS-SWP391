@@ -83,7 +83,7 @@ app:
 
 jwt:
   secret-key: dupssSecretKey123456789012345678901234567890123456789012345678901234567890
-  secretKey: abctest  # (Giữ lại giá trị test nếu bạn cần dùng riêng cho môi trường test)
+
 
 cloudinary:
   name: dxkvlbzzu

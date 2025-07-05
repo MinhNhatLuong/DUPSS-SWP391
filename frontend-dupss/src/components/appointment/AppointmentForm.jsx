@@ -205,7 +205,7 @@ const AppointmentForm = () => {
         }
         
         // Generate meeting URL
-        const meetingUrl = `https://dupss.vercel.app/appointment/${meetingId}/meeting`;
+        const meetingUrl = `http://localhost:5173/appointment/${meetingId}/meeting`;
         
         // Format the data for API
         const appointmentData = {
