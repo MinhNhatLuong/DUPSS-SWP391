@@ -32,7 +32,7 @@ public class AppointmentRequestDto {
 //    @JsonFormat(pattern = "HH:mm")
 //    private LocalTime appointmentTime;
 
-    private String meetingUrl;
+    private String videoCallId;
     
     @NotNull(message = "Chủ đề tư vấn không được để trống")
     private Long topicId;

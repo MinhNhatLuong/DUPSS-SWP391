@@ -41,20 +41,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
         }
 
-//        LocalDateTime appointmentDateTime = LocalDateTime.of(requestDto.getAppointmentDate(), requestDto.getAppointmentTime());
-//        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
-//            throw new IllegalArgumentException("Không được chọn ngày giờ trong quá khứ");
-//        }
-//
-//        boolean isDuplicated = appointmentRepository.existsByDateTimeAndStatusNotCancelled(
-//                requestDto.getAppointmentDate(),
-//                requestDto.getAppointmentTime()
-//        );
-
-//        if (isDuplicated) {
-//            throw new IllegalArgumentException("Đã có cuộc hẹn tại thời điểm này. Vui lòng chọn thời gian khác.");
-//        }
-
         Slot selectedSlot = slotRepository.findById(requestDto.getSlotId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy slot với ID: " + requestDto.getSlotId()));
 
@@ -98,10 +84,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus("CONFIRMED");
         selectedSlot.setAvailable(false);
         slotRepository.save(selectedSlot);
-
-        appointment.setLinkMeet(requestDto.getMeetingUrl());
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        String videoCallId = requestDto.getVideoCallId();
+        String meetingLink = "https://dupss.vercel.app/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+        savedAppointment.setLinkMeet(meetingLink);
+
+        savedAppointment = appointmentRepository.save(savedAppointment);
+
         try {
             emailService.sendAppointmentConfirmation(savedAppointment);
         } catch (Exception ex) {

@@ -252,8 +252,8 @@ public class UserService implements CommandLineRunner {
 //                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
 //            }
 //        }
-//
-//        if(request.getBio() != null) {
+////
+//        if(request.getCertificates() != null) {
 //            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
 //                Consultant consultant = user.getConsultantProfile();
 //                consultant.setCertificates(request.getCertificates());
