@@ -593,7 +593,7 @@ const ParticipantsPanel = ({ participants }) => {
 };
 
 // Main meeting container
-const MeetingContainer = ({ onMeetingLeave }) => {
+const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant }) => {
   const [chatOpen, setChatOpen] = useState(false);
   const [participantsOpen, setParticipantsOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
@@ -882,6 +882,14 @@ const MeetingContainer = ({ onMeetingLeave }) => {
     return participantIds;
   })();
 
+  // Handle end meeting
+  const handleLeave = () => {
+    // First call the SDK leave function
+    leave();
+    // Then call our custom handler
+    onMeetingLeave();
+  };
+
   return (
     <Box sx={{ 
       height: 'calc(100vh - 150px)', 
@@ -1140,9 +1148,9 @@ const MeetingContainer = ({ onMeetingLeave }) => {
           </IconButton>
         </Tooltip>
         
-        <Tooltip title="Kết thúc cuộc họp">
+        <Tooltip title={isConsultant ? "Hoàn thành buổi tư vấn" : "Kết thúc cuộc họp"}>
           <IconButton
-            onClick={leave}
+            onClick={handleLeave}
             sx={{ 
               p: 1.5,
               bgcolor: 'error.main',

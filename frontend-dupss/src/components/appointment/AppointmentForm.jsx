@@ -204,9 +204,6 @@ const AppointmentForm = () => {
           throw new Error(err || 'Không thể tạo cuộc họp video');
         }
         
-        // Generate meeting URL
-        const meetingUrl = `http://localhost:5173/appointment/${meetingId}/meeting`;
-        
         // Format the data for API
         const appointmentData = {
           customerName: formData.fullName,
@@ -214,7 +211,7 @@ const AppointmentForm = () => {
           email: formData.email,
           topicId: parseInt(formData.topicId),
           slotId: parseInt(formData.slotId),
-          meetingUrl: meetingUrl,
+          videoCallId: meetingId,
           userId: userId // Include userId (will be null if not logged in)
         };
 
