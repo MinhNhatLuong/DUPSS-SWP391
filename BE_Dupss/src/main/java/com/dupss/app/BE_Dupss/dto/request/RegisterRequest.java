@@ -35,7 +35,7 @@ public class RegisterRequest {
     @NotEmpty(message = "Xac nhận mật khẩu không được để trống")
     private String confirmPassword;
 
-    @NotEmpty(message = "Full name cannot be empty")
+    @NotEmpty(message = "Họ và tên không được để trống")
     private String fullname;
 
     private String gender;
