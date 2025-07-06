@@ -26,8 +26,10 @@ public class RegisterRequest {
             message = "Username phải có ít nhất 1 chữ cái và 1 số, không chứa khoảng trắng hoặc ký tự đặc biệt")
     private String username;
 
-    @NotEmpty(message = "Password cannot be empty")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @NotEmpty(message = "mât khẩu không được để trống")
+    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$",
+             message = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một số và một ký tự đặc biệt")
     private String password;
 
     @NotEmpty(message = "Confirm password cannot be empty")
