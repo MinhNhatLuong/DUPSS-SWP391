@@ -290,13 +290,19 @@ export default function ConsultantDashboard() {
         }
       });
       
-      // Open Google Meet link from response or fallback to generated link
-      if (response.data && response.data.linkGoogleMeet) {
-        window.open(response.data.linkGoogleMeet, '_blank');
-      } else {
-        // Fallback to a dummy Google Meet link based on appointment ID
-        window.open(`https://meet.google.com/${appointment.id}`, '_blank');
-      }
+      // Get videoCallId from response or use a fallback
+      const videoCallId = response.data?.videoCallId || appointment.videoCallId || appointment.id;
+      
+      // Use origin to determine base URL
+      const origin = window.location.origin;
+      const baseUrl = origin.includes('localhost') || origin.includes(':3000') || origin.includes(':8000') 
+        ? 'http://localhost:5173' // Redirect to frontend-dupss dev server
+        : origin.replace('staff.', ''); // In production, redirect to main site
+        
+      // Open meeting URL with the correct format
+      const meetingUrl = `${baseUrl}/appointment/${appointment.id}/meeting/${videoCallId}`;
+      console.log('Opening meeting URL:', meetingUrl);
+      window.open(meetingUrl, '_blank');
     } catch (err) {
       console.error('Error starting appointment:', err);
       alert('Không thể bắt đầu buổi tư vấn: ' + (err.response?.data?.message || err.message));

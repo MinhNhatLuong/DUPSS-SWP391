@@ -73,7 +73,7 @@ function App() {
             <AppointmentReview />
           </Layout>
         } />
-        <Route path="/appointment/:videoCallId/meeting" element={
+        <Route path="/appointment/:appointmentId/meeting/:videoCallId" element={
           <Layout>
             <VideoMeeting />
           </Layout>

@@ -30,7 +30,8 @@ const JoiningScreen = ({
   setWebcamOn,
   onClickStartMeeting,
   setCustomAudioStream,
-  setCustomVideoStream
+  setCustomVideoStream,
+  isConsultant
 }) => {
   const [cameraDevices, setCameraDevices] = useState([]);
   const [microphoneDevices, setMicrophoneDevices] = useState([]);
@@ -307,7 +308,7 @@ const JoiningScreen = ({
             onClick={handleJoinMeeting}
             sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
           >
-            Vào buổi tư vấn
+            {isConsultant ? 'Bắt đầu buổi tư vấn' : 'Vào buổi tư vấn'}
           </Button>
         </Box>
       </Paper>
