@@ -43,8 +43,8 @@ public class RegisterRequest {
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate yob;
 
-    @NotEmpty(message = "Email cannot be empty")
-    @Email(message = "Email should be valid")
+    @NotEmpty(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
     private String email;
 
     @Pattern(regexp = "(84|0[3|5|7|8|9])+([0-9]{8})\\b", message = "Phone invalid!!" )
