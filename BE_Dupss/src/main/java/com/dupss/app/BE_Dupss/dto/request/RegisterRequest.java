@@ -20,8 +20,10 @@ import lombok.NoArgsConstructor;
 @PasswordMatch
 public class RegisterRequest {
 
-    @NotEmpty(message = "Username cannot be empty")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotEmpty(message = "Tên đăng nhập không được để trống")
+    @Size(min = 3, max = 50, message = "Tên đăng nhập phải từ 3 đến 50 ký tự")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]$",
+            message = "Username phải có ít nhất 1 chữ cái và 1 số, không chứa khoảng trắng hoặc ký tự đặc biệt")
     private String username;
 
     @NotEmpty(message = "Password cannot be empty")
