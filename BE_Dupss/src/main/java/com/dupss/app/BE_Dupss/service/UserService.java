@@ -244,26 +244,9 @@ public class UserService implements CommandLineRunner {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-//        if(request.getBio() != null) {
-//            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
-//                Consultant consultant = user.getConsultantProfile();
-//                consultant.setBio(request.getBio());
-//            } else {
-//                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
-//            }
-//        }
-////
-//        if(request.getCertificates() != null) {
-//            if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
-//                Consultant consultant = user.getConsultantProfile();
-//                consultant.setCertificates(request.getCertificates());
-//            } else {
-//                throw new RuntimeException("Bạn không có quyền thay đổi thông tin này");
-//            }
-//        }
-
         if(user.getRole().equals(ERole.ROLE_CONSULTANT) || isAdmin){
             Consultant consultant = user.getConsultantProfile();
+
             if (request.getBio() != null) {
                 consultant.setBio(request.getBio());
             }
@@ -286,6 +269,7 @@ public class UserService implements CommandLineRunner {
         }
 
         User updatedUser = userRepository.save(user);
+        Consultant consultant = updatedUser.getConsultantProfile();
         log.info("Admin updated user: {}", updatedUser.getUsername());
 
         return UpdateUserResponse.builder()
@@ -297,9 +281,9 @@ public class UserService implements CommandLineRunner {
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
                 .address(updatedUser.getAddress())
-                .bio(updatedUser.getConsultantProfile().getBio())
-                .certificates(updatedUser.getConsultantProfile().getCertificates())
-                .academicTitle(updatedUser.getConsultantProfile().getAcademicTitle())
+                .bio(consultant != null ? consultant.getBio() : null)
+                .certificates(consultant != null ? consultant.getCertificates() : null)
+                .academicTitle(consultant != null ? consultant.getAcademicTitle() : null)
                 .role(updatedUser.getRole())
                 .message("Cập nhật người dùng thành công")
                 .build();
