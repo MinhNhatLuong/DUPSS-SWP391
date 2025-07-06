@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: datdev/dupss:2.0.0
+    container_name: dupss-frontend
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+    networks:
+      - dupss-network
+
+networks:
+  dupss-network:
+    driver: bridge
