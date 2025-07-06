@@ -32,7 +32,7 @@ public class RegisterRequest {
              message = "Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một số và một ký tự đặc biệt")
     private String password;
 
-    @NotEmpty(message = "Confirm password cannot be empty")
+    @NotEmpty(message = "Xac nhận mật khẩu không được để trống")
     private String confirmPassword;
 
     @NotEmpty(message = "Full name cannot be empty")
