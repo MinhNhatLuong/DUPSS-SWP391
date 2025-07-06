@@ -390,7 +390,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Cập nhật thời gian bắt đầu
-        appointment.setCheckInTime(java.time.LocalDateTime.now());
+        if(appointment.getAppointmentTime() == null){
+            appointment.setCheckInTime(java.time.LocalDateTime.now());
+        }
+        appointment.setStatus("ON_GOING");
         
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
@@ -545,6 +548,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private boolean isValidStatus(String status) {
         return status.equals("PENDING") ||
+                status.equals("ON_GOING") ||
                 status.equals("CONFIRMED") ||
                 status.equals("CANCELLED") ||
                 status.equals("COMPLETED");
