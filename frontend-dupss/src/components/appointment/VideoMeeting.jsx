@@ -39,6 +39,11 @@ const VideoMeeting = () => {
   const [customAudioStream, setCustomAudioStream] = useState(null);
   const [customVideoStream, setCustomVideoStream] = useState(null);
 
+  // Add useEffect to monitor changes to openStartDialog
+  useEffect(() => {
+    console.log("openStartDialog changed:", openStartDialog);
+  }, [openStartDialog]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -112,20 +117,116 @@ const VideoMeeting = () => {
     try {
       setLoading(true);
       
-      // If user is a consultant, show confirmation dialog before joining
+      // If user is a consultant, check appointment status before deciding on dialog
       if (isConsultant) {
-        setOpenStartDialog(true);
-        setLoading(false);
-        return;
+        // Check appointment status first
+        let appointmentData;
+        try {
+          appointmentData = await checkAppointmentStatus();
+          console.log("Current appointment status:", appointmentData.status);
+          console.log("Status comparison:", {
+            actualStatus: appointmentData.status,
+            expectedStatus: 'CONFIRMED'
+          });
+          
+          // Force status comparison as string with strict equality
+          const appointmentStatus = String(appointmentData.status).toUpperCase();
+          const confirmedStatus = 'CONFIRMED';
+          
+          console.log("Normalized status:", appointmentStatus);
+          console.log("Is exactly CONFIRMED:", appointmentStatus === confirmedStatus);
+          
+          // Only show confirmation dialog if status is CONFIRMED
+          // For other statuses, just join the meeting directly
+          if (appointmentStatus === confirmedStatus) {
+            console.log("Should show start dialog now");
+            // Set loading to false first
+            setLoading(false);
+            // Ensure dialog opens with a slight delay to avoid race conditions
+            setTimeout(() => {
+              setOpenStartDialog(true);
+            }, 100);
+            return;
+          } else {
+            // For other statuses, join directly
+            console.log(`Joining meeting directly as status is ${appointmentData.status}`);
+            setIsMeetingStarted(true);
+            setError("");
+            setLoading(false);
+            return;
+          }
+        } catch (statusError) {
+          console.error("Failed to check appointment status:", statusError);
+          appointmentData = { status: "UNKNOWN" };
+          // If status check fails, default to showing dialog
+          setLoading(false);
+          setTimeout(() => {
+            setOpenStartDialog(true);
+          }, 100);
+          return;
+        }
       }
       
       console.log(`Joining meeting ${meetingId} as ${participantName}`);
       setIsMeetingStarted(true);
       setError("");
+      setLoading(false);
     } catch (error) {
       console.error("Error joining meeting:", error);
       setError("Không thể tham gia cuộc họp");
       setLoading(false);
+    }
+  };
+
+  // Function to check appointment status
+  const checkAppointmentStatus = async () => {
+    try {
+      const userData = getUserData();
+      if (!userData || !userData.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+      
+      console.log("Checking appointment status for ID:", appointmentId);
+      
+      // Get access token from localStorage
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        console.error("No access token available");
+        return { status: "UNKNOWN" };
+      }
+
+      console.log("Making direct API call to check appointment status");
+      
+      // Make a direct API call with explicit headers
+      const response = await fetch(`${API_URL}/appointments/${appointmentId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("API response status:", response.status);
+      
+      if (!response.ok) {
+        console.error(`API error: ${response.status} ${response.statusText}`);
+        return { status: "UNKNOWN" };
+      }
+      
+      const data = await response.json();
+      console.log("Full appointment data:", data);
+      
+      if (!data || !data.status) {
+        console.warn("Invalid data format from API");
+        return { status: "UNKNOWN" };
+      }
+      
+      console.log("Appointment status from API:", data.status);
+      return data;
+    } catch (error) {
+      console.error("Error checking appointment status:", error);
+      // Return a default object instead of throwing error
+      return { status: "UNKNOWN" };
     }
   };
 
@@ -139,16 +240,37 @@ const VideoMeeting = () => {
       if (!userData || !userData.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
+
+      // Check appointment status first
+      let appointmentData;
+      try {
+        appointmentData = await checkAppointmentStatus();
+      } catch (statusError) {
+        console.error("Failed to check appointment status:", statusError);
+        appointmentData = { status: "UNKNOWN" };
+      }
       
-      console.log('Starting appointment with ID:', appointmentId);
-      console.log('Consultant ID:', userData.id);
+      // Only call start API if appointment status is CONFIRMED
+      // Backend only allows starting appointments with CONFIRMED status
+      if (appointmentData.status === 'CONFIRMED') {
+        console.log('Starting appointment with ID:', appointmentId);
+        console.log('Consultant ID:', userData.id);
+        
+        // Use apiService instead of direct axios call for proper authentication handling
+        await apiService.put(`/appointments/${appointmentId}/start?consultantId=${userData.id}`, {});
+        showSuccessAlert('Bắt đầu buổi tư vấn thành công!');
+      } else if (appointmentData.status === 'ON_GOING') {
+        // If appointment is already ongoing, just join without calling API
+        console.log('Appointment is already in ON_GOING status, joining directly');
+      } else if (appointmentData.status === 'COMPLETED') {
+        // If appointment is completed, just join without calling API
+        console.log('Appointment is already COMPLETED, joining directly');
+      } else {
+        // For any other status, show warning but allow joining
+        console.warn(`Appointment has status ${appointmentData.status}, which might cause issues`);
+      }
       
-      // Use apiService instead of direct axios call for proper authentication handling
-      await apiService.put(`/appointments/${appointmentId}/start?consultantId=${userData.id}`, {});
-      
-      showSuccessAlert('Bắt đầu buổi tư vấn thành công!');
-      
-      // Start the meeting
+      // Start the meeting regardless of status
       console.log(`Joining meeting ${meetingId} as ${participantName} (consultant)`);
       setIsMeetingStarted(true);
       setError("");
@@ -165,7 +287,20 @@ const VideoMeeting = () => {
 
   const handleEndMeeting = () => {
     if (isConsultant) {
-      setOpenEndDialog(true);
+      // Check appointment status before showing end dialog
+      checkAppointmentStatus().then(appointmentData => {
+        // Only show end dialog if status is ON_GOING
+        if (appointmentData.status === 'ON_GOING') {
+          setOpenEndDialog(true);
+        } else {
+          // For other statuses, just leave directly
+          handleOnMeetingLeave();
+        }
+      }).catch(error => {
+        console.error("Error checking status before ending:", error);
+        // If error checking status, just show dialog to be safe
+        setOpenEndDialog(true);
+      });
     } else {
       handleOnMeetingLeave();
     }
@@ -181,16 +316,29 @@ const VideoMeeting = () => {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
       
-      console.log('Ending appointment with ID:', appointmentId);
-      console.log('Consultant ID:', userData.id);
-      console.log('With consultant note:', consultantNote ? 'Yes' : 'No');
+      // Check appointment status first
+      let appointmentData;
+      try {
+        appointmentData = await checkAppointmentStatus();
+      } catch (statusError) {
+        console.error("Failed to check appointment status:", statusError);
+        appointmentData = { status: "UNKNOWN" };
+      }
       
-      // Use apiService instead of direct axios call for proper authentication handling
-      await apiService.put(`/appointments/${appointmentId}/end?consultantId=${userData.id}`, {
-        consultantNote
-      });
+      // Only call end API if appointment is not already COMPLETED
+      if (appointmentData.status === 'ON_GOING') {
+        console.log('Ending appointment with ID:', appointmentId);
+        console.log('Consultant ID:', userData.id);
+        console.log('With consultant note:', consultantNote ? 'Yes' : 'No');
+        
+        // Use apiService instead of direct axios call for proper authentication handling
+        await apiService.put(`/appointments/${appointmentId}/end?consultantId=${userData.id}`, {
+          consultantNote
+        });
+        
+        showSuccessAlert('Hoàn thành buổi tư vấn thành công!');
+      }
       
-      showSuccessAlert('Hoàn thành buổi tư vấn thành công!');
       handleOnMeetingLeave();
     } catch (error) {
       console.error("Error ending appointment:", error);
