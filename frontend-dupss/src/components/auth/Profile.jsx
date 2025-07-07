@@ -922,7 +922,7 @@ const Profile = () => {
                             variant="contained"
                             color="error"
                             size="small"
-                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'ON_GOING'}
+                            disabled={appointment.status === 'COMPLETED' || appointment.status === 'CANCELLED' || appointment.status === 'ON_GOING'}
                             onClick={() => handleCancelClick(appointment.id)}
                             sx={{fontWeight: 600}}
                           >

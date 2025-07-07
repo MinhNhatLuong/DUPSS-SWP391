@@ -178,6 +178,43 @@ const VideoMeeting = () => {
     }
   };
 
+  // Function to refresh access token using refresh token
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      
+      console.log("Attempting to refresh access token");
+      
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to refresh token: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.accessToken) {
+        console.log("Successfully refreshed access token");
+        localStorage.setItem('accessToken', data.accessToken);
+        return data.accessToken;
+      } else {
+        throw new Error('Invalid response from refresh token API');
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      throw error;
+    }
+  };
+
   // Function to check appointment status
   const checkAppointmentStatus = async () => {
     try {
@@ -188,15 +225,27 @@ const VideoMeeting = () => {
       
       console.log("Checking appointment status for ID:", appointmentId);
       
-      // Get access token from localStorage
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        console.error("No access token available");
-        return { status: "UNKNOWN" };
-      }
+      // Try to get appointment status, with token refresh if needed
+      return await fetchAppointmentWithTokenRefresh();
+    } catch (error) {
+      console.error("Error checking appointment status:", error);
+      // Return a default object instead of throwing error
+      return { status: "UNKNOWN" };
+    }
+  };
+  
+  // Helper function to fetch appointment with token refresh if needed
+  const fetchAppointmentWithTokenRefresh = async (isRetry = false) => {
+    // Get access token from localStorage
+    let accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      console.error("No access token available");
+      return { status: "UNKNOWN" };
+    }
 
-      console.log("Making direct API call to check appointment status");
-      
+    console.log("Making API call to check appointment status");
+    
+    try {
       // Make a direct API call with explicit headers
       const response = await fetch(`${API_URL}/appointments/${appointmentId}`, {
         method: 'GET',
@@ -207,6 +256,20 @@ const VideoMeeting = () => {
       });
       
       console.log("API response status:", response.status);
+      
+      // If unauthorized and not already retrying, try refreshing token
+      if (response.status === 401 && !isRetry) {
+        console.log("Unauthorized error. Attempting to refresh token and retry...");
+        try {
+          // Get new access token
+          accessToken = await refreshAccessToken();
+          // Retry the call with new token
+          return await fetchAppointmentWithTokenRefresh(true);
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          return { status: "UNKNOWN" };
+        }
+      }
       
       if (!response.ok) {
         console.error(`API error: ${response.status} ${response.statusText}`);
@@ -224,8 +287,7 @@ const VideoMeeting = () => {
       console.log("Appointment status from API:", data.status);
       return data;
     } catch (error) {
-      console.error("Error checking appointment status:", error);
-      // Return a default object instead of throwing error
+      console.error("Error in fetchAppointmentWithTokenRefresh:", error);
       return { status: "UNKNOWN" };
     }
   };
@@ -478,11 +540,11 @@ const VideoMeeting = () => {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle id="end-dialog-title">
+        <DialogTitle sx={{fontWeight: 600, color: '#0056b3'}}  id="end-dialog-title">
           Xác nhận hoàn thành buổi tư vấn
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{fontWeight: 600, color: '#0056b3'}} gutterBottom>
+          <DialogContentText sx={{color: '#000000'}} gutterBottom>
             Bạn muốn kết thúc buổi tư vấn này? Hệ thống sẽ cập nhật trạng thái buổi tư vấn thành "Đã hoàn thành".
           </DialogContentText>
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
