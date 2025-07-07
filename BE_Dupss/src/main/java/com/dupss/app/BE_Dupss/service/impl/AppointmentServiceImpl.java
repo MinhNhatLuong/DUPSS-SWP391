@@ -390,7 +390,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Cập nhật thời gian bắt đầu
-        if(appointment.getAppointmentTime() == null){
+        if(appointment.getCheckInTime() == null){
             appointment.setCheckInTime(java.time.LocalDateTime.now());
         }
         appointment.setStatus("ON_GOING");
