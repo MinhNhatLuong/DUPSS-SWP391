@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -473,6 +474,23 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Kiểm tra trạng thái cuộc hẹn
         if (!appointment.getStatus().equals("CONFIRMED") && !appointment.getStatus().equals("PENDING")) {
             throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn đang chờ hoặc đã xác nhận");
+        }
+
+
+        //co the commment dong nay neu muon bo qua kiem tra thoi gian
+        // Kiểm tra thời gian: chỉ cho phép hủy sau 5 phút kể từ khi tạo cuộc hẹn
+        // Ước tính thời gian tạo cuộc hẹn là trước thời gian hẹn 1 giờ
+        LocalDateTime estimatedCreatedTime = LocalDateTime.of(
+                appointment.getAppointmentDate(),
+                appointment.getAppointmentTime()).minusHours(1);
+
+        LocalDateTime now = LocalDateTime.now();
+        Duration timeSinceCreated = Duration.between(estimatedCreatedTime, now);
+
+        if (timeSinceCreated.toMinutes() < 5) {
+            long remainingMinutes = 5 - timeSinceCreated.toMinutes();
+            throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn sau 5 phút kể từ khi tạo. " +
+                    "Vui lòng chờ thêm " + remainingMinutes + " phút nữa.");
         }
 
         // Lưu trạng thái cũ
