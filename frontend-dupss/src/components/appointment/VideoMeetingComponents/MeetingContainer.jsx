@@ -17,6 +17,12 @@ import {
   Avatar,
   Badge,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextareaAutosize
 } from '@mui/material';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
@@ -28,6 +34,10 @@ import PeopleIcon from '@mui/icons-material/People';
 import ScreenShareIcon from '@mui/icons-material/ScreenShare';
 import StopScreenShareIcon from '@mui/icons-material/StopScreenShare';
 import SendIcon from '@mui/icons-material/Send';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { API_URL } from '../../../services/config';
+import { getUserData } from '../../../services/authService';
+import { showSuccessAlert, showErrorAlert } from '../../../components/common/AlertNotification';
 
 // Hàm tạo màu ngẫu nhiên nhưng nhất quán cho mỗi người dùng
 const getAvatarColor = (id, name) => {
@@ -599,6 +609,9 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
   const [chatMessages, setChatMessages] = useState([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [activeSidebar, setActiveSidebar] = useState(null); // 'chat' | 'participants' | null
+  const [isAlone, setIsAlone] = useState(true); // Track if consultant is alone
+  const [openCancelDialog, setOpenCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   
   const { 
     localParticipant,
@@ -683,16 +696,25 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
       id,
       name: participants.get(id).displayName
     })));
+    
+    // Update isAlone state when participants join
+    updateAloneStatus();
   }
   
   function participantLeft(participant) {
     console.log(`Participant left: ${participant.id} (${participant.displayName})`);
     console.log(`Remaining participants: ${participants.size}`);
+    
+    // Update isAlone state when participants leave
+    updateAloneStatus();
   }
   
   function meetingJoined() {
     console.log(`Meeting joined successfully! Meeting ID: ${meetingId}`);
     console.log(`Local participant: ${localParticipant?.id} (${localParticipant?.displayName})`);
+    
+    // Update isAlone state when meeting starts
+    updateAloneStatus();
   }
   
   function meetingLeft() {
@@ -845,18 +867,34 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
       if (!addedNames.has(p.displayName)) {
         addedNames.add(p.displayName);
         list.push({
-      id: p.id,
-      displayName: p.displayName,
-      isLocal: false,
-      micOn: p.micOn,
-      webcamOn: p.webcamOn
+          id: p.id,
+          displayName: p.displayName,
+          isLocal: false,
+          micOn: p.micOn,
+          webcamOn: p.webcamOn
         });
       }
     });
     
+    // Don't update state here during render - this causes infinite loops
+    // Instead, we'll use a useEffect to update the isAlone state
+    
     return list;
   })();
   
+  // Use useEffect to update isAlone state whenever participant count changes
+  useEffect(() => {
+    const uniqueParticipantCount = participantList.length;
+    setIsAlone(uniqueParticipantCount <= 1);
+  }, [participantList.length]);
+  
+  // Helper function to update alone status - don't update state here
+  const updateAloneStatus = () => {
+    // This function is called from event handlers, so we won't update state directly
+    // The useEffect above will handle state updates when participant count changes
+    console.log("Participant status changed, current count:", participants.size);
+  };
+
   // Log participants for debugging
   useEffect(() => {
     console.log("Filtered participant list:", participantList);
@@ -888,6 +926,92 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
     leave();
     // Then call our custom handler
     onMeetingLeave();
+  };
+
+  // Handle cancel meeting (for consultants only)
+  const handleCancelMeeting = () => {
+    setOpenCancelDialog(true);
+  };
+  
+  const handleConfirmCancelMeeting = async () => {
+    try {
+      setOpenCancelDialog(false);
+      
+      // Get user data directly from JWT token using authService
+      const userData = getUserData();
+      if (!userData || !userData.id) {
+        throw new Error('Không thể lấy thông tin người dùng từ token. Vui lòng đăng nhập lại.');
+      }
+      
+      // Extract the numeric user ID
+      const userId = userData.id;
+      console.log('Using user ID from JWT token:', userId);
+      
+      // Get access token
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+      }
+      
+      // Extract appointmentId from URL
+      let appointmentId = null;
+      const pathParts = window.location.pathname.split('/');
+      
+      // Search for 'appointments' or 'video' in the path
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        if (pathParts[i] === 'appointments' || pathParts[i] === 'appointment') {
+          appointmentId = pathParts[i + 1];
+          break;
+        } else if (pathParts[i] === 'video') {
+          appointmentId = pathParts[i + 1];
+          break;
+        }
+      }
+      
+      if (!appointmentId) {
+        // Try URL parameters as fallback
+        const urlParams = new URLSearchParams(window.location.search);
+        appointmentId = urlParams.get('appointmentId');
+      }
+      
+      if (!appointmentId) {
+        throw new Error('Không tìm thấy ID cuộc hẹn từ đường dẫn.');
+      }
+      
+      console.log('Cancelling appointment with ID:', appointmentId);
+      console.log('Consultant ID:', userId);
+      console.log('Cancellation reason:', cancelReason);
+      
+      // Make API call to cancel appointment
+      const response = await fetch(`${API_URL}/appointments/${appointmentId}/cancel/consultant?consultantId=${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason: cancelReason || "Không có lý do"
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Lỗi khi hủy cuộc hẹn');
+      }
+      
+      // Show success alert
+      showSuccessAlert('Hủy cuộc hẹn thành công!');
+      
+      // Success - leave meeting
+      leave();
+      onMeetingLeave();
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      showErrorAlert('Không thể hủy cuộc hẹn: ' + (error.message || 'Lỗi không xác định'));
+      // Still leave the meeting
+      leave();
+      onMeetingLeave();
+    }
   };
 
   return (
@@ -1148,22 +1272,97 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
           </IconButton>
         </Tooltip>
         
+        {/* Cancel appointment button - only for consultants and only when alone */}
+        {isConsultant && (
+          <Tooltip title="Hủy cuộc hẹn">
+            <span>
+              <IconButton
+                onClick={handleCancelMeeting}
+                disabled={!isAlone}
+                sx={{ 
+                  p: 1.5,
+                  bgcolor: 'warning.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'warning.dark',
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: 'grey.400',
+                    color: 'grey.100'
+                  }
+                }}
+              >
+                <CancelIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        
         <Tooltip title={isConsultant ? "Hoàn thành buổi tư vấn" : "Kết thúc cuộc họp"}>
-          <IconButton
-            onClick={handleLeave}
-            sx={{ 
-              p: 1.5,
-              bgcolor: 'error.main',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'error.dark',
-              }
-            }}
-          >
-            <CallEndIcon />
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={handleLeave}
+              disabled={isConsultant && isAlone}
+              sx={{ 
+                p: 1.5,
+                bgcolor: 'error.main',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: 'error.dark',
+                },
+                '&.Mui-disabled': {
+                  bgcolor: 'grey.400',
+                  color: 'grey.100'
+                }
+              }}
+            >
+              <CallEndIcon />
+            </IconButton>
+          </span>
         </Tooltip>
       </Paper>
+      
+      {/* Cancel Meeting Dialog */}
+      <Dialog
+        open={openCancelDialog}
+        onClose={() => setOpenCancelDialog(false)}
+        aria-labelledby="cancel-dialog-title"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{fontWeight: 600, color: '#0056b3'}} id="cancel-dialog-title">
+          Xác nhận hủy cuộc hẹn
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{color: '#000000'}} gutterBottom>
+            Bạn muốn hủy cuộc hẹn này? Hệ thống sẽ cập nhật trạng thái cuộc hẹn thành "Đã hủy".
+          </DialogContentText>
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+            Lí do:
+          </Typography>
+          <TextareaAutosize
+            minRows={4}
+            style={{ 
+              width: '100%', 
+              padding: '10px', 
+              borderRadius: '4px', 
+              border: '1px solid #ccc',
+              marginTop: '8px'
+            }}
+            placeholder="Nhập lí do hủy cuộc hẹn..."
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCancelDialog(false)} color="primary">
+            Đóng
+          </Button>
+          <Button onClick={handleConfirmCancelMeeting} color="primary" variant="contained">
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
