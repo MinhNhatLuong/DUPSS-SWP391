@@ -14,17 +14,24 @@ import {
   Box,
   Card,
   CardContent,
-  Alert
+  Alert,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import GridOnIcon from '@mui/icons-material/GridOn';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import axios from 'axios';
 import { format, parseISO, subDays } from 'date-fns';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../services/apiService';
 import { API_URL } from '../../services/config';
 import { getAccessToken, isAuthenticated } from '../../utils/auth';
+import * as XLSX from 'xlsx';
+import html2pdf from 'html2pdf.js';
+import '@fontsource/roboto';
 
 // Remove hardcoded URL
 // const API_BASE_URL = 'http://localhost:8080';
@@ -40,6 +47,8 @@ const Dashboard = () => {
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [recentSurveys, setRecentSurveys] = useState([]);
   const [recentCourses, setRecentCourses] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
   
   const navigate = useNavigate();
 
@@ -215,167 +224,390 @@ const Dashboard = () => {
     }
   };
 
-  const handleExport = () => {
-    // Create a new PDF document
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
+  const handleExportClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleExportPDF = () => {
+    handleCloseMenu();
+    
+    try {
+      // Tạo một container tạm thời để chứa nội dung PDF
+      const element = document.createElement('div');
+      element.style.width = '210mm'; // Khổ A4
+      element.style.padding = '15mm';
+      element.style.backgroundColor = 'white';
+      element.style.fontFamily = 'Roboto, Arial, sans-serif';
+      
+      // CSS cho các phần trong PDF
+      const style = document.createElement('style');
+      style.textContent = `
+        .report-header {
+          background-color: #2980b9;
+          color: white;
+          padding: 20px;
+          margin: -15mm -15mm 20px -15mm;
+          text-align: center;
+          width: 100%;
+        }
+        .report-title {
+          font-size: 26px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .report-date {
+          font-size: 14px;
+          margin-bottom: 5px;
+        }
+        .section-title {
+          color: #2980b9;
+          font-size: 18px;
+          font-weight: bold;
+          border-bottom: 2px solid #2980b9;
+          margin-top: 25px;
+          margin-bottom: 15px;
+          padding-bottom: 8px;
+        }
+        .stats-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+          margin: 20px 0;
+          justify-content: space-between;
+        }
+        .stat-item {
+          flex: 1;
+          min-width: 150px;
+          background-color: #f8f9fa;
+          border-left: 4px solid #2980b9;
+          padding: 10px 15px;
+          border-radius: 4px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-label {
+          font-weight: bold;
+          color: #2980b9;
+          display: block;
+          margin-bottom: 5px;
+        }
+        .stat-value {
+          font-size: 18px;
+          font-weight: 500;
+        }
+        .table-container {
+          margin: 15px 0 25px 0;
+          width: 100%;
+          overflow: hidden;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 10px 0;
+          font-size: 12px;
+          table-layout: fixed;
+          border: 1px solid #dee2e6;
+          page-break-inside: auto;
+        }
+        thead {
+          display: table-header-group;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+        th {
+          background-color: #2980b9;
+          color: white;
+          text-align: left;
+          padding: 10px;
+          font-weight: bold;
+          word-wrap: break-word;
+          vertical-align: middle;
+          border: 1px solid #1a5c8a;
+        }
+        td {
+          padding: 8px 10px;
+          border: 1px solid #dee2e6;
+          word-wrap: break-word;
+          vertical-align: top;
+        }
+        tr:nth-child(even) {
+          background-color: #f2f2f2;
+        }
+        tr:hover {
+          background-color: #e9ecef;
+        }
+        .footer {
+          text-align: center;
+          color: #6c757d;
+          font-size: 12px;
+          margin-top: 30px;
+          padding-top: 10px;
+          border-top: 1px solid #dee2e6;
+        }
+      `;
+      
+      element.appendChild(style);
+      
+      // Header
+      const header = document.createElement('div');
+      header.className = 'report-header';
+      
+      const title = document.createElement('div');
+      title.className = 'report-title';
+      title.textContent = 'DUPSS MANAGEMENT REPORT';
+      title.style.textAlign = 'center';
+      
+      const date = document.createElement('div');
+      date.className = 'report-date';
+      date.textContent = `Created: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+      
+      header.appendChild(title);
+      header.appendChild(date);
+      element.appendChild(header);
+      
+      // Phần thống kê
+      const statsTitle = document.createElement('div');
+      statsTitle.className = 'section-title';
+      statsTitle.textContent = 'OVERVIEW STATISTICS';
+      element.appendChild(statsTitle);
+      
+      const statsContainer = document.createElement('div');
+      statsContainer.className = 'stats-container';
+      
+      // Thêm các item thống kê
+      const addStatItem = (label, value) => {
+        const item = document.createElement('div');
+        item.className = 'stat-item';
+        
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'stat-label';
+        labelSpan.textContent = label;
+        
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'stat-value';
+        valueSpan.textContent = value;
+        
+        item.appendChild(labelSpan);
+        item.appendChild(valueSpan);
+        statsContainer.appendChild(item);
+      };
+      
+      addStatItem('Staff', `${staffCount}`);
+      addStatItem('Blogs', `${blogsCount}`);
+      addStatItem('Consultants', `${consultantCount}`);
+      addStatItem('Surveys', `${surveysCount}`);
+      addStatItem('Courses', `${coursesCount}`);
+      
+      element.appendChild(statsContainer);
+      
+      // Function to create a table
+      const createTable = (title, columns, data) => {
+        // Title
+        const sectionTitle = document.createElement('div');
+        sectionTitle.className = 'section-title';
+        sectionTitle.textContent = title;
+        element.appendChild(sectionTitle);
+        
+        // Table container
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+        
+        // Create table
+        const table = document.createElement('table');
+        
+        // Create header
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+                  // Thiết lập chiều rộng cột
+          const colWidths = ['8%', '62%', '30%'];
+        
+        columns.forEach((column, index) => {
+          const th = document.createElement('th');
+          th.textContent = column;
+          th.style.width = colWidths[index];
+          headerRow.appendChild(th);
+        });
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // Create body
+        const tbody = document.createElement('tbody');
+        
+        data.forEach((item, index) => {
+          const row = document.createElement('tr');
+          
+          const indexCell = document.createElement('td');
+          indexCell.textContent = (index + 1).toString();
+          indexCell.style.width = colWidths[0];
+          indexCell.style.textAlign = 'center';
+          row.appendChild(indexCell);
+          
+          const titleCell = document.createElement('td');
+          titleCell.textContent = item.title || item.surveyTitle || 'N/A';
+          titleCell.style.width = colWidths[1];
+          titleCell.style.maxWidth = colWidths[1];
+          titleCell.style.overflow = 'hidden';
+          titleCell.style.textOverflow = 'ellipsis';
+          row.appendChild(titleCell);
+          
+          const statusCell = document.createElement('td');
+          statusCell.textContent = 'APPROVED';
+          statusCell.style.width = colWidths[2];
+          statusCell.style.textAlign = 'center';
+          statusCell.style.color = '#2e7d32';
+          statusCell.style.fontWeight = 'bold';
+          statusCell.style.whiteSpace = 'nowrap';
+          row.appendChild(statusCell);
+          
+          tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+        element.appendChild(tableContainer);
+      };
+      
+      // Thêm bảng danh sách blog
+      createTable('BLOG LIST', ['No.', 'Title', 'Status'], recentBlogs);
+      
+      // Thêm bảng danh sách khảo sát
+      createTable('SURVEY LIST', ['No.', 'Title', 'Status'], recentSurveys);
+      
+      // Thêm bảng danh sách khóa học
+      createTable('COURSE LIST', ['No.', 'Title', 'Status'], recentCourses);
+      
+      // Footer
+      const footer = document.createElement('div');
+      footer.className = 'footer';
+      footer.textContent = `DUPSS Report - ${format(new Date(), 'dd/MM/yyyy')}`;
+      element.appendChild(footer);
+      
+      // Append to document briefly so it renders
+      document.body.appendChild(element);
+      
+      // HTML2PDF options
+      const opt = {
+        margin: [0, 0, 0, 0],
+        filename: 'dupss-report.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          dpi: 300,
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      
+      // Generate PDF
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Clean up the temporary element
+        document.body.removeChild(element);
+      });
+      
+    } catch (error) {
+      console.error('Lỗi khi xuất PDF:', error);
+      alert('Có lỗi xảy ra khi xuất file PDF. Vui lòng thử lại sau.');
+    }
+  };
+
+  const handleExportExcel = () => {
+    handleCloseMenu();
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
     const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
     
-    // Add logo/header
-    doc.setFillColor(41, 128, 185); // Blue header background
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Create summary worksheet
+    const summaryData = [
+      ['DUPSS MANAGER DASHBOARD REPORT'],
+      [`Generated on: ${currentDate}`],
+      [],
+      ['SUMMARY OVERVIEW'],
+      [],
+      ['Staff Count', staffCount],
+      ['Consultant Count', consultantCount],
+      ['Blogs Created', blogsCount],
+      ['Surveys Created', surveysCount],
+      ['Courses Created', coursesCount],
+    ];
     
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(22);
-    doc.text('Manager Dashboard Report', pageWidth / 2, 20, { align: 'center' });
+    const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
     
-    doc.setFontSize(12);
-    doc.text(`Generated on: ${currentDate}`, pageWidth / 2, 30, { align: 'center' });
+    // Set column widths for summary
+    const summaryColWidths = [{ wch: 20 }, { wch: 10 }];
+    summaryWs['!cols'] = summaryColWidths;
     
-    // Add summary section
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(16);
-    doc.text('Summary Overview', 14, 55);
+    // Style cells
+    // Note: Excel styling with xlsx is limited when using the community version
     
-    doc.setDrawColor(41, 128, 185);
-    doc.setLineWidth(0.5);
-    doc.line(14, 58, pageWidth - 14, 58);
+    // Create blogs worksheet
+    const blogsData = [
+      ['RECENT BLOGS'],
+      ['#', 'Title', 'Status']
+    ];
     
-    // Add count information in a formatted way
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    
-    doc.setTextColor(41, 128, 185);
-    doc.text('Staff Count:', 14, 70);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${staffCount}`, 50, 70);
-    
-    doc.setTextColor(41, 128, 185);
-    doc.text('Consultant Count:', 14, 80);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${consultantCount}`, 50, 80);
-    
-    doc.setTextColor(41, 128, 185);
-    doc.text('Blogs Created:', 120, 70);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${blogsCount}`, 160, 70);
-    
-    doc.setTextColor(41, 128, 185);
-    doc.text('Surveys Created:', 120, 80);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${surveysCount}`, 160, 80);
-    
-    doc.setTextColor(41, 128, 185);
-    doc.text('Courses Created:', 120, 90);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${coursesCount}`, 160, 90);
-    
-    // Add recent blogs table section
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(41, 128, 185);
-    doc.text('Recent Blogs (Last 30 Days)', 14, 110);
-    
-    // Style for tables
-    const tableOptions = {
-      startY: 115,
-      headStyles: { 
-        fillColor: [41, 128, 185],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: { fillColor: [240, 240, 240] },
-      margin: { top: 10 }
-    };
-    
-    doc.autoTable({
-      ...tableOptions,
-      head: [['#', 'Title', 'Status']],
-      body: recentBlogs.map((blog, index) => [
-        index + 1,
-        blog.title,
-        blog.status
-      ]),
+    recentBlogs.forEach((blog, index) => {
+      blogsData.push([index + 1, blog.title, blog.status]);
     });
     
-    // Add recent surveys table
-    const surveysStartY = doc.lastAutoTable.finalY + 15;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(41, 128, 185);
-    doc.text('Recent Surveys (Last 30 Days)', 14, surveysStartY);
+    const blogsWs = XLSX.utils.aoa_to_sheet(blogsData);
+    XLSX.utils.book_append_sheet(wb, blogsWs, 'Blogs');
     
-    doc.autoTable({
-      ...tableOptions,
-      startY: surveysStartY + 5,
-      head: [['#', 'Title', 'Status']],
-      body: recentSurveys.map((survey, index) => [
-        index + 1,
-        survey.surveyTitle,
-        survey.status
-      ]),
+    // Set column widths for blogs
+    const blogsColWidths = [{ wch: 5 }, { wch: 40 }, { wch: 15 }];
+    blogsWs['!cols'] = blogsColWidths;
+    
+    // Create surveys worksheet
+    const surveysData = [
+      ['RECENT SURVEYS'],
+      ['#', 'Title', 'Status']
+    ];
+    
+    recentSurveys.forEach((survey, index) => {
+      surveysData.push([index + 1, survey.surveyTitle, survey.status]);
     });
     
-    // Add recent courses table
-    const coursesStartY = doc.lastAutoTable.finalY + 15;
+    const surveysWs = XLSX.utils.aoa_to_sheet(surveysData);
+    XLSX.utils.book_append_sheet(wb, surveysWs, 'Surveys');
     
-    // Check if we need a new page
-    if (coursesStartY > 240) {
-      doc.addPage();
-      doc.setFillColor(240, 240, 240);
-      doc.rect(0, 0, pageWidth, 20, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Manager Dashboard Report', 14, 13);
-      doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 15, 13, { align: 'right' });
-      doc.setTextColor(41, 128, 185);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.text('Recent Courses (Last 30 Days)', 14, 40);
-      
-      doc.autoTable({
-        ...tableOptions,
-        startY: 45,
-        head: [['#', 'Title', 'Status']],
-        body: recentCourses.map((course, index) => [
-          index + 1,
-          course.title,
-          course.status
-        ]),
-      });
-    } else {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.setTextColor(41, 128, 185);
-      doc.text('Recent Courses (Last 30 Days)', 14, coursesStartY);
-      
-      doc.autoTable({
-        ...tableOptions,
-        startY: coursesStartY + 5,
-        head: [['#', 'Title', 'Status']],
-        body: recentCourses.map((course, index) => [
-          index + 1,
-          course.title,
-          course.status
-        ]),
-      });
-    }
+    // Set column widths for surveys
+    const surveysColWidths = [{ wch: 5 }, { wch: 40 }, { wch: 15 }];
+    surveysWs['!cols'] = surveysColWidths;
     
-    // Add footer to all pages
-    const pageCount = doc.internal.getNumberOfPages();
-    for(let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.text(`DUPSS Manager Report - Generated: ${currentDate}`, pageWidth / 2, 290, { align: 'center' });
-      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 20, 290, { align: 'right' });
-    }
+    // Create courses worksheet
+    const coursesData = [
+      ['RECENT COURSES'],
+      ['#', 'Title', 'Status']
+    ];
     
-    // Save the PDF
-    doc.save('manager-dashboard-report.pdf');
+    recentCourses.forEach((course, index) => {
+      coursesData.push([index + 1, course.title, course.status]);
+    });
+    
+    const coursesWs = XLSX.utils.aoa_to_sheet(coursesData);
+    XLSX.utils.book_append_sheet(wb, coursesWs, 'Courses');
+    
+    // Set column widths for courses
+    const coursesColWidths = [{ wch: 5 }, { wch: 40 }, { wch: 15 }];
+    coursesWs['!cols'] = coursesColWidths;
+    
+    // Generate and download Excel file
+    XLSX.writeFile(wb, 'manager-dashboard-report.xlsx');
   };
 
   const getStatusColor = (status) => {
@@ -408,23 +640,48 @@ const Dashboard = () => {
         <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
           Manager Dashboard
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<DownloadIcon />}
-          onClick={handleExport}
-          sx={{ 
-            px: 3, 
-            py: 1, 
-            borderRadius: '4px', 
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            '&:hover': {
-              boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
-            }
-          }}
-        >
-          Export
-        </Button>
+        <div>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<DownloadIcon />}
+            endIcon={<KeyboardArrowDownIcon />}
+            onClick={handleExportClick}
+            sx={{ 
+              px: 3, 
+              py: 1, 
+              borderRadius: '4px', 
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              '&:hover': {
+                boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+              }
+            }}
+          >
+            Export
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleCloseMenu}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={handleExportPDF}>
+              <PictureAsPdfIcon sx={{ mr: 1, color: '#f44336' }} />
+              Export as PDF
+            </MenuItem>
+            <MenuItem onClick={handleExportExcel}>
+              <GridOnIcon sx={{ mr: 1, color: '#4caf50' }} />
+              Export as Excel
+            </MenuItem>
+          </Menu>
+        </div>
       </Box>
       
       {/* Top row with Staff and Consultant counts */}
