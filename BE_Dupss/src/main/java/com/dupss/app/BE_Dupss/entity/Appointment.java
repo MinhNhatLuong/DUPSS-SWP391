@@ -74,21 +74,4 @@ public class Appointment {
 
     @Column(name = "dupss_meet_link", length = 500)
     private String linkMeet;
-
-    // Thêm các trường để lưu thông tin tạo và cập nhật
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

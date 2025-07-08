@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -476,19 +475,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn đang chờ hoặc đã xác nhận");
         }
 
-        // Kiểm tra thời gian: chỉ cho phép hủy sau 5 phút kể từ khi tạo cuộc hẹn
-        if (appointment.getCreatedAt() != null) {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime createdTime = appointment.getCreatedAt();
-            Duration timeSinceCreated = Duration.between(createdTime, now);
-
-            if (timeSinceCreated.toMinutes() < 5) {
-                long remainingMinutes = 5 - timeSinceCreated.toMinutes();
-                throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn sau 5 phút kể từ khi tạo. " +
-                        "Vui lòng chờ thêm " + remainingMinutes + " phút nữa.");
-            }
-        }
-
         // Lưu trạng thái cũ
         String previousStatus = appointment.getStatus();
 
@@ -623,7 +609,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setCustomerReview(appointment.getCustomerReview());
         responseDto.setReview(appointment.isReview());
         responseDto.setLinkGoogleMeet(appointment.getLinkMeet());
-        responseDto.setCreatedAt(appointment.getCreatedAt());
         return responseDto;
     }
 }

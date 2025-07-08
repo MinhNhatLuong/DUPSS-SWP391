@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: datdev/dupss:3.0.0
-    container_name: dupss-frontend
+    image: datdevv/dupss:3.0.0
+    container_name: dupss-frontend-admin
     ports:
       - "3000:3000"
     restart: unless-stopped
