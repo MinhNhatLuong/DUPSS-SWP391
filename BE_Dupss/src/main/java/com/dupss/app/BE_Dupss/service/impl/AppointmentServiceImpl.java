@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,12 +38,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponseDto createAppointment(AppointmentRequestDto requestDto) {
         // Lấy topic theo ID
         Topic topic = topicRepository.findByIdAndActive(requestDto.getTopicId(), true);
-        if(topic == null) {
+        if (topic == null) {
             throw new ResourceNotFoundException("Không tìm thấy chủ đề với ID: " + requestDto.getTopicId());
         }
 
         Slot selectedSlot = slotRepository.findById(requestDto.getSlotId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy slot với ID: " + requestDto.getSlotId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Không tìm thấy slot với ID: " + requestDto.getSlotId()));
 
         LocalDateTime appointmentDateTime = LocalDateTime.of(selectedSlot.getDate(), selectedSlot.getStartTime());
         if (appointmentDateTime.isBefore(LocalDateTime.now())) {
@@ -74,7 +76,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Nếu có userId, đây là thành viên đã đăng nhập
         if (requestDto.getUserId() != null) {
             User user = userRepository.findById(requestDto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + requestDto.getUserId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy người dùng với ID: " + requestDto.getUserId()));
             appointment.setUser(user);
             appointment.setGuest(false);
         } else {
@@ -88,7 +91,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         String videoCallId = requestDto.getVideoCallId();
-        String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+        String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/"
+                + videoCallId;
         savedAppointment.setLinkMeet(meetingLink);
 
         savedAppointment = appointmentRepository.save(savedAppointment);
@@ -121,7 +125,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getAppointmentsByGuestEmail(String email) {
-        List<Appointment> appointments = appointmentRepository.findByIsGuestAndEmailOrderByAppointmentDateDesc(true, email);
+        List<Appointment> appointments = appointmentRepository.findByIsGuestAndEmailOrderByAppointmentDateDesc(true,
+                email);
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -157,7 +162,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (consultantOptional.isEmpty()) {
             return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
         }
-        
+
         List<Appointment> appointments = appointmentRepository.findByConsultant(consultantOptional.get());
         return appointments.stream()
                 .map(this::mapToResponseDto)
@@ -172,12 +177,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Get the consultant
         User consultant = userRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
-        
+
         // If appointment doesn't have a consultant, assign this consultant
         if (appointment.getConsultant() == null) {
             appointment.setConsultant(consultant);
-        } 
-        // If appointment has a different consultant, check if this consultant has permission
+        }
+        // If appointment has a different consultant, check if this consultant has
+        // permission
         else if (!Objects.equals(appointment.getConsultant().getId(), consultantId)) {
             throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
         }
@@ -199,12 +205,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         return mapToResponseDto(updatedAppointment);
     }
 
-//    @Override
-//    public AppointmentResponseDto updateAppointmentStatus(Long id, String status) {
-//        // Phương thức này gây ra lỗi ép kiểu từ JWT sang User
-//        // Thay vì cố gắng ép kiểu, chúng ta sẽ ném ngoại lệ và yêu cầu client sử dụng phương thức overload với consultantId
-//        throw new IllegalArgumentException("Vui lòng cung cấp consultantId để cập nhật trạng thái cuộc hẹn");
-//    }
+    // @Override
+    // public AppointmentResponseDto updateAppointmentStatus(Long id, String status)
+    // {
+    // // Phương thức này gây ra lỗi ép kiểu từ JWT sang User
+    // // Thay vì cố gắng ép kiểu, chúng ta sẽ ném ngoại lệ và yêu cầu client sử
+    // dụng phương thức overload với consultantId
+    // throw new IllegalArgumentException("Vui lòng cung cấp consultantId để cập
+    // nhật trạng thái cuộc hẹn");
+    // }
 
     @Override
     public AppointmentResponseDto cancelAppointmentByUser(Long id, Long userId) {
@@ -232,8 +241,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Optional<Slot> selectedSlot = slotRepository.findByConsultantAndDateAndStartTime(
                 appointment.getConsultant(),
                 appointment.getAppointmentDate(),
-                appointment.getAppointmentTime()
-        );
+                appointment.getAppointmentTime());
         selectedSlot.ifPresent(slot -> {
             slot.setAvailable(true);
             slotRepository.save(slot);
@@ -280,13 +288,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (consultantOptional.isEmpty()) {
             return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
         }
-        
+
         // Danh sách các trạng thái cần lấy: COMPLETED và CANCELED
         List<String> statuses = List.of("COMPLETED", "CANCELLED");
-        
+
         // Lấy danh sách các cuộc hẹn có trạng thái là COMPLETED hoặc CANCELED
-        List<Appointment> appointments = appointmentRepository.findByConsultantAndStatusIn(consultantOptional.get(), statuses);
-        
+        List<Appointment> appointments = appointmentRepository.findByConsultantAndStatusIn(consultantOptional.get(),
+                statuses);
+
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -294,12 +303,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<AppointmentResponseDto> getUnassignedAppointments() {
-        // Lấy tất cả các cuộc hẹn có trạng thái PENDING và consultant là placeholder (ID = 2)
+        // Lấy tất cả các cuộc hẹn có trạng thái PENDING và consultant là placeholder
+        // (ID = 2)
         List<Appointment> appointments = appointmentRepository.findAll().stream()
-                .filter(a -> "PENDING".equals(a.getStatus()) && 
-                       a.getConsultant() != null && a.getConsultant().getId() == 2L)
+                .filter(a -> "PENDING".equals(a.getStatus()) &&
+                        a.getConsultant() != null && a.getConsultant().getId() == 2L)
                 .collect(Collectors.toList());
-        
+
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -309,33 +319,35 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
-        
+
         // Lấy thông tin tư vấn viên mới
         User consultant = userRepository.findById(consultantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
-        
+
         // Kiểm tra và cập nhật tư vấn viên
-        if (appointment.getConsultant() != null && 
-            !Objects.equals(appointment.getConsultant().getId(), consultantId) && 
-            appointment.getConsultant().getId() != 2L) {
-            // Nếu cuộc hẹn đã có tư vấn viên khác (không phải placeholder), cho phép thay đổi
+        if (appointment.getConsultant() != null &&
+                !Objects.equals(appointment.getConsultant().getId(), consultantId) &&
+                appointment.getConsultant().getId() != 2L) {
+            // Nếu cuộc hẹn đã có tư vấn viên khác (không phải placeholder), cho phép thay
+            // đổi
             appointment.setConsultant(consultant);
         } else if (appointment.getConsultant() == null || appointment.getConsultant().getId() == 2L) {
-            // Nếu chưa có tư vấn viên hoặc đang là placeholder consultant (ID = 2), gán tư vấn viên mới
+            // Nếu chưa có tư vấn viên hoặc đang là placeholder consultant (ID = 2), gán tư
+            // vấn viên mới
             appointment.setConsultant(consultant);
         }
-        
+
         // Cập nhật trạng thái nếu đang là PENDING
         if ("PENDING".equals(appointment.getStatus())) {
             String previousStatus = appointment.getStatus();
             appointment.setStatus("CONFIRMED");
-            
+
             // Lưu vào database
             Appointment updatedAppointment = appointmentRepository.save(appointment);
-            
+
             // Gửi email thông báo cập nhật trạng thái
             emailService.sendAppointmentStatusUpdate(updatedAppointment, previousStatus);
-            
+
             return mapToResponseDto(updatedAppointment);
         } else {
             // Nếu không phải PENDING, chỉ cập nhật consultant
@@ -344,34 +356,38 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-//    @Override
-//    public AppointmentResponseDto approveAppointment(Long appointmentId, Long consultantId, String linkMeet) {
-//        Appointment appointment = appointmentRepository.findById(appointmentId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
-//
-//        // Lấy thông tin tư vấn viên
-//        User consultant = userRepository.findById(consultantId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với ID: " + consultantId));
-//
-//        // Kiểm tra quyền cập nhật
-////        if (appointment.getConsultant() != null &&
-////            !Objects.equals(appointment.getConsultant().getId(), consultantId) &&
-////            appointment.getConsultant().getId() != 2L) {
-////            throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
-////        }
-//
-//        // Cập nhật thông tin
-//        appointment.setConsultant(consultant);
-//        appointment.setStatus("CONFIRMED");
-//        appointment.setLinkMeet(linkMeet);
-//        // Lưu vào database
-//        Appointment updatedAppointment = appointmentRepository.save(appointment);
-//
-//        // Gửi email thông báo duyệt cuộc hẹn với link Google Meet
-//        emailService.sendAppointmentStatusUpdate(updatedAppointment, "PENDING");
-//
-//        return mapToResponseDto(updatedAppointment);
-//    }
+    // @Override
+    // public AppointmentResponseDto approveAppointment(Long appointmentId, Long
+    // consultantId, String linkMeet) {
+    // Appointment appointment = appointmentRepository.findById(appointmentId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với
+    // ID: " + appointmentId));
+    //
+    // // Lấy thông tin tư vấn viên
+    // User consultant = userRepository.findById(consultantId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên
+    // với ID: " + consultantId));
+    //
+    // // Kiểm tra quyền cập nhật
+    //// if (appointment.getConsultant() != null &&
+    //// !Objects.equals(appointment.getConsultant().getId(), consultantId) &&
+    //// appointment.getConsultant().getId() != 2L) {
+    //// throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật
+    // cuộc hẹn này");
+    //// }
+    //
+    // // Cập nhật thông tin
+    // appointment.setConsultant(consultant);
+    // appointment.setStatus("CONFIRMED");
+    // appointment.setLinkMeet(linkMeet);
+    // // Lưu vào database
+    // Appointment updatedAppointment = appointmentRepository.save(appointment);
+    //
+    // // Gửi email thông báo duyệt cuộc hẹn với link Google Meet
+    // emailService.sendAppointmentStatusUpdate(updatedAppointment, "PENDING");
+    //
+    // return mapToResponseDto(updatedAppointment);
+    // }
 
     @Override
     public AppointmentResponseDto startAppointment(Long appointmentId, Long consultantId) {
@@ -379,8 +395,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
         // Kiểm tra quyền truy cập
-        if (appointment.getConsultant() == null || 
-            !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
+        if (appointment.getConsultant() == null ||
+                !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
             throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
         }
 
@@ -390,14 +406,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Cập nhật thời gian bắt đầu
-        if(appointment.getCheckInTime() == null){
+        if (appointment.getCheckInTime() == null) {
             appointment.setCheckInTime(java.time.LocalDateTime.now());
         }
         appointment.setStatus("ON_GOING");
-        
+
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
-        
+
         return mapToResponseDto(updatedAppointment);
     }
 
@@ -411,8 +427,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra quyền truy cập
-        if (appointment.getConsultant() == null || 
-            !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
+        if (appointment.getConsultant() == null ||
+                !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
             throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật cuộc hẹn này");
         }
 
@@ -421,27 +437,26 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalArgumentException("Cuộc hẹn chưa được bắt đầu");
         }
 
-
         // Cập nhật thông tin
         java.time.LocalDateTime endTime = java.time.LocalDateTime.now();
         appointment.setCheckOutTime(endTime);
         appointment.setConsultantNote(consultantNote);
-        
+
         // Kiểm tra thời lượng cuộc hẹn (tối thiểu 10 phút)
         java.time.Duration duration = java.time.Duration.between(appointment.getCheckInTime(), endTime);
         if (duration.toMinutes() < 10) {
             throw new IllegalArgumentException("Cuộc hẹn phải kéo dài ít nhất 10 phút");
         }
-        
+
         // Cập nhật trạng thái
         appointment.setStatus("COMPLETED");
-        
+
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
-        
+
         // Gửi email thông báo hoàn thành và yêu cầu đánh giá
         emailService.sendAppointmentStatusUpdate(updatedAppointment, "CONFIRMED");
-        
+
         return mapToResponseDto(updatedAppointment);
     }
 
@@ -451,8 +466,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
         // Kiểm tra quyền truy cập
-        if (appointment.getConsultant() == null || 
-            !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
+        if (appointment.getConsultant() == null ||
+                !Objects.equals(appointment.getConsultant().getId(), consultantId)) {
             throw new IllegalArgumentException("Tư vấn viên không có quyền hủy cuộc hẹn này");
         }
 
@@ -461,19 +476,32 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn đang chờ hoặc đã xác nhận");
         }
 
+        // Kiểm tra thời gian: chỉ cho phép hủy sau 5 phút kể từ khi tạo cuộc hẹn
+        if (appointment.getCreatedAt() != null) {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime createdTime = appointment.getCreatedAt();
+            Duration timeSinceCreated = Duration.between(createdTime, now);
+
+            if (timeSinceCreated.toMinutes() < 5) {
+                long remainingMinutes = 5 - timeSinceCreated.toMinutes();
+                throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn sau 5 phút kể từ khi tạo. " +
+                        "Vui lòng chờ thêm " + remainingMinutes + " phút nữa.");
+            }
+        }
+
         // Lưu trạng thái cũ
         String previousStatus = appointment.getStatus();
 
         // Cập nhật thông tin
         appointment.setStatus("CANCELLED");
         appointment.setConsultantNote(reason);
-        
+
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
-        
+
         // Gửi email thông báo hủy cuộc hẹn
         emailService.sendAppointmentStatusUpdate(updatedAppointment, previousStatus);
-        
+
         return mapToResponseDto(updatedAppointment);
     }
 
@@ -482,7 +510,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
-
 
         // Kiểm tra trạng thái cuộc hẹn
         if (!appointment.getStatus().equals("COMPLETED")) {
@@ -503,15 +530,16 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setReviewScore(reviewRequest.getReviewScore());
         appointment.setCustomerReview(reviewRequest.getCustomerReview());
         appointment.setReview(true);
-        
+
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
-        
+
         return mapToResponseDto(updatedAppointment);
     }
 
     @Override
-    public AppointmentResponseDto reviewAppointmentByGuest(Long appointmentId, Integer reviewScore, String customerReview, String email) {
+    public AppointmentResponseDto reviewAppointmentByGuest(Long appointmentId, Integer reviewScore,
+            String customerReview, String email) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với ID: " + appointmentId));
 
@@ -539,10 +567,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setReviewScore(reviewScore);
         appointment.setCustomerReview(customerReview);
         appointment.setReview(true);
-        
+
         // Lưu vào database
         Appointment updatedAppointment = appointmentRepository.save(appointment);
-        
+
         return mapToResponseDto(updatedAppointment);
     }
 
@@ -564,26 +592,29 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
         responseDto.setConsultantName(appointment.getConsultant().getFullname());
-        
-        // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân công" và consultantId = null
-//        if (appointment.getConsultant() != null && appointment.getConsultant().getId() != 2L) {
-//            // Nếu consultant không phải là placeholder, hiển thị thông tin thực
-//            responseDto.setConsultantName(appointment.getConsultant().getFullname());
-//            responseDto.setConsultantId(appointment.getConsultant().getId());
-//        } else {
-//            // Nếu consultant là placeholder (ID = 2) hoặc null, hiển thị "Chưa phân công"
-//            responseDto.setConsultantName("Chưa phân công");
-//            responseDto.setConsultantId(null); // Đặt consultantId là null trong response
-//        }
-        
+
+        // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân
+        // công" và consultantId = null
+        // if (appointment.getConsultant() != null &&
+        // appointment.getConsultant().getId() != 2L) {
+        // // Nếu consultant không phải là placeholder, hiển thị thông tin thực
+        // responseDto.setConsultantName(appointment.getConsultant().getFullname());
+        // responseDto.setConsultantId(appointment.getConsultant().getId());
+        // } else {
+        // // Nếu consultant là placeholder (ID = 2) hoặc null, hiển thị "Chưa phân
+        // công"
+        // responseDto.setConsultantName("Chưa phân công");
+        // responseDto.setConsultantId(null); // Đặt consultantId là null trong response
+        // }
+
         responseDto.setGuest(appointment.isGuest());
         responseDto.setStatus(appointment.getStatus());
-        
+
         // Kiểm tra nếu không phải là guest thì mới có userId
         if (!appointment.isGuest() && appointment.getUser() != null) {
             responseDto.setUserId(appointment.getUser().getId());
         }
-        
+
         // Map các trường mới
         responseDto.setCheckInTime(appointment.getCheckInTime());
         responseDto.setCheckOutTime(appointment.getCheckOutTime());
@@ -592,6 +623,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setCustomerReview(appointment.getCustomerReview());
         responseDto.setReview(appointment.isReview());
         responseDto.setLinkGoogleMeet(appointment.getLinkMeet());
+        responseDto.setCreatedAt(appointment.getCreatedAt());
         return responseDto;
     }
 }
