@@ -316,20 +316,8 @@ export default function ConsultantDashboard() {
       </Typography>
       
       {/* Stats Cards */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '1%', mb: 4, width: '100%' }}>
-        <Box sx={{ width: '24%' }}>
-          <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-            <CardContent sx={{ textAlign: 'center', width: '100%' }}>
-              <Typography color="textSecondary" gutterBottom>
-                Yêu cầu đang đợi duyệt
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, color: '#ff9800' }}>
-                {stats.pending}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        <Box sx={{ width: '24%' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2%', mb: 4, width: '100%' }}>
+        <Box sx={{ width: '32%' }}>
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
@@ -341,7 +329,7 @@ export default function ConsultantDashboard() {
             </CardContent>
           </Card>
         </Box>
-        <Box sx={{ width: '24%' }}>
+        <Box sx={{ width: '32%' }}>
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
@@ -353,7 +341,7 @@ export default function ConsultantDashboard() {
             </CardContent>
           </Card>
         </Box>
-        <Box sx={{ width: '24%' }}>
+        <Box sx={{ width: '32%' }}>
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>

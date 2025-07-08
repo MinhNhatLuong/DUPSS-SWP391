@@ -24,6 +24,18 @@ import ChangePassword from './pages/ChangePassword';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
 import './App.css';
 
+// Title component for dynamic page titles
+const PageTitle = ({ title }) => {
+  useEffect(() => {
+    document.title = `${title} - DUPSS`;
+    return () => {
+      document.title = 'DUPSS';
+    };
+  }, [title]);
+  
+  return null;
+};
+
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const [loading, setLoading] = useState(true);
@@ -114,7 +126,15 @@ function App() {
       <div className="app">
         <Routes>
           {/* Login Route */}
-          <Route path="/login" element={<Login updateUserInfo={updateUserInfo} />} />
+          <Route 
+            path="/login" 
+            element={
+              <>
+                <PageTitle title="Đăng nhập" />
+                <Login updateUserInfo={updateUserInfo} />
+              </>
+            } 
+          />
 
           {/* Admin Routes */}
           <Route
@@ -125,9 +145,24 @@ function App() {
                   <HeaderAdmin userName={userInfo?.fullName || 'Admin'} />
                   <main className="content">
                     <Routes>
-                      <Route path="dashboard" element={<AdminPage />} />
-                      <Route path="profile" element={<ProfilePage />} />
-                      <Route path="change-password" element={<ChangePassword />} />
+                      <Route path="dashboard" element={
+                        <>
+                          <PageTitle title="Trang quản trị" />
+                          <AdminPage />
+                        </>
+                      } />
+                      <Route path="profile" element={
+                        <>
+                          <PageTitle title="Hồ sơ cá nhân" />
+                          <ProfilePage />
+                        </>
+                      } />
+                      <Route path="change-password" element={
+                        <>
+                          <PageTitle title="Đổi mật khẩu" />
+                          <ChangePassword />
+                        </>
+                      } />
                       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -145,13 +180,48 @@ function App() {
                   <HeaderManager userName={userInfo?.fullName || 'Manager'} />
                   <main className="content">
                     <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="employees" element={<EmployeeManagement />} />
-                      <Route path="content-review" element={<ContentReview />} />
-                      <Route path="history" element={<HistoryManager />} />
-                      <Route path="topics" element={<Topic />} />
-                      <Route path="profile" element={<ProfilePage />} />
-                      <Route path="change-password" element={<ChangePassword />} />
+                      <Route path="dashboard" element={
+                        <>
+                          <PageTitle title="Trang chủ" />
+                          <Dashboard />
+                        </>
+                      } />
+                      <Route path="employees" element={
+                        <>
+                          <PageTitle title="Quản lý nhân viên" />
+                          <EmployeeManagement />
+                        </>
+                      } />
+                      <Route path="content-review" element={
+                        <>
+                          <PageTitle title="Duyệt nội dung" />
+                          <ContentReview />
+                        </>
+                      } />
+                      <Route path="history" element={
+                        <>
+                          <PageTitle title="Lịch sử" />
+                          <HistoryManager />
+                        </>
+                      } />
+                      <Route path="topics" element={
+                        <>
+                          <PageTitle title="Chủ đề" />
+                          <Topic />
+                        </>
+                      } />
+                      <Route path="profile" element={
+                        <>
+                          <PageTitle title="Hồ sơ cá nhân" />
+                          <ProfilePage />
+                        </>
+                      } />
+                      <Route path="change-password" element={
+                        <>
+                          <PageTitle title="Đổi mật khẩu" />
+                          <ChangePassword />
+                        </>
+                      } />
                       <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -169,12 +239,42 @@ function App() {
                   <HeaderConsultant userName={userInfo?.fullName || 'Consultant'} />
                   <main className="content">
                     <Routes>
-                      <Route path="dashboard" element={<ConsultantDashboard />} />
-                      <Route path="schedule" element={<Schedule />} />
-                      <Route path="slot-registration" element={<SlotRegistration />} />
-                      <Route path="profile" element={<ProfilePage />} />
-                      <Route path="change-password" element={<ChangePassword />} />
-                      <Route path="history" element={<History />} />
+                      <Route path="dashboard" element={
+                        <>
+                          <PageTitle title="Trang chủ" />
+                          <ConsultantDashboard />
+                        </>
+                      } />
+                      <Route path="schedule" element={
+                        <>
+                          <PageTitle title="Lịch tư vấn" />
+                          <Schedule />
+                        </>
+                      } />
+                      <Route path="slot-registration" element={
+                        <>
+                          <PageTitle title="Đăng ký slot" />
+                          <SlotRegistration />
+                        </>
+                      } />
+                      <Route path="profile" element={
+                        <>
+                          <PageTitle title="Hồ sơ cá nhân" />
+                          <ProfilePage />
+                        </>
+                      } />
+                      <Route path="change-password" element={
+                        <>
+                          <PageTitle title="Đổi mật khẩu" />
+                          <ChangePassword />
+                        </>
+                      } />
+                      <Route path="history" element={
+                        <>
+                          <PageTitle title="Lịch sử tư vấn" />
+                          <History />
+                        </>
+                      } />
                       <Route path="*" element={<Navigate to="/consultant/dashboard" replace />} />
                     </Routes>
                   </main>
@@ -192,12 +292,42 @@ function App() {
                   <HeaderStaff userName={userInfo?.fullName || 'Staff'} />
                   <main className="content">
                     <Routes>
-                      <Route path="dashboard" element={<StaffDashboard />} />
-                      <Route path="create-blog" element={<CreateBlog />} />
-                      <Route path="create-course" element={<CreateCourse />} />
-                      <Route path="create-survey" element={<CreateSurvey />} />
-                      <Route path="profile" element={<ProfilePage />} />
-                      <Route path="change-password" element={<ChangePassword />} />
+                      <Route path="dashboard" element={
+                        <>
+                          <PageTitle title="Trang chủ" />
+                          <StaffDashboard />
+                        </>
+                      } />
+                      <Route path="create-blog" element={
+                        <>
+                          <PageTitle title="Tạo bài viết" />
+                          <CreateBlog />
+                        </>
+                      } />
+                      <Route path="create-course" element={
+                        <>
+                          <PageTitle title="Tạo khóa học" />
+                          <CreateCourse />
+                        </>
+                      } />
+                      <Route path="create-survey" element={
+                        <>
+                          <PageTitle title="Tạo khảo sát" />
+                          <CreateSurvey />
+                        </>
+                      } />
+                      <Route path="profile" element={
+                        <>
+                          <PageTitle title="Hồ sơ cá nhân" />
+                          <ProfilePage />
+                        </>
+                      } />
+                      <Route path="change-password" element={
+                        <>
+                          <PageTitle title="Đổi mật khẩu" />
+                          <ChangePassword />
+                        </>
+                      } />
                       <Route path="*" element={<Navigate to="/staff/dashboard" replace />} />
                     </Routes>
                   </main>
