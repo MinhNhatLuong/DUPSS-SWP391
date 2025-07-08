@@ -39,6 +39,11 @@ const VideoMeeting = () => {
   const [customAudioStream, setCustomAudioStream] = useState(null);
   const [customVideoStream, setCustomVideoStream] = useState(null);
 
+  // Add useEffect to monitor changes to openStartDialog
+  useEffect(() => {
+    console.log("openStartDialog changed:", openStartDialog);
+  }, [openStartDialog]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -112,20 +117,178 @@ const VideoMeeting = () => {
     try {
       setLoading(true);
       
-      // If user is a consultant, show confirmation dialog before joining
+      // If user is a consultant, check appointment status before deciding on dialog
       if (isConsultant) {
-        setOpenStartDialog(true);
-        setLoading(false);
-        return;
+        // Check appointment status first
+        let appointmentData;
+        try {
+          appointmentData = await checkAppointmentStatus();
+          console.log("Current appointment status:", appointmentData.status);
+          console.log("Status comparison:", {
+            actualStatus: appointmentData.status,
+            expectedStatus: 'CONFIRMED'
+          });
+          
+          // Force status comparison as string with strict equality
+          const appointmentStatus = String(appointmentData.status).toUpperCase();
+          const confirmedStatus = 'CONFIRMED';
+          
+          console.log("Normalized status:", appointmentStatus);
+          console.log("Is exactly CONFIRMED:", appointmentStatus === confirmedStatus);
+          
+          // Only show confirmation dialog if status is CONFIRMED
+          // For other statuses, just join the meeting directly
+          if (appointmentStatus === confirmedStatus) {
+            console.log("Should show start dialog now");
+            // Set loading to false first
+            setLoading(false);
+            // Ensure dialog opens with a slight delay to avoid race conditions
+            setTimeout(() => {
+              setOpenStartDialog(true);
+            }, 100);
+            return;
+          } else {
+            // For other statuses, join directly
+            console.log(`Joining meeting directly as status is ${appointmentData.status}`);
+            setIsMeetingStarted(true);
+            setError("");
+            setLoading(false);
+            return;
+          }
+        } catch (statusError) {
+          console.error("Failed to check appointment status:", statusError);
+          appointmentData = { status: "UNKNOWN" };
+          // If status check fails, default to showing dialog
+          setLoading(false);
+          setTimeout(() => {
+            setOpenStartDialog(true);
+          }, 100);
+          return;
+        }
       }
       
       console.log(`Joining meeting ${meetingId} as ${participantName}`);
       setIsMeetingStarted(true);
       setError("");
+      setLoading(false);
     } catch (error) {
       console.error("Error joining meeting:", error);
       setError("Không thể tham gia cuộc họp");
       setLoading(false);
+    }
+  };
+
+  // Function to refresh access token using refresh token
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      
+      console.log("Attempting to refresh access token");
+      
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to refresh token: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.accessToken) {
+        console.log("Successfully refreshed access token");
+        localStorage.setItem('accessToken', data.accessToken);
+        return data.accessToken;
+      } else {
+        throw new Error('Invalid response from refresh token API');
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      throw error;
+    }
+  };
+
+  // Function to check appointment status
+  const checkAppointmentStatus = async () => {
+    try {
+      const userData = getUserData();
+      if (!userData || !userData.id) {
+        throw new Error('Không tìm thấy thông tin người dùng');
+      }
+      
+      console.log("Checking appointment status for ID:", appointmentId);
+      
+      // Try to get appointment status, with token refresh if needed
+      return await fetchAppointmentWithTokenRefresh();
+    } catch (error) {
+      console.error("Error checking appointment status:", error);
+      // Return a default object instead of throwing error
+      return { status: "UNKNOWN" };
+    }
+  };
+  
+  // Helper function to fetch appointment with token refresh if needed
+  const fetchAppointmentWithTokenRefresh = async (isRetry = false) => {
+    // Get access token from localStorage
+    let accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      console.error("No access token available");
+      return { status: "UNKNOWN" };
+    }
+
+    console.log("Making API call to check appointment status");
+    
+    try {
+      // Make a direct API call with explicit headers
+      const response = await fetch(`${API_URL}/appointments/${appointmentId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("API response status:", response.status);
+      
+      // If unauthorized and not already retrying, try refreshing token
+      if (response.status === 401 && !isRetry) {
+        console.log("Unauthorized error. Attempting to refresh token and retry...");
+        try {
+          // Get new access token
+          accessToken = await refreshAccessToken();
+          // Retry the call with new token
+          return await fetchAppointmentWithTokenRefresh(true);
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          return { status: "UNKNOWN" };
+        }
+      }
+      
+      if (!response.ok) {
+        console.error(`API error: ${response.status} ${response.statusText}`);
+        return { status: "UNKNOWN" };
+      }
+      
+      const data = await response.json();
+      console.log("Full appointment data:", data);
+      
+      if (!data || !data.status) {
+        console.warn("Invalid data format from API");
+        return { status: "UNKNOWN" };
+      }
+      
+      console.log("Appointment status from API:", data.status);
+      return data;
+    } catch (error) {
+      console.error("Error in fetchAppointmentWithTokenRefresh:", error);
+      return { status: "UNKNOWN" };
     }
   };
 
@@ -139,16 +302,37 @@ const VideoMeeting = () => {
       if (!userData || !userData.id) {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
+
+      // Check appointment status first
+      let appointmentData;
+      try {
+        appointmentData = await checkAppointmentStatus();
+      } catch (statusError) {
+        console.error("Failed to check appointment status:", statusError);
+        appointmentData = { status: "UNKNOWN" };
+      }
       
-      console.log('Starting appointment with ID:', appointmentId);
-      console.log('Consultant ID:', userData.id);
+      // Only call start API if appointment status is CONFIRMED
+      // Backend only allows starting appointments with CONFIRMED status
+      if (appointmentData.status === 'CONFIRMED') {
+        console.log('Starting appointment with ID:', appointmentId);
+        console.log('Consultant ID:', userData.id);
+        
+        // Use apiService instead of direct axios call for proper authentication handling
+        await apiService.put(`/appointments/${appointmentId}/start?consultantId=${userData.id}`, {});
+        showSuccessAlert('Bắt đầu buổi tư vấn thành công!');
+      } else if (appointmentData.status === 'ON_GOING') {
+        // If appointment is already ongoing, just join without calling API
+        console.log('Appointment is already in ON_GOING status, joining directly');
+      } else if (appointmentData.status === 'COMPLETED') {
+        // If appointment is completed, just join without calling API
+        console.log('Appointment is already COMPLETED, joining directly');
+      } else {
+        // For any other status, show warning but allow joining
+        console.warn(`Appointment has status ${appointmentData.status}, which might cause issues`);
+      }
       
-      // Use apiService instead of direct axios call for proper authentication handling
-      await apiService.put(`/appointments/${appointmentId}/start?consultantId=${userData.id}`, {});
-      
-      showSuccessAlert('Bắt đầu buổi tư vấn thành công!');
-      
-      // Start the meeting
+      // Start the meeting regardless of status
       console.log(`Joining meeting ${meetingId} as ${participantName} (consultant)`);
       setIsMeetingStarted(true);
       setError("");
@@ -165,7 +349,20 @@ const VideoMeeting = () => {
 
   const handleEndMeeting = () => {
     if (isConsultant) {
-      setOpenEndDialog(true);
+      // Check appointment status before showing end dialog
+      checkAppointmentStatus().then(appointmentData => {
+        // Only show end dialog if status is ON_GOING
+        if (appointmentData.status === 'ON_GOING') {
+          setOpenEndDialog(true);
+        } else {
+          // For other statuses, just leave directly
+          handleOnMeetingLeave();
+        }
+      }).catch(error => {
+        console.error("Error checking status before ending:", error);
+        // If error checking status, just show dialog to be safe
+        setOpenEndDialog(true);
+      });
     } else {
       handleOnMeetingLeave();
     }
@@ -181,16 +378,29 @@ const VideoMeeting = () => {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
       
-      console.log('Ending appointment with ID:', appointmentId);
-      console.log('Consultant ID:', userData.id);
-      console.log('With consultant note:', consultantNote ? 'Yes' : 'No');
+      // Check appointment status first
+      let appointmentData;
+      try {
+        appointmentData = await checkAppointmentStatus();
+      } catch (statusError) {
+        console.error("Failed to check appointment status:", statusError);
+        appointmentData = { status: "UNKNOWN" };
+      }
       
-      // Use apiService instead of direct axios call for proper authentication handling
-      await apiService.put(`/appointments/${appointmentId}/end?consultantId=${userData.id}`, {
-        consultantNote
-      });
+      // Only call end API if appointment is not already COMPLETED
+      if (appointmentData.status === 'ON_GOING') {
+        console.log('Ending appointment with ID:', appointmentId);
+        console.log('Consultant ID:', userData.id);
+        console.log('With consultant note:', consultantNote ? 'Yes' : 'No');
+        
+        // Use apiService instead of direct axios call for proper authentication handling
+        await apiService.put(`/appointments/${appointmentId}/end?consultantId=${userData.id}`, {
+          consultantNote
+        });
+        
+        showSuccessAlert('Hoàn thành buổi tư vấn thành công!');
+      }
       
-      showSuccessAlert('Hoàn thành buổi tư vấn thành công!');
       handleOnMeetingLeave();
     } catch (error) {
       console.error("Error ending appointment:", error);
@@ -330,11 +540,11 @@ const VideoMeeting = () => {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle id="end-dialog-title">
+        <DialogTitle sx={{fontWeight: 600, color: '#0056b3'}}  id="end-dialog-title">
           Xác nhận hoàn thành buổi tư vấn
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{fontWeight: 600, color: '#0056b3'}} gutterBottom>
+          <DialogContentText sx={{color: '#000000'}} gutterBottom>
             Bạn muốn kết thúc buổi tư vấn này? Hệ thống sẽ cập nhật trạng thái buổi tư vấn thành "Đã hoàn thành".
           </DialogContentText>
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
