@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MeetingProvider, MeetingConsumer } from "@videosdk.live/react-sdk";
+import { MeetingProvider, MeetingConsumer, useMeeting } from '@videosdk.live/react-sdk';
 import { getToken, validateMeeting, createMeeting } from '../../services/videoService';
 import { Box, Typography, TextField, Button, CircularProgress, Container, Paper, Stack, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextareaAutosize } from '@mui/material';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -16,9 +16,26 @@ import { API_URL } from '../../services/config';
 import MeetingContainer from './VideoMeetingComponents/MeetingContainer';
 import JoiningScreen from './VideoMeetingComponents/JoiningScreen';
 
+// Create a wrapper component to access meeting methods
+const MeetingWrapper = ({ children, meetingRef }) => {
+  const meeting = useMeeting();
+  
+  // Store meeting reference for external access
+  React.useEffect(() => {
+    if (meeting) {
+      meetingRef.current = meeting;
+    }
+  }, [meeting, meetingRef]);
+  
+  return children;
+};
+
 const VideoMeeting = () => {
   const { videoCallId, appointmentId } = useParams();
   const navigate = useNavigate();
+  
+  // Add ref to store meeting object
+  const meetingRef = useRef(null);
   
   const [token, setToken] = useState("");
   const [meetingId, setMeetingId] = useState("");
@@ -368,6 +385,7 @@ const VideoMeeting = () => {
     }
   };
   
+  // Handle confirmation of ending meeting
   const handleConfirmEndMeeting = async () => {
     try {
       setOpenEndDialog(false);
@@ -401,6 +419,12 @@ const VideoMeeting = () => {
         showSuccessAlert('Hoàn thành buổi tư vấn thành công!');
       }
       
+      // Now leave the meeting using the ref
+      if (meetingRef.current && typeof meetingRef.current.leave === 'function') {
+        meetingRef.current.leave();
+      }
+      
+      // Navigate away
       handleOnMeetingLeave();
     } catch (error) {
       console.error("Error ending appointment:", error);
@@ -447,6 +471,32 @@ const VideoMeeting = () => {
     return tempId;
   };
 
+  // Update how we pass the meeting leave handler to the MeetingContainer
+  // instead of passing onMeetingLeave directly, we'll pass a function to show the end dialog
+  const handleShowEndDialog = useCallback(() => {
+    if (isConsultant) {
+      // Set loading in the dialog to indicate checking status
+      setConsultantNote(''); // Reset note
+      setOpenEndDialog(true);  // Show dialog immediately so user gets feedback
+      
+      // Check appointment status in background
+      checkAppointmentStatus().then(appointmentData => {
+        if (appointmentData.status !== 'ON_GOING') {
+          // For other statuses, just leave directly
+          setOpenEndDialog(false);
+          handleOnMeetingLeave();
+        }
+        // Otherwise, keep dialog open for user to confirm and add notes
+      }).catch(error => {
+        console.error("Error checking status before ending:", error);
+        // On error, show error message but keep dialog open
+        showErrorAlert('Không thể kiểm tra trạng thái cuộc hẹn: ' + (error.message || 'Lỗi không xác định'));
+      });
+    } else {
+      handleOnMeetingLeave();
+    }
+  }, [isConsultant]);
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       {loading && !isMeetingStarted ? (
@@ -481,15 +531,17 @@ const VideoMeeting = () => {
           token={token}
           joinWithoutUserInteraction={true}
         >
-          <MeetingConsumer>
-            {() => (
-              <MeetingContainer
-                onMeetingLeave={handleEndMeeting}
-                setIsMeetingStarted={setIsMeetingStarted}
-                isConsultant={isConsultant}
-              />
-            )}
-          </MeetingConsumer>
+          <MeetingWrapper meetingRef={meetingRef}>
+            <MeetingConsumer>
+              {() => (
+                <MeetingContainer
+                  onMeetingLeave={handleShowEndDialog}
+                  setIsMeetingStarted={setIsMeetingStarted}
+                  isConsultant={isConsultant}
+                />
+              )}
+            </MeetingConsumer>
+          </MeetingWrapper>
         </MeetingProvider>
       ) : (
         <JoiningScreen
@@ -539,6 +591,14 @@ const VideoMeeting = () => {
         aria-labelledby="end-dialog-title"
         fullWidth
         maxWidth="sm"
+        // Update styling to ensure dialog appears properly over video
+        sx={{ 
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          },
+          position: 'absolute',
+          zIndex: 1400
+        }}
       >
         <DialogTitle sx={{fontWeight: 600, color: '#0056b3'}}  id="end-dialog-title">
           Xác nhận hoàn thành buổi tư vấn

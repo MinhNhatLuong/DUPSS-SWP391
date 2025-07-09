@@ -922,9 +922,9 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
 
   // Handle end meeting
   const handleLeave = () => {
-    // First call the SDK leave function
-    leave();
-    // Then call our custom handler
+    // Don't leave the meeting immediately
+    // Instead, call the callback which will show the dialog in VideoMeeting.jsx
+    // and let that component handle the actual meeting leave process
     onMeetingLeave();
   };
 
@@ -1008,9 +1008,9 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
     } catch (error) {
       console.error("Error cancelling appointment:", error);
       showErrorAlert('Không thể hủy cuộc hẹn: ' + (error.message || 'Lỗi không xác định'));
-      // Still leave the meeting
-      leave();
-      onMeetingLeave();
+      // Don't leave the meeting on error, just show alert
+      // Removed: leave();
+      // Removed: onMeetingLeave();
     }
   };
 
