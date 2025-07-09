@@ -213,6 +213,18 @@ export const login = async (credentials) => {
 };
 
 export const logout = () => {
+  // Try to revoke Google authentication if available
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    try {
+      // Signal to Google that the user has logged out
+      window.google.accounts.id.disableAutoSelect();
+      console.log('Google auto-select disabled');
+    } catch (error) {
+      console.error('Error when logging out from Google:', error);
+    }
+  }
+  
+  // Remove tokens from localStorage
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   tokenExpiryTime = null;

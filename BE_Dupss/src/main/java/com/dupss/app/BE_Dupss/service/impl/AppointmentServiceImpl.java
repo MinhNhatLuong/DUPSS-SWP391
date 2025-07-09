@@ -473,7 +473,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Kiểm tra trạng thái cuộc hẹn
-        if (!appointment.getStatus().equals("CONFIRMED") && !appointment.getStatus().equals("PENDING")) {
+        if (!appointment.getStatus().equals("CONFIRMED") && !appointment.getStatus().equals("ON_GOING")) {
             throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn đang chờ hoặc đã xác nhận");
         }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Card, 
@@ -53,9 +53,44 @@ const Register = () => {
     severity: 'success'
   });
   const [processing, setProcessing] = useState(false);
+  const googleButtonRef = useRef(null);
 
   useEffect(() => {
     document.title = "Đăng Ký - DUPSS";
+    
+    // Khởi tạo Google Identity
+    window.handleGoogleRegister = (response) => {
+      console.log('Google register successful:', response);
+      handleGoogleRegisterResponse(response);
+    };
+    
+    // Render Google Sign-In button
+    if (googleButtonRef.current) {
+      const googleLoginDiv = document.createElement('div');
+      googleButtonRef.current.innerHTML = '';
+      googleButtonRef.current.appendChild(googleLoginDiv);
+      
+      google.accounts.id.initialize({
+        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        callback: window.handleGoogleRegister,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      google.accounts.id.renderButton(googleLoginDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+        text: 'signup_with',
+        shape: 'rectangular',
+        logo_alignment: 'center'
+      });
+    }
+    
+    return () => {
+      // Xóa hàm callback toàn cục khi component unmount
+      delete window.handleGoogleRegister;
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -71,6 +106,45 @@ const Register = () => {
       ...alert,
       open: false
     });
+  };
+
+  // Function to handle Google register response
+  const handleGoogleRegisterResponse = async (response) => {
+    // Set processing state to true
+    setProcessing(true);
+    
+    try {
+      // Send the credential to your backend
+      const apiResponse = await axios.post(`${API_URL}/auth/google-register`, {
+        credential: response.credential
+      });
+      
+      if (apiResponse.status === 201) {
+        setProcessing(false);
+        
+        setAlert({
+          open: true,
+          message: 'Đăng ký bằng Google thành công!',
+          severity: 'success'
+        });
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+      }
+    } catch (error) {
+      setProcessing(false);
+      
+      const errorMessage = error.response?.data?.message || 
+                        'Đăng ký bằng Google thất bại. Vui lòng thử lại sau.';
+                        
+      setAlert({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -150,16 +224,6 @@ const Register = () => {
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
-  };
-
-  const handleGoogleRegister = () => {
-    console.log('Google register clicked');
-    // Placeholder for Google registration functionality
-  };
-
-  const handleFacebookRegister = () => {
-    console.log('Facebook register clicked');
-    // Placeholder for Facebook registration functionality
   };
 
   return (
@@ -539,24 +603,7 @@ const Register = () => {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '25px', width: '100%' }}>
-              <Button
-                variant="outlined"
-                startIcon={<GoogleIcon />}
-                onClick={handleGoogleRegister}
-                sx={{
-                  width: '100%',
-                  padding: '10px',
-                  borderColor: '#ddd',
-                  color: '#DB4437',
-                  '&:hover': {
-                    backgroundColor: '#fef0ef',
-                    borderColor: '#DB4437'
-                  },
-                  textTransform: 'none'
-                }}
-              >
-                Google
-              </Button>
+              <div ref={googleButtonRef} style={{ width: '100%' }}></div>
             </Box>
 
             <Box sx={{ textAlign: 'center' }}>

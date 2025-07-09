@@ -26,7 +26,7 @@ const AboutUs = () => {
         {/* Featured Image */}
         <Box sx={{ mb: 4, position: 'relative' }}>
           <img 
-            src="https://www.baohoabinh.com.vn/Includes/NewsDetail/1_2017/dt_5120171354_IMG_2722%20.jpg" 
+            src="https://res.cloudinary.com/dxkvlbzzu/image/upload/v1752065540/dupss_about_eknd1q.jpg" 
             alt="DUPSS Team" 
             style={{ 
               width: '100%', 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
@@ -21,6 +21,8 @@ import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
 import { login } from '../../services/authService';
 import { submitSurveyResult } from '../../services/surveyService';
+import axios from 'axios';
+import { API_URL } from '../../services/config';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -29,6 +31,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const googleButtonRef = useRef(null);
   
   // Get alert message from location state
   const authAlert = location.state?.showAuthAlert;
@@ -57,10 +60,82 @@ const Login = () => {
     
     document.addEventListener('session-expired', handleSessionExpired);
     
+    // Khởi tạo Google Identity
+    window.handleGoogleLogin = (response) => {
+      console.log('Google login successful:', response);
+      handleGoogleLoginResponse(response);
+    };
+    
+    // Render Google Sign-In button
+    if (googleButtonRef.current) {
+      const googleLoginDiv = document.createElement('div');
+      googleButtonRef.current.innerHTML = '';
+      googleButtonRef.current.appendChild(googleLoginDiv);
+      
+      google.accounts.id.initialize({
+        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        callback: window.handleGoogleLogin,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      google.accounts.id.renderButton(googleLoginDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'center'
+      });
+    }
+    
     return () => {
       document.removeEventListener('session-expired', handleSessionExpired);
+      // Xóa hàm callback toàn cục khi component unmount
+      delete window.handleGoogleLogin;
     };
   }, [authAlert, authMessage, sessionExpired]);
+
+  // Function to handle Google login response
+  const handleGoogleLoginResponse = async (response) => {
+    // Start loading state
+    setIsLoading(true);
+    
+    try {
+      // Send the credential to your backend
+      const apiResponse = await axios.post(`${API_URL}/auth/google-login`, {
+        credential: response.credential
+      });
+      
+      const { accessToken, refreshToken } = apiResponse.data;
+      
+      // Store tokens in local storage
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      showSuccessAlert('Đăng nhập bằng Google thành công!');
+      
+      // Process pending survey submissions if any
+      await handlePendingSurveySubmission();
+      
+      // Redirect based on saved URLs or to home page
+      const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+      
+      if (redirectAfterLogin) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectAfterLogin;
+      } else if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      showErrorAlert('Đăng nhập bằng Google thất bại. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Hàm xử lý gửi dữ liệu khảo sát đã lưu
   const handlePendingSurveySubmission = async () => {
@@ -159,11 +234,6 @@ const Login = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const handleGoogleLogin = () => {
-    console.log('Google login clicked');
-    // Placeholder for Google login functionality
   };
 
   return (
@@ -354,26 +424,11 @@ const Login = () => {
             </Box>
 
             <Box sx={{ 
-              marginBottom: '25px'
+              marginBottom: '25px',
+              display: 'flex',
+              justifyContent: 'center'
             }}>
-              <Button 
-                fullWidth 
-                variant="outlined"
-                onClick={handleGoogleLogin}
-                startIcon={<GoogleIcon />}
-                sx={{
-                  color: '#DB4437',
-                  borderColor: '#ddd',
-                  padding: '10px',
-                  '&:hover': {
-                    backgroundColor: '#fef0ef',
-                    borderColor: '#DB4437',
-                  },
-                  textTransform: 'none',
-                }}
-              >
-                Google
-              </Button>
+              <div ref={googleButtonRef} style={{ width: '100%' }}></div>
             </Box>
 
             <Box sx={{ textAlign: 'center', marginTop: '20px' }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -12,6 +12,7 @@ import {
   IconButton,
   Paper,
   Alert,
+  Divider,
 } from '@mui/material';
 import {
   Visibility,
@@ -33,6 +34,7 @@ const Login = ({ updateUserInfo }) => {
     username: '',
     password: '',
   });
+  const googleButtonRef = useRef(null);
 
   // Kiểm tra đăng nhập khi load trang
   useEffect(() => {
@@ -75,6 +77,40 @@ const Login = ({ updateUserInfo }) => {
     };
     
     checkAuth();
+    
+    // Khởi tạo Google Identity
+    window.handleGoogleLogin = (response) => {
+      console.log('Google login successful:', response);
+      handleGoogleLoginResponse(response);
+    };
+    
+    // Render Google Sign-In button
+    if (googleButtonRef.current) {
+      const googleLoginDiv = document.createElement('div');
+      googleButtonRef.current.innerHTML = '';
+      googleButtonRef.current.appendChild(googleLoginDiv);
+      
+      google.accounts.id.initialize({
+        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        callback: window.handleGoogleLogin,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      google.accounts.id.renderButton(googleLoginDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'center'
+      });
+    }
+    
+    return () => {
+      // Xóa hàm callback toàn cục khi component unmount
+      delete window.handleGoogleLogin;
+    };
   }, [navigate, updateUserInfo]);
 
   const handleChange = (e) => {
@@ -83,6 +119,59 @@ const Login = ({ updateUserInfo }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Handle Google login response
+  const handleGoogleLoginResponse = async (response) => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const apiResponse = await axios.post(`${API_URL}/auth/google-login`, {
+        credential: response.credential
+      });
+
+      // Lưu token vào local storage
+      localStorage.setItem('accessToken', apiResponse.data.accessToken);
+      localStorage.setItem('refreshToken', apiResponse.data.refreshToken);
+      
+      setSuccess('Đăng nhập bằng Google thành công!');
+      
+      // Gọi API lấy thông tin người dùng
+      try {
+        const userResponse = await apiClient.post('/auth/me', {
+          accessToken: apiResponse.data.accessToken
+        });
+        
+        // Lưu thông tin người dùng
+        setUserInfo(userResponse.data);
+        // Cập nhật state userInfo ở App component
+        if (updateUserInfo) updateUserInfo();
+        
+        // Xử lý điều hướng dựa trên role
+        setTimeout(() => {
+          handleRoleNavigation(userResponse.data.role);
+        }, 1000);
+        
+      } catch (err) {
+        setError('Không thể lấy thông tin người dùng');
+        console.error('User info error:', err);
+      }
+    } catch (err) {
+      if (err.response) {
+        if (err.response.status === 400 || err.response.status === 401) {
+          setError(err.response.data.message || 'Không thể đăng nhập bằng Google!');
+        } else {
+          setError('Có lỗi xảy ra. Vui lòng thử lại!');
+        }
+      } else {
+        setError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau!');
+      }
+      console.error('Google login error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -292,6 +381,16 @@ const Login = ({ updateUserInfo }) => {
               {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
           </form>
+          
+          <Divider sx={{ my: 2, '&::before, &::after': { borderColor: '#e0e0e0' } }}>
+            <Typography variant="body2" color="text.secondary" sx={{ px: 1 }}>
+              Hoặc
+            </Typography>
+          </Divider>
+          
+          <Box sx={{ mt: 2 }}>
+            <div ref={googleButtonRef} style={{ width: '100%' }}></div>
+          </Box>
         </CardContent>
       </Paper>
     </Box>

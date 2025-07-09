@@ -13,6 +13,17 @@ export const logout = async (callback) => {
       // Gọi API logout - truyền accessToken trong request body
       await axios.post(`${API_URL}/auth/logout`, { accessToken });
     }
+    
+    // Logout from Google if needed
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        // Signal to Google that the user has logged out
+        window.google.accounts.id.disableAutoSelect();
+        console.log('Google auto-select disabled');
+      } catch (error) {
+        console.error('Error when logging out from Google:', error);
+      }
+    }
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
