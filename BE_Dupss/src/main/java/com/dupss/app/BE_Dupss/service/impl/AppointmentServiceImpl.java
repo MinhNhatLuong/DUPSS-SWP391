@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -459,6 +460,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Kiểm tra trạng thái cuộc hẹn
         if (!appointment.getStatus().equals("CONFIRMED") && !appointment.getStatus().equals("PENDING")) {
             throw new IllegalArgumentException("Chỉ có thể hủy cuộc hẹn đang chờ hoặc đã xác nhận");
+        }
+
+        Duration waitingDuration = Duration.between(appointment.getCheckInTime(), LocalDateTime.now());
+
+        if (waitingDuration.toMinutes() < 5) {
+            throw new IllegalArgumentException("Chỉ có thể hủy sau khi đã chờ ít nhất 5 phút kể từ lúc bắt đầu họp.");
         }
 
         // Lưu trạng thái cũ
