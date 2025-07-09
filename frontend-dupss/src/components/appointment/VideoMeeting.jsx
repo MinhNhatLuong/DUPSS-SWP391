@@ -532,15 +532,15 @@ const VideoMeeting = () => {
           joinWithoutUserInteraction={true}
         >
           <MeetingWrapper meetingRef={meetingRef}>
-            <MeetingConsumer>
-              {() => (
-                <MeetingContainer
+          <MeetingConsumer>
+            {() => (
+              <MeetingContainer
                   onMeetingLeave={handleShowEndDialog}
-                  setIsMeetingStarted={setIsMeetingStarted}
-                  isConsultant={isConsultant}
-                />
-              )}
-            </MeetingConsumer>
+                setIsMeetingStarted={setIsMeetingStarted}
+                isConsultant={isConsultant}
+              />
+            )}
+          </MeetingConsumer>
           </MeetingWrapper>
         </MeetingProvider>
       ) : (
