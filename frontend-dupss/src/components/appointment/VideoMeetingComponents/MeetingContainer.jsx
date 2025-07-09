@@ -610,6 +610,7 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [activeSidebar, setActiveSidebar] = useState(null); // 'chat' | 'participants' | null
   const [isAlone, setIsAlone] = useState(true); // Track if consultant is alone
+  const [hadVisitors, setHadVisitors] = useState(false); // Track if meeting ever had participants
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   
@@ -699,6 +700,9 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
     
     // Update isAlone state when participants join
     updateAloneStatus();
+    
+    // Mark that meeting had participants
+    setHadVisitors(true);
   }
   
   function participantLeft(participant) {
@@ -1272,13 +1276,13 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
           </IconButton>
         </Tooltip>
         
-        {/* Cancel appointment button - only for consultants and only when alone */}
+        {/* Cancel appointment button - only for consultants when alone and never had any visitors */}
         {isConsultant && (
           <Tooltip title="Hủy cuộc hẹn">
             <span>
               <IconButton
                 onClick={handleCancelMeeting}
-                disabled={!isAlone}
+                disabled={!isAlone || hadVisitors}
                 sx={{ 
                   p: 1.5,
                   bgcolor: 'warning.main',
@@ -1302,7 +1306,7 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
           <span>
             <IconButton
               onClick={handleLeave}
-              disabled={isConsultant && isAlone}
+              disabled={isConsultant && isAlone && !hadVisitors}
               sx={{ 
                 p: 1.5,
                 bgcolor: 'error.main',
