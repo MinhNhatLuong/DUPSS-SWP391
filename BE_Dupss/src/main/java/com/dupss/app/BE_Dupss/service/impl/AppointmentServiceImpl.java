@@ -91,8 +91,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         String videoCallId = requestDto.getVideoCallId();
-        String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/"
-                + videoCallId;
+        // String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+        String meetingLink = "http://localhost:5173/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+
         savedAppointment.setLinkMeet(meetingLink);
 
         savedAppointment = appointmentRepository.save(savedAppointment);
