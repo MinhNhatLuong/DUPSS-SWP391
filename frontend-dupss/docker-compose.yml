@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: datdev/dupss:2.0.0
+    image: datdevv/dupss:2.0.0
     container_name: dupss-frontend
     ports:
       - "5173:5173"

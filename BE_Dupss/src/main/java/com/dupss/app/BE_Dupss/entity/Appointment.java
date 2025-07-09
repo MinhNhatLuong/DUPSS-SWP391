@@ -52,26 +52,26 @@ public class Appointment {
 
     @Column(name = "status")
     private String status = "PENDING"; // PENDING, CONFIRMED, CANCELED, COMPLETED
-    
+
     // Thêm các trường mới
     @Column(name = "check_in_time")
     private LocalDateTime checkInTime;
-    
+
     @Column(name = "check_out_time")
     private LocalDateTime checkOutTime;
-    
+
     @Column(name = "consultant_note", length = 1000)
     private String consultantNote;
-    
+
     @Column(name = "review_score")
     private Integer reviewScore;
-    
+
     @Column(name = "customer_review", length = 1000)
     private String customerReview;
-    
+
     @Column(name = "is_review", nullable = false)
     private boolean isReview = false;
-    
+
     @Column(name = "dupss_meet_link", length = 500)
     private String linkMeet;
-} 
+}

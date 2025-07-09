@@ -103,7 +103,8 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000", "https://dupss.vercel.app/" , "http://34.87.106.55:5173" , "http://34.87.106.55:3000", "http://34.87.106.55:8080" , "http://34.87.106.55:8080/api/" ));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000", "https://dupss.vercel.app/" , "http://34.87.106.55:5173" , "http://34.87.106.55:3000", "http://34.87.106.55:8080" , "http://34.87.106.55:8080/api/" , "https://admin.dupssapp.id.vn/api","https://dupssapp.id.vn/api",
+                "https://dupssapp.id.vn", "https://admin.dupssapp.id.vn"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
