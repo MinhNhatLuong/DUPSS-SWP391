@@ -75,26 +75,7 @@ public class StaffController {
     @GetMapping("/surveys")
     @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<List<SurveyManagerResponse>> getMySurveys() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        List<Survey> surveys = surveyRepository.findByCreatedBy(currentUser);
-        List<SurveyManagerResponse> responses = surveys.stream()
-                .map(survey -> SurveyManagerResponse.builder()
-                        .surveyId(survey.getId())
-                        .surveyTitle(survey.getTitle())
-                        .description(survey.getDescription())
-                        .surveyImage(survey.getSurveyImage())
-                        .active(survey.isActive())
-                        .forCourse(survey.isForCourse())
-                        .createdAt(survey.getCreatedAt())
-                        .createdBy(survey.getCreatedBy().getFullname())
-                        .status(survey.getStatus())
-                        .build())
-                .collect(Collectors.toList());
+        List<SurveyManagerResponse> responses = surveyService.getSurveysByAuthor();
         return ResponseEntity.ok(responses);
     }
     

@@ -22,5 +22,5 @@ public class SurveyManagerResponse {
     private LocalDateTime createdAt;
     private String createdBy;
     private ApprovalStatus status;
-    private String checkedBy;
+//    private String checkedBy;
 } 

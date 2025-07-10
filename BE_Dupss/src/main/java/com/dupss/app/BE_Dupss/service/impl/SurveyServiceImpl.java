@@ -3,6 +3,7 @@ package com.dupss.app.BE_Dupss.service.impl;
 import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
+import com.dupss.app.BE_Dupss.dto.response.SurveyManagerResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResultResponse;
 import com.dupss.app.BE_Dupss.entity.*;
@@ -253,8 +254,7 @@ public class SurveyServiceImpl implements SurveyService {
             
             // Nếu là STAFF, MANAGER hoặc ADMIN, hiển thị tất cả khảo sát
             if (currentUser != null && (currentUser.getRole() == ERole.ROLE_STAFF || 
-                                       currentUser.getRole() == ERole.ROLE_MANAGER || 
-                                       currentUser.getRole() == ERole.ROLE_ADMIN)) {
+                                       currentUser.getRole() == ERole.ROLE_MANAGER )){
                 surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
             } else {
                 // Nếu là người dùng thông thường, chỉ hiển thị khảo sát đã được phê duyệt
@@ -273,6 +273,30 @@ public class SurveyServiceImpl implements SurveyService {
         
         return surveys.stream()
                 .map(this::convertToSurveyResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SurveyManagerResponse> getSurveysByAuthor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Survey> surveys = surveyRepository.findByCreatedBy(currentUser);
+        return surveys.stream()
+                .map(survey -> SurveyManagerResponse.builder()
+                        .surveyId(survey.getId())
+                        .surveyTitle(survey.getTitle())
+                        .description(survey.getDescription())
+                        .surveyImage(survey.getSurveyImage())
+                        .active(survey.isActive())
+                        .forCourse(survey.isForCourse())
+                        .createdAt(survey.getCreatedAt())
+                        .createdBy(survey.getCreatedBy().getFullname())
+                        .status(survey.getStatus())
+                        .build())
                 .collect(Collectors.toList());
     }
 

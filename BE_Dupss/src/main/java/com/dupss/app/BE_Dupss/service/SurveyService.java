@@ -3,6 +3,7 @@ package com.dupss.app.BE_Dupss.service;
 import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveyResultRequest;
 import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
+import com.dupss.app.BE_Dupss.dto.response.SurveyManagerResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResultResponse;
 import com.dupss.app.BE_Dupss.entity.Survey;
@@ -21,6 +22,7 @@ public interface SurveyService {
     List<SurveyResultResponse> getSubmittedSurveys();
     Survey createAndSaveSurveyEntity(SurveyCreateRequest request, MultipartFile coverImage, User author) throws IOException;
     List<SurveyResponse> getAllSurveys();
+    List<SurveyManagerResponse> getSurveysByAuthor();
     SurveyResponse getSurveyById(Long id);
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);
     boolean evaluate(int score, SurveyCondition condition);
