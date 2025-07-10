@@ -42,17 +42,13 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return apiClient(originalRequest);
         } else {
-          // If refresh failed, logout and redirect to login page
-          logout(() => {
-            window.location.href = '/login';
-          });
+          // If refresh failed, logout but don't redirect
+          logout();
           return Promise.reject(error);
         }
       } catch (refreshError) {
-        // If token refresh fails, logout
-        logout(() => {
-          window.location.href = '/login';
-        });
+        // If token refresh fails, logout but don't redirect
+        logout();
         return Promise.reject(refreshError);
       }
     }

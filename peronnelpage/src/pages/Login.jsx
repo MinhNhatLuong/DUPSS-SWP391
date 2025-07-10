@@ -90,21 +90,25 @@ const Login = ({ updateUserInfo }) => {
       googleButtonRef.current.innerHTML = '';
       googleButtonRef.current.appendChild(googleLoginDiv);
       
-      google.accounts.id.initialize({
-        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
-        callback: window.handleGoogleLogin,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      
-      google.accounts.id.renderButton(googleLoginDiv, {
-        theme: 'outline',
-        size: 'large',
-        width: '100%',
-        text: 'signin_with',
-        shape: 'rectangular',
-        logo_alignment: 'center'
-      });
+      if (window.google && window.google.accounts) {
+        google.accounts.id.initialize({
+          client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+          callback: window.handleGoogleLogin,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+        
+        google.accounts.id.renderButton(googleLoginDiv, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'center'
+        });
+      } else {
+        console.error('Google Identity API not loaded');
+      }
     }
     
     return () => {
@@ -175,7 +179,7 @@ const Login = ({ updateUserInfo }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Ngăn chặn hành vi mặc định của form
     setError('');
     setSuccess('');
     setLoading(true);
@@ -218,6 +222,7 @@ const Login = ({ updateUserInfo }) => {
       } catch (err) {
         setError('Không thể lấy thông tin người dùng');
         console.error('User info error:', err);
+        setLoading(false);
       }
     } catch (err) {
       if (err.response) {
@@ -230,7 +235,6 @@ const Login = ({ updateUserInfo }) => {
         setError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau!');
       }
       console.error('Login error:', err);
-    } finally {
       setLoading(false);
     }
   };
@@ -316,7 +320,7 @@ const Login = ({ updateUserInfo }) => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <TextField
               fullWidth
               label="Tên đăng nhập"

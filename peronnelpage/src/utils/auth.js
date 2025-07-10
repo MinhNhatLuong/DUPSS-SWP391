@@ -32,7 +32,7 @@ export const logout = async (callback) => {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userInfo');
     
-    // Thực hiện callback để chuyển hướng người dùng
+    // Thực hiện callback để chuyển hướng người dùng nếu được cung cấp
     if (callback && typeof callback === 'function') {
       callback();
     }
@@ -157,7 +157,10 @@ export const refreshAccessToken = async () => {
     return true;
   } catch (err) {
     // Refresh token không hợp lệ hoặc hết hạn
-    logout();
+    // Chỉ xóa thông tin đăng nhập mà không chuyển hướng
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userInfo');
     return false;
   }
 };
