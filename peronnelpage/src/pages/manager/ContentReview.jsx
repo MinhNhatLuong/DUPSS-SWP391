@@ -243,68 +243,125 @@ const ContentReview = () => {
     }
 
     return (
-      <Grid container spacing={3}>
-        {content.map((item) => {
-          const isSurvey = selectedTab === 2;
-          const id = isSurvey ? item.surveyId : item.id;
-          const title = isSurvey ? item.surveyTitle : item.title;
-          const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
-          const createdAt = formatDate(item.createdAt);
-          
-          return (
-            <Grid item xs={12} md={6} lg={4} key={id}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" gutterBottom noWrap>
-                    {title}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    Author: {authorName}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    Created: {createdAt}
-                  </Typography>
-                  <Typography variant="body2" sx={{ mt: 2, mb: 2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                    {item.description}
-                  </Typography>
-                  <Chip
-                    label={item.status}
-                    color="warning"
-                    size="small"
-                  />
-                </CardContent>
-                <CardActions>
-                  <Button
-                    size="small"
-                    color="primary"
-                    onClick={() => handleReview(item)}
-                  >
-                    Review
-                  </Button>
-                  {selectedTab === 1 && (
+      <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+        <Box 
+          sx={{ 
+            display: 'flex',
+            flexWrap: 'wrap',
+            margin: -1.5, // Negative margin to compensate for padding
+          }}
+        >
+          {content.map((item) => {
+            const isSurvey = selectedTab === 2;
+            const id = isSurvey ? item.surveyId : item.id;
+            const title = isSurvey ? item.surveyTitle : item.title;
+            const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
+            const createdAt = formatDate(item.createdAt);
+            
+            return (
+              <Box 
+                key={id}
+                sx={{
+                  width: {
+                    xs: '100%',    // Full width on mobile
+                    sm: '50%',     // Half width on tablet
+                    md: '33.333%', // One third on desktop
+                  },
+                  padding: 1.5,
+                  boxSizing: 'border-box',
+                }}
+              >
+                <Card sx={{ 
+                  height: 320, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  width: '100%'
+                }}>
+                  <CardContent sx={{ 
+                    flexGrow: 1, 
+                    height: '210px', 
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography variant="h6" gutterBottom noWrap sx={{ fontWeight: 'bold' }}>
+                      {title}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Author: {authorName}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Created: {createdAt}
+                    </Typography>
+                    <Box 
+                      sx={{ 
+                        cursor: 'pointer',
+                        mt: 1,
+                        mb: 1,
+                        flexGrow: 1
+                      }}
+                      onClick={() => {
+                        setPreviewDialog({
+                          open: true,
+                          content: item.description,
+                          title: `${title} Description`
+                        });
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 3, 
+                        WebkitBoxOrient: 'vertical',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}>
+                        {item.description || 'No description available'}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      label={item.status}
+                      color="warning"
+                      size="small"
+                      sx={{ alignSelf: 'flex-start' }}
+                    />
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
                     <Button
                       size="small"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewBlog(item)}
+                      color="primary"
+                      variant="outlined"
+                      onClick={() => handleReview(item)}
                     >
-                      Preview
+                      Review
                     </Button>
-                  )}
-                  {selectedTab === 2 && (
-                    <Button
-                      size="small"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewSurvey(item)}
-                    >
-                      Preview
-                    </Button>
-                  )}
-                </CardActions>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                    {selectedTab === 1 && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewBlog(item)}
+                      >
+                        Preview
+                      </Button>
+                    )}
+                    {selectedTab === 2 && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewSurvey(item)}
+                      >
+                        Preview
+                      </Button>
+                    )}
+                  </CardActions>
+                </Card>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
     );
   };
 
