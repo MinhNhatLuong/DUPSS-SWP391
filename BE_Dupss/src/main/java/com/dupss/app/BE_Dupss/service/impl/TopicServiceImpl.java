@@ -56,6 +56,7 @@ public class TopicServiceImpl implements TopicService {
         topic.setName(request.getName());
         topic.setDescription(request.getDescription());
         topic.setCreator(creator);
+        topic.setActive(true);
         Topic savedTopic = topicRepository.save(topic);
         return mapToResponse(savedTopic, creator.getFullname());
     }

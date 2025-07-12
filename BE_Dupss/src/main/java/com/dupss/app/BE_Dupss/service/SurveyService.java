@@ -6,6 +6,7 @@ import com.dupss.app.BE_Dupss.dto.request.SurveySummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyManagerResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResponse;
 import com.dupss.app.BE_Dupss.dto.response.SurveyResultResponse;
+import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import com.dupss.app.BE_Dupss.entity.Survey;
 import com.dupss.app.BE_Dupss.entity.SurveyCondition;
 import com.dupss.app.BE_Dupss.entity.User;
@@ -26,4 +27,5 @@ public interface SurveyService {
     SurveyResponse getSurveyById(Long id);
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);
     boolean evaluate(int score, SurveyCondition condition);
+    void updateStatus(ApprovalStatus status, Long surveyId);
 }

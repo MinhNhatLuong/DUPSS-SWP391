@@ -36,6 +36,14 @@ public class SlotServiceImpl implements SlotService {
         User consultant = consultantRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với Username: " + username));
 
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        if (requestDto.getDate().isBefore(today) ||
+                (requestDto.getDate().isEqual(today) && requestDto.getStartTime().isBefore(now))) {
+            throw new IllegalArgumentException("Không thể đăng ký slot ở thời gian quá khứ.");
+        }
+
         Duration duration = Duration.between(requestDto.getStartTime(), requestDto.getEndTime());
         if (!duration.equals(Duration.ofHours(1))) {
             throw new IllegalArgumentException("Slot phải kéo dài đúng 1 giờ.");
