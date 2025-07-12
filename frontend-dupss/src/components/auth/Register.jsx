@@ -31,6 +31,9 @@ import { format, parse } from 'date-fns';
 import { API_URL } from '../../services/config';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 
+// Lấy Google Client ID từ biến môi trường
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -66,7 +69,7 @@ const Register = () => {
       googleButtonRef.current.appendChild(googleLoginDiv);
       
       google.accounts.id.initialize({
-        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        client_id: GOOGLE_CLIENT_ID,
         callback: window.handleGoogleRegister,
         auto_select: false,
         cancel_on_tap_outside: true,
