@@ -97,4 +97,17 @@ public class AuthenticationController {
         return authenticationService.changePassword(request, authentication.getName());
     }
 
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> request) {
+        String credential = request.get("credential");
+        try {
+            Map<String, String> tokens = authenticationService.loginWithGoogle(credential);
+            return ResponseEntity.ok(tokens);
+        } catch (GeneralSecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Token verification failed.");
+        }
+    }
+
 }
