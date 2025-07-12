@@ -184,6 +184,37 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    public List<CourseManagerResponse> getAllCourses() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+
+        // Check if user has STAFF or MANAGER role
+        if (currentUser.getRole() != ERole.ROLE_MANAGER) {
+            throw new AccessDeniedException("Only MANAGER can view all courses");
+        }
+
+        List<Course> courses = courseRepository.findAllByActiveTrue();
+
+        return courses.stream()
+                .map(course -> {
+                    List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+                    return CourseManagerResponse.builder()
+                            .id(course.getId())
+                            .title(course.getTitle())
+                            .description(course.getDescription())
+                            .coverImage(course.getCoverImage())
+                            .createdAt(course.getCreatedAt())
+                            .updatedAt(course.getUpdatedAt())
+                            .creatorName(course.getCreator().getFullname())
+                            .status(course.getStatus())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
     public Page<CourseHomeResponse> searchCoursesSummary(String keyword, Long topicId, Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
