@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Card, 
@@ -21,6 +21,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import GoogleIcon from '@mui/icons-material/Google';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -45,11 +46,46 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const googleButtonRef = useRef(null);
 
   useEffect(() => {
     document.title = "Đăng Ký - DUPSS";
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
+    
+    // Khởi tạo Google Identity
+    window.handleGoogleRegister = (response) => {
+      console.log('Google register successful:', response);
+      handleGoogleRegisterResponse(response);
+    };
+    
+    // Render Google Sign-In button
+    if (googleButtonRef.current) {
+      const googleLoginDiv = document.createElement('div');
+      googleButtonRef.current.innerHTML = '';
+      googleButtonRef.current.appendChild(googleLoginDiv);
+      
+      google.accounts.id.initialize({
+        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        callback: window.handleGoogleRegister,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      google.accounts.id.renderButton(googleLoginDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+        text: 'signup_with',
+        shape: 'rectangular',
+        logo_alignment: 'center'
+      });
+    }
+    
+    return () => {
+      // Xóa hàm callback toàn cục khi component unmount
+      delete window.handleGoogleRegister;
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -58,6 +94,43 @@ const Register = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+  
+  // Function to handle Google register response
+  const handleGoogleRegisterResponse = async (response) => {
+    // Set processing state to true
+    setProcessing(true);
+    
+    try {
+      // Send the credential to your backend using google-login endpoint instead of google-register
+      const apiResponse = await axios.post(`${API_URL}/auth/google-login`, {
+        credential: response.credential
+      });
+      
+      // Store tokens in local storage (like in Login component)
+      const { accessToken, refreshToken } = apiResponse.data;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      // Store registration success flag in localStorage with registration message
+      localStorage.setItem('loginSuccess', 'true');
+      localStorage.setItem('registrationMessage', 'Đăng ký bằng Google thành công!');
+      
+      setProcessing(false);
+      
+      // Scroll to top before redirecting
+      window.scrollTo(0, 0);
+      
+      // Redirect to home page (like Login does) instead of login page
+      window.location.href = '/';
+    } catch (error) {
+      setProcessing(false);
+      
+      const errorMessage = error.response?.data?.message || 
+                        'Đăng ký bằng Google thất bại. Vui lòng thử lại sau.';
+                        
+      showErrorAlert(errorMessage);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -443,6 +516,47 @@ const Register = () => {
                 </>
               ) : 'Đăng ký'}
             </Button>
+
+            <Box sx={{ 
+              textAlign: 'center', 
+              position: 'relative',
+              margin: '25px 0',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                width: 'calc(50% - 70px)',
+                height: '1px',
+                backgroundColor: '#ddd'
+              },
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                right: 0,
+                width: 'calc(50% - 70px)',
+                height: '1px',
+                backgroundColor: '#ddd'
+              }
+            }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  display: 'inline-block',
+                  padding: '0 15px',
+                  backgroundColor: 'white',
+                  position: 'relative',
+                  color: '#777'
+                }}
+              >
+                Hoặc đăng ký bằng
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '25px', width: '100%' }}>
+              <div ref={googleButtonRef} style={{ width: '100%' }}></div>
+            </Box>
 
             <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
               <Typography variant="body2">

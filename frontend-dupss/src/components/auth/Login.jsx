@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
@@ -15,6 +15,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import GoogleIcon from '@mui/icons-material/Google';
 import { Link as RouterLink } from 'react-router-dom';
 import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
 import styles from './Login.module.css';
@@ -30,6 +31,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const googleButtonRef = useRef(null);
   
   // Get alert message from location state
   const authAlert = location.state?.showAuthAlert;
@@ -61,10 +63,83 @@ const Login = () => {
     
     document.addEventListener('session-expired', handleSessionExpired);
     
+    // Khởi tạo Google Identity
+    window.handleGoogleLogin = (response) => {
+      console.log('Google login successful:', response);
+      handleGoogleLoginResponse(response);
+    };
+    
+    // Render Google Sign-In button
+    if (googleButtonRef.current) {
+      const googleLoginDiv = document.createElement('div');
+      googleButtonRef.current.innerHTML = '';
+      googleButtonRef.current.appendChild(googleLoginDiv);
+      
+      google.accounts.id.initialize({
+        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        callback: window.handleGoogleLogin,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      
+      google.accounts.id.renderButton(googleLoginDiv, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'center'
+      });
+    }
+    
     return () => {
       document.removeEventListener('session-expired', handleSessionExpired);
+      // Xóa hàm callback toàn cục khi component unmount
+      delete window.handleGoogleLogin;
     };
   }, [authAlert, authMessage, sessionExpired]);
+
+  // Function to handle Google login response
+  const handleGoogleLoginResponse = async (response) => {
+    // Start loading state
+    setIsLoading(true);
+    
+    try {
+      // Send the credential to your backend
+      const apiResponse = await axios.post(`${API_URL}/auth/google-login`, {
+        credential: response.credential
+      });
+      
+      const { accessToken, refreshToken } = apiResponse.data;
+      
+      // Store tokens in local storage
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      // Store login success flag in localStorage
+      localStorage.setItem('loginSuccess', 'true');
+      
+      // Process pending survey submissions if any
+      await handlePendingSurveySubmission();
+      
+      // Redirect based on saved URLs or to home page
+      const redirectAfterLogin = sessionStorage.getItem('redirectAfterLogin');
+      
+      if (redirectAfterLogin) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectAfterLogin;
+      } else if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      showErrorAlert('Đăng nhập bằng Google thất bại. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Hàm xử lý gửi dữ liệu khảo sát đã lưu
   const handlePendingSurveySubmission = async () => {
@@ -323,6 +398,49 @@ const Login = () => {
                 </>
               ) : 'Đăng nhập'}
             </Button>
+
+            <Box sx={{
+              position: 'relative',
+              textAlign: 'center',
+              margin: '25px 0',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                width: 'calc(50% - 70px)',
+                height: '1px',
+                backgroundColor: '#ddd'
+              },
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                right: 0,
+                width: 'calc(50% - 70px)',
+                height: '1px',
+                backgroundColor: '#ddd'
+              }
+            }}>
+              <Typography variant="body2" sx={{ 
+                display: 'inline-block',
+                padding: '0 15px',
+                backgroundColor: 'white',
+                position: 'relative',
+                color: '#777',
+                fontSize: '0.9rem'
+              }}>
+                Hoặc đăng nhập bằng
+              </Typography>
+            </Box>
+
+            <Box sx={{ 
+              marginBottom: '25px',
+              display: 'flex',
+              justifyContent: 'center'
+            }}>
+              <div ref={googleButtonRef} style={{ width: '100%' }}></div>
+            </Box>
 
             <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
               <Typography variant="body2">
