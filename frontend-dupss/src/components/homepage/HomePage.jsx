@@ -5,7 +5,7 @@ import PointsOfInterest from './PointsOfInterest';
 import FeaturedCourses from './FeaturedCourses';
 import { showSuccessAlert } from '../common/AlertNotification';
 
-function HomePage() {
+const HomePage = () => {
   useEffect(() => {
     document.title = "DUPSS - Phòng Ngừa Sử Dụng Ma Túy Trong Cộng Đồng";
     
@@ -36,6 +36,6 @@ function HomePage() {
       <FeaturedCourses />
     </>
   );
-}
+};
 
 export default HomePage;
