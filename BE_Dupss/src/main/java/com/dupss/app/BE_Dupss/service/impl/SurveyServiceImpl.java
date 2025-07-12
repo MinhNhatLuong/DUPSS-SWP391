@@ -256,6 +256,24 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     @Override
+    public List<SurveyManagerResponse> getPendingSurveys() {
+        List<Survey> surveys = surveyRepository.findByStatusAndActiveTrueAndForCourseFalse(ApprovalStatus.PENDING);
+        return surveys.stream()
+                .map(survey -> SurveyManagerResponse.builder()
+                        .surveyId(survey.getId())
+                        .surveyTitle(survey.getTitle())
+                        .description(survey.getDescription())
+                        .surveyImage(survey.getSurveyImage())
+                        .active(survey.isActive())
+                        .forCourse(survey.isForCourse())
+                        .createdAt(survey.getCreatedAt())
+                        .createdBy(survey.getCreatedBy().getFullname())
+                        .status(survey.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<SurveyResponse> getAllSurveys() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAuthenticated = authentication != null && authentication.isAuthenticated() && 
