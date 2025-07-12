@@ -7,10 +7,15 @@ import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
+import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.InvalidatedToken;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.InvalidatedTokenRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.jwt.SignedJWT;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.time.LocalDateTime;
 
 @Service

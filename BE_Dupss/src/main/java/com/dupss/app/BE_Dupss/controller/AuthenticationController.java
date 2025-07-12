@@ -14,8 +14,16 @@ import com.dupss.app.BE_Dupss.dto.response.RegisterResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.entity.ERole;
+import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.AuthenticationService;
+import com.dupss.app.BE_Dupss.service.JwtService;
 import com.dupss.app.BE_Dupss.service.UserService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,10 +45,13 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.dupss.app.BE_Dupss.dto.request.ChangePasswordRequest;
 import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
@@ -49,6 +61,10 @@ import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
 @Slf4j
 @RequestMapping("/api/auth")
 public class AuthenticationController {
+
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationService authenticationService;
     private final UserService userService;
