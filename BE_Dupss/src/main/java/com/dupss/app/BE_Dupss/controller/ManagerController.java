@@ -188,7 +188,7 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/surveys/pending")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
     public ResponseEntity<List<SurveyManagerResponse>> getPendingSurveys() {
         List<Survey> surveys = surveyRepository.findByStatus(ApprovalStatus.PENDING);
         List<SurveyManagerResponse> responses = surveys.stream()
