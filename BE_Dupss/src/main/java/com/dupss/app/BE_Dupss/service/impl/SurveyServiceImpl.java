@@ -142,6 +142,9 @@ public class SurveyServiceImpl implements SurveyService {
             .orElseThrow(() -> new RuntimeException("Survey not found"));
         return SurveyResponse.builder()
                 .title(survey.getTitle())
+                .surveyImage(survey.getSurveyImage())
+                .description(survey.getDescription())
+                .createdAt(survey.getCreatedAt())
                 .sections(survey.getSections().stream()
                         .map(SurveyResponse.SurveySectionDTO::fromEntity)
                         .collect(Collectors.toList()))
