@@ -217,6 +217,8 @@ public class SurveyServiceImpl implements SurveyService {
 
 
 
+
+
     private SurveyResultResponse mapToSurveyResultResponse(SurveyResult result) {
 
         return SurveyResultResponse.builder()
@@ -238,6 +240,19 @@ public class SurveyServiceImpl implements SurveyService {
             case "<=" -> score <= condition.getValue();
             default -> false;
         };
+    }
+
+    @Override
+    public void updateStatus(ApprovalStatus status, Long surveyId) {
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
+        if(survey.getStatus().equals(ApprovalStatus.PENDING)) {
+            survey.setStatus(status);
+        } else {
+            throw new RuntimeException("Khảo sát đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
+        }
+//        survey.setCheckedBy(currentUser);
+        surveyRepository.save(survey);
     }
 
     @Override

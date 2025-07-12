@@ -355,6 +355,20 @@ public class ManagerController {
         return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
     }
 
+    @PatchMapping("/surveys/{id}/approval")
+    public ResponseEntity<String> approvalSurvey(@PathVariable Long id, @RequestParam("status") ApprovalStatus status) {
+        String message = "";
+        if(status.equals(ApprovalStatus.APPROVED)) {
+            message = "Khảo sát đã được phê duyệt thành công";
+        } else if(status.equals(ApprovalStatus.REJECTED)) {
+            message = "Khảo sát đã bị từ chối";
+        } else {
+            return ResponseEntity.badRequest().body("Trạng thái không hợp lệ");
+        }
+        surveyService.updateStatus(status, id);
+        return ResponseEntity.ok(message);
+    }
+
     @PostMapping("/reports")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Map<String, String>> generateReport() {
