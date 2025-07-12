@@ -415,7 +415,7 @@ const CreateCourse = () => {
       };
       
       // Use the API_URL with axios (since apiClient doesn't handle FormData well)
-      const submitUrl = `${API_URL}/staff/courses`;
+      const submitUrl = `${API_URL}/staff/course`;
       console.log('Submitting to URL:', submitUrl);
       
       // Using axios directly here because we need to handle FormData with specific config
