@@ -56,6 +56,46 @@ public class AuthenticationService {
         }
     }
 
+    public Map<String, String> loginWithGoogle(String idTokenString) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList("1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com"))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken == null) {
+            throw new GeneralSecurityException("Invalid ID token.");
+        }
+
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+        String picture = (String) payload.get("picture");
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        User user = optionalUser.orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setFullname(name);
+            newUser.setUsername(email);
+            newUser.setAvatar(picture);
+            newUser.setPassword(passwordEncoder.encode("oauth2_default_password"));
+            newUser.setRole(ERole.ROLE_MEMBER);
+            newUser.setEnabled(true);
+            return userRepository.save(newUser);
+        });
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+        tokens.put("refreshToken", refreshToken);
+
+        return tokens;
+    }
+
+
     public void logout(LogoutRequest request) throws ParseException {
         // 1. Kiểm tra xem token đó có phải là token của hệ thống mình sản xuất ra hay không
         SignedJWT signedJWT = SignedJWT.parse(request.getAccessToken());
