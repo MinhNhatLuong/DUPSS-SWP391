@@ -56,6 +56,21 @@ const CourseCard = styled(Card)(({ theme }) => ({
   }
 }));
 
+const ReadMoreLink = styled(Link)(({ theme }) => ({
+  color: '#0056b3',
+  fontWeight: 500,
+  display: 'inline-flex',
+  alignItems: 'center',
+  textDecoration: 'none',
+  '& svg': {
+    marginLeft: '4px',
+    transition: 'transform 0.3s',
+  },
+  '&:hover svg': {
+    transform: 'translateX(3px)',
+  }
+}));
+
 const LoadingOverlay = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: 0,
@@ -312,10 +327,13 @@ function CoursesList() {
                       {course.title}
                     </Typography>
 
-                    <Box display="flex" justifyContent="space-between" mb={1.5}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
                       <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
                         <PersonIcon fontSize="small" sx={{ mr: 0.5 }} />
                         {course.creatorName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                        {new Date(course.createdAt).toLocaleDateString('vi-VN')}
                       </Typography>
                     </Box>
 
@@ -332,19 +350,10 @@ function CoursesList() {
                     </Typography>
                   </CardContent>
 
-                  <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                    <Button
-                      component={Link}
-                      to={`/courses/${course.id}`}
-                      color="primary"
-                      endIcon={<ArrowForwardIcon />}
-                      sx={{ fontWeight: 'bold' }}
-                    >
-                      Tham gia
-                    </Button>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                      {new Date(course.createdAt).toLocaleDateString('vi-VN')}
-                    </Typography>
+                  <CardActions sx={{ px: 2, pb: 2 }}>
+                    <ReadMoreLink to={`/courses/${course.id}`}>
+                      Tham gia <ArrowForwardIcon fontSize="small" />
+                    </ReadMoreLink>
                   </CardActions>
                 </CourseCard>
               ))}

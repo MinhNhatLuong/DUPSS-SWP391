@@ -22,7 +22,7 @@ const Header = () => {
           <RouterLink to="/">
             <img 
               src="/Logo_Website_Blue.png" 
-              alt="DUPSS Logo" 
+              alt="DUPSS Logo"
               style={isMobile ? { height: '40px' } : {}}
             />
           </RouterLink>

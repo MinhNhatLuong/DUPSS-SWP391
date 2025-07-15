@@ -376,7 +376,7 @@ const SurveyDetail = () => {
           <SurveyResult 
             result={result}
             onSubmit={handleSubmit}
-            onBack={handleBackToSurvey}
+            onBack={() => navigate('/surveys')}
             submitting={submitting}
           />
         )}
