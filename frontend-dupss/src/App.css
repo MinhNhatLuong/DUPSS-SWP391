@@ -85,6 +85,9 @@ header {
 .auth-buttons {
     display: flex;
     align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
 }
 
 .auth-buttons a {
@@ -587,8 +590,10 @@ footer {
 
 @media (max-width: 768px) {
     .header-container {
-        flex-direction: column;
+        flex-direction: row;
         gap: 15px;
+        align-items: center;
+        justify-content: space-between;
     }
     
     .search-bar {

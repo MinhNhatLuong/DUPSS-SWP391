@@ -200,18 +200,34 @@ const AuthButtons = () => {
   return (
     <div className="user-actions">
       {!isLoggedIn ? (
-        <div className="auth-buttons" style={isMobile ? { display: 'flex', gap: '8px' } : {}}>
+        <div className="auth-buttons" style={{ 
+          display: 'flex', 
+          flexDirection: 'row', 
+          gap: '8px',
+          flexWrap: 'nowrap',
+          whiteSpace: 'nowrap'
+        }}>
           <RouterLink 
             to="/login" 
             className="login-btn"
-            style={isMobile ? { padding: '6px 12px', fontSize: '0.9rem' } : {}}
+            style={{ 
+              padding: isMobile ? '6px 12px' : '8px 15px', 
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              whiteSpace: 'nowrap',
+              display: 'block'
+            }}
           >
             Đăng nhập
           </RouterLink>
           <RouterLink 
             to="/register" 
             className="register-btn"
-            style={isMobile ? { padding: '6px 12px', fontSize: '0.9rem' } : {}}
+            style={{ 
+              padding: isMobile ? '6px 12px' : '8px 15px', 
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              whiteSpace: 'nowrap',
+              display: 'block'
+            }}
           >
             Đăng ký
           </RouterLink>

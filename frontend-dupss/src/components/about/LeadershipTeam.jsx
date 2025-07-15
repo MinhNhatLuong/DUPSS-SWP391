@@ -18,7 +18,7 @@ const LeadershipTeam = () => {
     {
       image: 'https://res.cloudinary.com/dpunnm4ns/image/upload/v1742027595/YelpCamp/llndorjmir6t8ggggmt2.jpg',
       name: 'Nguyễn Tấn Dũng',
-      title: 'Nô lệ toàn thời gian',
+      title: 'Giám đốc tài chính',
       bio: 'Nô lệ toàn thời gian với kinh nghiệm phong phú trong các chiến dịch nâng cao nhận thức cộng đồng.'
     }
   ];
