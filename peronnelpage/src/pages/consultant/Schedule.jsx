@@ -53,7 +53,7 @@ const statusColor = {
   COMPLETED: 'success',
   CANCELLED: 'error',
   PENDING: 'default',
-  ongoing: 'warning',
+  ON_GOING: 'warning',
 };
 
 const statusLabel = {
@@ -61,7 +61,7 @@ const statusLabel = {
   COMPLETED: 'Đã hoàn thành',
   CANCELLED: 'Đã hủy',
   PENDING: 'Chờ xác nhận',
-  ongoing: 'Đang diễn ra',
+  ON_GOING: 'Đang tư vấn',
 };
 
 // Lấy ngày đầu tuần (thứ 2)
@@ -352,6 +352,10 @@ export default function Schedule() {
 
   // Kiểm tra xem buổi tư vấn có đang diễn ra không
   function getAppointmentStatus(appt) {
+    // Nếu đã có trạng thái ON_GOING từ server, ưu tiên sử dụng
+    if (appt.status === 'ON_GOING') return appt.status;
+    
+    // Nếu không phải CONFIRMED, trả về trạng thái hiện tại
     if (appt.status !== 'CONFIRMED') return appt.status;
     
     const appointmentDate = dayjs(appt.appointmentDate);
@@ -377,7 +381,7 @@ export default function Schedule() {
     const now = dayjs();
     
     if (now.isAfter(startTime) && now.isBefore(endTime)) {
-      return 'ongoing';
+      return 'ON_GOING';
     }
     
     return appt.status;
@@ -470,7 +474,7 @@ export default function Schedule() {
     });
   };
 
-  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 10 phút)
+  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 5 phút)
   const canStartAppointment = (appt) => {
     if (!appt || appt.status !== 'CONFIRMED') return false;
     
@@ -511,8 +515,8 @@ export default function Schedule() {
     // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
     const minutesUntilAppointment = appointmentDateTime.diff(now, 'minute');
     
-    // Cho phép bắt đầu nếu thời gian còn lại ≤ 10 phút
-    return minutesUntilAppointment <= 10;
+    // Cho phép bắt đầu nếu thời gian còn lại ≤ 5 phút
+    return minutesUntilAppointment <= 5;
   };
 
   // Thêm hàm bắt đầu buổi tư vấn
@@ -522,7 +526,7 @@ export default function Schedule() {
       if (!canStartAppointment(dialog.appt)) {
         setSnackbar({ 
           open: true, 
-          message: 'Chỉ có thể vào cuộc hẹn trước buổi tư vấn 10 phút!', 
+          message: 'Chỉ có thể vào cuộc hẹn trước buổi tư vấn 5 phút!', 
           severity: 'warning' 
         });
         return;
@@ -934,7 +938,7 @@ export default function Schedule() {
                                   border: `2px solid ${
                                     isRegisteredOnly ? '#81c784' : 
                                     status === 'COMPLETED' ? '#388e3c' : 
-                                    status === 'ongoing' ? '#ffa726' : 
+                                    status === 'ON_GOING' ? '#ffa726' : 
                                     status === 'CANCELLED' ? '#d32f2f' : '#42a5f5'
                                   }`,
                                   color: '#222',
@@ -1055,7 +1059,7 @@ export default function Schedule() {
                   <Typography sx={{ mb: 1 }}><b>Trạng thái:</b> {statusLabel[getAppointmentStatus(dialog.appt)] || dialog.appt.status}</Typography>
                   
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
-                    {/* Nút 1: vào cuộc hẹn */}
+                    {/* Chỉ hiển thị nút vào cuộc hẹn */}
                     <Button
                       variant="contained"
                       color="primary"
@@ -1066,26 +1070,6 @@ export default function Schedule() {
                       }}
                     >
                       {canStartAppointment(dialog.appt) ? 'vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
-                    </Button>
-                    
-                    {/* Nút 2: Hoàn thành */}
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleComplete(dialog.appt)}
-                      disabled={dialog.appt.status !== 'CONFIRMED'}
-                    >
-                      Hoàn thành
-                    </Button>
-                    
-                    {/* Nút 3: Hủy bỏ */}
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => handleCancel(dialog.appt)}
-                      disabled={dialog.appt.status !== 'CONFIRMED' && dialog.appt.status !== 'PENDING'}
-                    >
-                      Hủy bỏ
                     </Button>
                   </Box>
                 </>
@@ -1170,9 +1154,9 @@ export default function Schedule() {
       </Dialog>
       
       <Box sx={{ fontSize: 14, color: 'text.secondary', mt: 2 }}>
-        <b>Chú thích:</b> 
+                <b>Chú thích:</b> 
         <Chip label="Đã xác nhận" color="info" size="small" sx={{ mx: 1 }} />
-        <Chip label="Đang diễn ra" color="warning" size="small" sx={{ mx: 1 }} />
+        <Chip label="Đang tư vấn" color="warning" size="small" sx={{ mx: 1 }} />
         <Chip label="Đã hoàn thành" color="success" size="small" sx={{ mx: 1 }} />
         <Chip label="Đã hủy" color="error" size="small" sx={{ mx: 1 }} />
       </Box>
