@@ -65,8 +65,8 @@ public class HomeController {
     }
 
     @GetMapping("/blogs/latest")
-    public ResponseEntity<List<BlogHomeResponse>> getLatestBlogs() {
-        List<BlogHomeResponse> latestBlogs = blogService.getLatestBlogs();
+    public ResponseEntity<List<BlogSummaryResponse>> getLatestBlogs() {
+        List<BlogSummaryResponse> latestBlogs = blogService.getLatestBlogs();
         return ResponseEntity.ok(latestBlogs);
     }
 
@@ -91,7 +91,7 @@ public class HomeController {
         int pageIndex = page > 0 ? page - 1 : 0;
         int size = 6; // Default page size
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(direction, sortBy));
-        Page<BlogHomeResponse> blogPage = blogService.searchBlogs(keyword, topic, pageable);
+        Page<BlogSummaryResponse> blogPage = blogService.searchBlogs(keyword, topic, pageable);
 
         Map<String, Object> response = new HashMap<>();
         response.put("blogs", blogPage.getContent());

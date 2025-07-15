@@ -9,16 +9,17 @@ import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
-import com.dupss.app.BE_Dupss.entity.Consultant;
-import com.dupss.app.BE_Dupss.entity.ERole;
-import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,21 +50,6 @@ public class AdminService {
         }
     }
 
-    @Transactional
-    public void assignRoleToUser(Long userId, String roleName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-
-        try {
-            ERole eRole = ERole.valueOf(roleName);
-            user.setRole(eRole);
-            userRepository.save(user);
-            log.info("Role {} assigned to user {}", roleName, userId);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid role name: {}", roleName);
-            throw new IllegalArgumentException("Invalid role name: " + roleName);
-        }
-    }
 
     @Transactional
     public CreateUserResponse createUser(CreateUserRequest request) {
@@ -99,6 +85,17 @@ public class AdminService {
         }
 
         User savedUser = userRepository.save(user);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String adminUsername = authentication.getName();
+        User adminUser = userRepository.findByUsernameAndEnabledTrue(adminUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy admin thực hiện thao tác"));
+        ActionLog logEntry = new ActionLog();
+        logEntry.setPerformedBy(adminUser);
+        logEntry.setActionType(ActionType.CREATE);
+        logEntry.setTargetType(TargetType.USER);
+        logEntry.setTargetId(savedUser.getId());
+        logEntry.setActionTime(LocalDateTime.now());
         log.info("Admin created user: {}", savedUser.getUsername());
 
         return CreateUserResponse.builder()
