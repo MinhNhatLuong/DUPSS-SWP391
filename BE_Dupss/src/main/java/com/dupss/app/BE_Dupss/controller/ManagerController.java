@@ -73,6 +73,12 @@ public class ManagerController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/course/{id}")
+    public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
+        CourseResponse courseResponse = courseService.getCourseDetail(id);
+        return ResponseEntity.ok(courseResponse);
+    }
+
     /**
      * API lấy tất cả bài viết trong hệ thống
      * Chỉ dành cho Manager và Admin

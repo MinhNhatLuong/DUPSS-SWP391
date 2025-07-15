@@ -257,6 +257,19 @@ public class CourseService {
         return mapToCourseResponse(course, modules, currentUser);
     }
 
+
+    public CourseResponse getCourseDetail(Long id) {
+
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+
+        return mapToCourseResponse(course, modules, course.getCreator());
+    }
+
+
     public CourseDetailPublicResponse getCoursePublicDetail(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
