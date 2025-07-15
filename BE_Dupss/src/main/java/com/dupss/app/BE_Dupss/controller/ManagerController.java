@@ -120,25 +120,8 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/courses/pending")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<CourseManagerResponse>> getPendingCourses() {
-        List<Course> courses = courseRepository.findByStatusAndActiveTrue(ApprovalStatus.PENDING);
-        List<CourseManagerResponse> responses = courses.stream()
-                .map(course -> CourseManagerResponse.builder()
-                        .id(course.getId())
-                        .title(course.getTitle())
-                        .description(course.getDescription())
-                        .coverImage(course.getCoverImage())
-                        .content(course.getContent())
-                        .duration(course.getDuration())
-                        .status(course.getStatus())
-                        .createdAt(course.getCreatedAt())
-                        .updatedAt(course.getUpdatedAt())
-                        .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
-                        .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
-//                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
-                        .build())
-                .collect(Collectors.toList());
+        List<CourseManagerResponse> responses = courseService.getCoursePending();
         return ResponseEntity.ok(responses);
     }
 

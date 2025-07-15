@@ -269,6 +269,24 @@ public class CourseService {
         return mapToCourseResponse(course, modules, course.getCreator());
     }
 
+    public List<CourseManagerResponse> getCoursePending(){
+        List<Course> courses = courseRepository.findByStatusAndActiveTrue(ApprovalStatus.PENDING);
+        List<CourseManagerResponse> responses = courses.stream()
+                .map(course -> CourseManagerResponse.builder()
+                        .id(course.getId())
+                        .title(course.getTitle())
+                        .description(course.getDescription())
+                        .coverImage(course.getCoverImage())
+                        .duration(course.getDuration())
+                        .createdAt(course.getCreatedAt())
+                        .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
+                        .status(course.getStatus())
+                        .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
+                        .build())
+                .collect(Collectors.toList());
+        return responses;
+    }
+
 
     public CourseDetailPublicResponse getCoursePublicDetail(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
