@@ -347,21 +347,28 @@ const SurveyDetail = () => {
               ))}
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              flexDirection: 'row', 
+              mt: 4, 
+              gap: 2,
+              width: '100%' 
+            }}>
               <Button
                 variant="outlined"
                 onClick={handlePrevious}
                 disabled={activeSection === 0}
-                sx={{fontWeight: 600}}
+                sx={{fontWeight: 600, flex: 1}}
               >
-                Quay lại
+                QUAY LẠI
               </Button>
               <Button
                 variant="contained"
                 onClick={handleNext}
-                sx={{fontWeight: 600}}
+                sx={{fontWeight: 600, flex: 1}}
               >
-                {activeSection < survey.survey.section.length - 1 ? 'Tiếp theo' : 'Xem kết quả'}
+                {activeSection < survey.survey.section.length - 1 ? 'TIẾP THEO' : 'XEM KẾT QUẢ'}
               </Button>
             </Box>
           </>

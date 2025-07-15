@@ -78,7 +78,14 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
         </Typography>
       </Box>
       
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        flexDirection: 'row',
+        mt: 4,
+        gap: 2,
+        width: '100%'
+      }}>
         <Button
           variant="outlined"
           onClick={() => {
@@ -87,9 +94,9 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
           }}
           disabled={submitting}
           size="large"
-          sx={{fontWeight: 600}}
+          sx={{fontWeight: 600, flex: 1}}
         >
-          Quay lại
+          QUAY LẠI
         </Button>
         <Button
           variant="contained"
@@ -101,9 +108,9 @@ const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
           disabled={submitting}
           startIcon={submitting ? <CircularProgress size={20} /> : null}
           size="large"
-          sx={{fontWeight: 600}}
+          sx={{fontWeight: 600, flex: 1}}
         >
-          {submitting ? 'Đang gửi...' : 'Lưu kết quả'}
+          {submitting ? 'ĐANG GỬI...' : 'LƯU KẾT QUẢ'}
         </Button>
       </Box>
     </Box>
