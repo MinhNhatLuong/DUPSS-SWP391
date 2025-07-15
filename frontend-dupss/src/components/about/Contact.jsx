@@ -1,4 +1,4 @@
-import { Typography, Box, IconButton } from '@mui/material';
+import { Typography, Box, IconButton, Grid } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
@@ -56,7 +56,13 @@ const Contact = () => {
           </Box>
         </Box>
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+        <Grid 
+          container 
+          spacing={2} 
+          justifyContent="center" 
+          sx={{ mt: 3 }}
+        >
+          <Grid item>
           <IconButton 
             aria-label="facebook" 
             component="a" 
@@ -64,13 +70,17 @@ const Contact = () => {
             sx={{ 
               bgcolor: '#0056b3', 
               color: 'white',
+                width: '40px',
+                height: '40px',
               '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
               transition: 'background-color 0.3s ease, transform 0.3s ease'
             }}
           >
-            <FacebookIcon />
+              <FacebookIcon fontSize="small" />
           </IconButton>
+          </Grid>
           
+          <Grid item>
           <IconButton 
             aria-label="twitter" 
             component="a" 
@@ -78,13 +88,17 @@ const Contact = () => {
             sx={{ 
               bgcolor: '#0056b3', 
               color: 'white',
+                width: '40px',
+                height: '40px',
               '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
               transition: 'background-color 0.3s ease, transform 0.3s ease'
             }}
           >
-            <TwitterIcon />
+              <TwitterIcon fontSize="small" />
           </IconButton>
+          </Grid>
           
+          <Grid item>
           <IconButton 
             aria-label="instagram" 
             component="a" 
@@ -92,13 +106,17 @@ const Contact = () => {
             sx={{ 
               bgcolor: '#0056b3', 
               color: 'white',
+                width: '40px',
+                height: '40px',
               '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
               transition: 'background-color 0.3s ease, transform 0.3s ease'
             }}
           >
-            <InstagramIcon />
+              <InstagramIcon fontSize="small" />
           </IconButton>
+          </Grid>
           
+          <Grid item>
           <IconButton 
             aria-label="youtube" 
             component="a" 
@@ -106,13 +124,16 @@ const Contact = () => {
             sx={{ 
               bgcolor: '#0056b3', 
               color: 'white',
+                width: '40px',
+                height: '40px',
               '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
               transition: 'background-color 0.3s ease, transform 0.3s ease'
             }}
           >
-            <YouTubeIcon />
+              <YouTubeIcon fontSize="small" />
           </IconButton>
-        </Box>
+          </Grid>
+        </Grid>
       </Box>
     </section>
   );

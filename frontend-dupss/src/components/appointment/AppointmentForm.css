@@ -12,4 +12,22 @@
   .MuiBox-root {
     flex-direction: column;
   }
+  
+  .date-navigation-box {
+    flex-direction: row !important;
+  }
+  
+  .date-navigation-box .MuiButton-root {
+    width: auto;
+    margin-top: 0;
+  }
+  
+  .time-slots-container {
+    flex-direction: row !important;
+  }
+  
+  .time-slot-button {
+    width: calc(33.33% - 8px) !important;
+    margin-top: 0 !important;
+  }
 } 

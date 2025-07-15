@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { Box, Avatar, Typography, Menu, MenuItem, Button } from '@mui/material';
+import { Box, Avatar, Typography, Menu, MenuItem, Button, useMediaQuery, useTheme } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
@@ -31,6 +31,8 @@ const AuthButtons = () => {
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     checkAuthStatus();
@@ -198,15 +200,27 @@ const AuthButtons = () => {
   return (
     <div className="user-actions">
       {!isLoggedIn ? (
-        <div className="auth-buttons">
-          <RouterLink to="/login" className="login-btn">Đăng nhập</RouterLink>
-          <RouterLink to="/register" className="register-btn">Đăng ký</RouterLink>
+        <div className="auth-buttons" style={isMobile ? { display: 'flex', gap: '8px' } : {}}>
+          <RouterLink 
+            to="/login" 
+            className="login-btn"
+            style={isMobile ? { padding: '6px 12px', fontSize: '0.9rem' } : {}}
+          >
+            Đăng nhập
+          </RouterLink>
+          <RouterLink 
+            to="/register" 
+            className="register-btn"
+            style={isMobile ? { padding: '6px 12px', fontSize: '0.9rem' } : {}}
+          >
+            Đăng ký
+          </RouterLink>
         </div>
       ) : (
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
-          minWidth: '220px',
+          minWidth: isMobile ? 'auto' : '220px',
           justifyContent: 'flex-end' 
         }}>
           <Box 
@@ -215,7 +229,7 @@ const AuthButtons = () => {
               display: 'flex', 
               alignItems: 'center', 
               cursor: 'pointer',
-              padding: '6px 15px',
+              padding: isMobile ? '4px 10px' : '6px 15px',
               borderRadius: '4px',
               border: '1px solid #dddddd',
               backgroundColor: '#ffffff',
@@ -226,21 +240,23 @@ const AuthButtons = () => {
               src={userData?.avatar} 
               alt={userData?.fullName || 'User'} 
               sx={{ 
-                width: 36, 
-                height: 36, 
-                mr: 1.5
+                width: isMobile ? 30 : 36, 
+                height: isMobile ? 30 : 36, 
+                mr: isMobile ? 1 : 1.5
               }}
             />
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                fontWeight: 500,
-                color: '#333333',
-                fontSize: '1rem'
-              }}
-            >
-              {userData?.fullName || userData?.username || 'User'}
-            </Typography>
+            {!isMobile && (
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontWeight: 500,
+                  color: '#333333',
+                  fontSize: '1rem'
+                }}
+              >
+                {userData?.fullName || userData?.username || 'User'}
+              </Typography>
+            )}
           </Box>
           <Menu
             anchorEl={anchorEl}
@@ -256,24 +272,49 @@ const AuthButtons = () => {
             }}
             PaperProps={{
               sx: {
-                '& .MuiList-root': {
-                  paddingTop: 0,
-                  paddingBottom: 0
+                minWidth: '200px',
+                mt: 1.5,
+                boxShadow: '0px 5px 15px rgba(0,0,0,0.15)',
+                borderRadius: '8px',
+                overflow: 'visible',
+                '&::before': {
+                  content: '""',
+                  display: 'block',
+                  position: 'absolute',
+                  top: -5,
+                  right: 14,
+                  width: 10,
+                  height: 10,
+                  bgcolor: 'background.paper',
+                  transform: 'translateY(-50%) rotate(45deg)',
+                  zIndex: 0,
                 }
-              },
+              }
             }}
           >
-            <StyledMenuItem onClick={handleProfileClick} disableRipple selected={false}>
-              <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-              Hồ sơ
+            {isMobile && (
+              <Box sx={{ px: 2, py: 1, borderBottom: '1px solid #eaeaea' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {userData?.fullName || userData?.username || 'User'}
+                </Typography>
+              </Box>
+            )}
+            
+            <StyledMenuItem onClick={handleProfileClick}>
+              <PersonIcon fontSize="small" sx={{ mr: 1.5, color: '#555' }} />
+              <Typography variant="body2">Hồ sơ cá nhân</Typography>
             </StyledMenuItem>
-            <StyledMenuItem onClick={handleChangePasswordClick} disableRipple selected={false}>
-              <LockIcon fontSize="small" sx={{ mr: 1 }} />
-              Đổi mật khẩu
+            
+            <StyledMenuItem onClick={handleChangePasswordClick}>
+              <LockIcon fontSize="small" sx={{ mr: 1.5, color: '#555' }} />
+              <Typography variant="body2">Đổi mật khẩu</Typography>
             </StyledMenuItem>
-            <StyledMenuItem onClick={handleLogout} disableRipple selected={false}>
-              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-              Đăng xuất
+            
+            <Box sx={{ borderTop: '1px solid #eaeaea', mt: 1, mb: 1 }} />
+            
+            <StyledMenuItem onClick={handleLogout} sx={{ color: '#d32f2f' }}>
+              <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
+              <Typography variant="body2">Đăng xuất</Typography>
             </StyledMenuItem>
           </Menu>
         </Box>

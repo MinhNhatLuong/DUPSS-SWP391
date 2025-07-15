@@ -80,14 +80,24 @@ const DateText = styled(Typography)({
   alignItems: 'center',
   height: '24px',
   padding: '0 4px',
+  whiteSpace: 'nowrap',
 });
 
-const MetaInfoRow = styled(Box)({
+const MetaInfoRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'space-between',
   width: '100%',
   marginBottom: '8px',
-});
+  flexWrap: 'nowrap',
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    '& > *': {
+      margin: 0,
+    }
+  }
+}));
 
 const RelatedArticles = ({ articles }) => {
   return (

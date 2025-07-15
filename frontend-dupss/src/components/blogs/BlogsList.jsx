@@ -216,7 +216,14 @@ const BlogsList = () => {
               <RelatedArticles articles={blogs} />
             </Box>
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              width: '100%', 
+              mt: 4,
+              px: { xs: 2, sm: 0 }
+            }}>
               <Pagination 
                 count={totalPages} 
                 page={currentPage}
@@ -224,6 +231,12 @@ const BlogsList = () => {
                 color="primary"
                 size="large"
                 disabled={loading}
+                sx={{ 
+                  '& .MuiPagination-ul': { 
+                    justifyContent: 'center',
+                    width: '100%'
+                  }
+                }}
               />
             </Box>
           </>

@@ -288,14 +288,18 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                 flexDirection: 'column',
                 p: 2
               }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  mb: 2,
-                  borderBottom: '1px solid #e0e0e0',
-                  pb: 1
-                }}>
+                <Box 
+                  className="date-navigation-box"
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'row !important',
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 2,
+                    borderBottom: '1px solid #e0e0e0',
+                    pb: 1
+                  }}
+                >
                   <Button 
                     size="small" 
                     onClick={() => handlePreviousDay(consultant.id)}
@@ -338,14 +342,17 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                   Các khung giờ sẵn có:
                 </Typography>
                 
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexWrap: 'wrap', 
-                  gap: 1, 
-                  mt: 1,
-                  maxHeight: '200px',
-                  overflowY: 'auto'
-                }}>
+                <Box 
+                  className="time-slots-container"
+                  sx={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    gap: 1, 
+                    mt: 1,
+                    maxHeight: '200px',
+                    overflowY: 'auto'
+                  }}
+                >
                   {slotsMap[consultant.id] && slotsMap[consultant.id].length > 0 ? (
                     slotsMap[consultant.id].map((slot) => (
                       <Button
@@ -354,6 +361,7 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                         size="small"
                         onClick={() => onSlotSelect(slot)}
                         startIcon={<AccessTimeIcon />}
+                        className="time-slot-button"
                         sx={{ 
                           borderRadius: '20px',
                           px: 2,
@@ -361,6 +369,7 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                           mb: 1,
                           borderColor: '#3f8dda',
                           color: '#1976d2',
+                          width: { xs: 'calc(33.33% - 8px)', sm: 'auto' },
                           '&:hover': {
                             bgcolor: '#e8f3ff',
                             borderColor: '#1976d2'

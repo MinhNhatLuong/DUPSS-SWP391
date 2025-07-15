@@ -40,6 +40,7 @@ header {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    flex-direction: row;
 }
 
 .logo img {
@@ -77,6 +78,11 @@ header {
 }
 
 .user-actions {
+    display: flex;
+    align-items: center;
+}
+
+.auth-buttons {
     display: flex;
     align-items: center;
 }
@@ -171,6 +177,36 @@ header {
 .nav-links a:hover,
 .nav-links a.active {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+    .header-container {
+        padding: 0 15px;
+    }
+    
+    .logo img {
+        height: 40px;
+    }
+    
+    .auth-buttons {
+        display: flex;
+    }
+    
+    .auth-buttons a {
+        margin-left: 8px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .navbar {
+        border-top: none;
+        box-shadow: none;
+    }
+    
+    .nav-container {
+        padding: 0;
+    }
 }
 
 /* Hero Banner Styles */
