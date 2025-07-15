@@ -1,6 +1,7 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
 import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,9 +21,13 @@ public class BlogResponse {
     private String topic;
     private String description;
     private String content;
-    private List<String> imageUrls;
+    private String imageUrl;
     private String authorName;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime updatedAt;
     private ApprovalStatus status;
 }

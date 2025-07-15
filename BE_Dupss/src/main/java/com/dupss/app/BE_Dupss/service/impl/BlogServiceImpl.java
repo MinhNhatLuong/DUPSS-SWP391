@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class BlogServiceImpl implements BlogService {
 
     private final BlogRepository blogRepository;
-    private final BlogImageRepository blogImageRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final TopicRepo topicRepository;
@@ -68,28 +67,32 @@ public class BlogServiceImpl implements BlogService {
         Blog savedBlog = blogRepository.save(blog);
 
         // Handle images if provided
-        List<BlogImage> blogImages = new ArrayList<>();
-        List<String> imageUrls = new ArrayList<>();
-        if (blogRequest.getImages() != null && !blogRequest.getImages().isEmpty()) {
-            for (MultipartFile imageFile : blogRequest.getImages()) {
-                if (!imageFile.isEmpty()) {
-                    // Upload to Cloudinary
-                    String imageUrl = cloudinaryService.uploadFile(imageFile);
-                    imageUrls.add(imageUrl);
+//        List<BlogImage> blogImages = new ArrayList<>();
+//        List<String> imageUrls = new ArrayList<>();
+//        if (blogRequest.getImages() != null && !blogRequest.getImages().isEmpty()) {
+//            for (MultipartFile imageFile : blogRequest.getImages()) {
+//                if (!imageFile.isEmpty()) {
+//                    // Upload to Cloudinary
+//                    String imageUrl = cloudinaryService.uploadFile(imageFile);
+//                    imageUrls.add(imageUrl);
+//
+//                    // Create and save BlogImage entity
+//                    BlogImage blogImage = new BlogImage();
+//                    blogImage.setImageUrl(imageUrl);
+//                    blogImage.setBlogPost(savedBlog);
+//                    blogImages.add(blogImage);
+//                }
+//            }
+//        }
 
-                    // Create and save BlogImage entity
-                    BlogImage blogImage = new BlogImage();
-                    blogImage.setImageUrl(imageUrl);
-                    blogImage.setBlogPost(savedBlog);
-                    blogImages.add(blogImage);
-                }
-            }
+        if (blogRequest.getCoverImage() != null && !blogRequest.getCoverImage().isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(blogRequest.getCoverImage());
+            blog.setCoverImage(imageUrl);
         }
-        savedBlog.setImages(blogImages);
         blogRepository.save(savedBlog);
 
         // Prepare response
-        return mapToResponse(savedBlog, imageUrls, author.getFullname());
+        return mapToResponse(savedBlog, author.getFullname());
     }
 
     @Override
@@ -100,11 +103,7 @@ public class BlogServiceImpl implements BlogService {
         List<Blog> blogs = blogRepository.findByAuthor(author);
         return blogs.stream()
                 .map(blog -> {
-                    List<BlogImage> blogImages = blogImageRepository.findByBlogPostId(blog.getId());
-                    List<String> imageUrls = blogImages.stream()
-                            .map(BlogImage::getImageUrl)
-                            .collect(Collectors.toList());
-                    return mapToResponse(blog, imageUrls, author.getFullname());
+                    return mapToResponse(blog, author.getFullname());
                 })
                 .collect(Collectors.toList());
     }
@@ -115,15 +114,10 @@ public class BlogServiceImpl implements BlogService {
         Blog blog = blogRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
 
-        List<BlogImage> blogImages = blogImageRepository.findByBlogPostId(blog.getId());
-        List<String> imageUrls = blogImages.stream()
-                .map(BlogImage::getImageUrl)
-                .collect(Collectors.toList());
-
         User author = userRepository.findByUsername(blog.getAuthor().getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + blog.getAuthor().getUsername()));
 
-        return mapToResponse(blog, imageUrls, author.getFullname());
+        return mapToResponse(blog, author.getFullname());
     }
 
     @Override
@@ -143,11 +137,7 @@ public class BlogServiceImpl implements BlogService {
 
         return blogs.stream()
                 .map(blog -> {
-                    List<BlogImage> blogImages = blogImageRepository.findByBlogPostId(blog.getId());
-                    List<String> imageUrls = blogImages.stream()
-                            .map(BlogImage::getImageUrl)
-                            .collect(Collectors.toList());
-                    return mapToResponse(blog, imageUrls, currentUser.getFullname());
+                    return mapToResponse(blog, currentUser.getFullname());
                 })
                 .collect(Collectors.toList());
     }
@@ -162,9 +152,10 @@ public class BlogServiceImpl implements BlogService {
                     res.setTitle(blog.getTitle());
                     res.setTopic(blog.getTopic().getName());
 
-                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
-                    }
+//                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
+//                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
+//                    }
+                    res.setCoverImage(blog.getCoverImage());
 
                     res.setSummary(blog.getDescription());
                     res.setCreatedAt(blog.getCreatedAt());
@@ -181,7 +172,7 @@ public class BlogServiceImpl implements BlogService {
                     BlogManagerResponse res = new BlogManagerResponse();
                     res.setId(blog.getId());
                     res.setTitle(blog.getTitle());
-                    res.setCoverImage(blog.getImages().getFirst().getImageUrl());
+                    res.setCoverImage(blog.getCoverImage());
                     res.setTopic(blog.getTopic().getName());
                     res.setDescription(blog.getDescription());
                     res.setContent(blog.getContent());
@@ -229,10 +220,10 @@ public class BlogServiceImpl implements BlogService {
                     dto.setTopic(blog.getTopic().getName());
                     dto.setCreatedAt(blog.getCreatedAt());
                     dto.setSummary(blog.getDescription());
-
-                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-                        dto.setCoverImage(blog.getImages().getFirst().getImageUrl());
-                    }
+                    dto.setCoverImage(blog.getCoverImage());
+//                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
+//                        dto.setCoverImage(blog.getImages().getFirst().getImageUrl());
+//                    }
 
                     return dto;
                 }).collect(Collectors.toList());
@@ -267,14 +258,14 @@ public class BlogServiceImpl implements BlogService {
         actionLogRepo.save(actionLog);
     }
 
-    private BlogResponse mapToResponse(Blog blog, List<String> imageUrls, String authorName) {
+    private BlogResponse mapToResponse(Blog blog, String authorName) {
         return BlogResponse.builder()
                 .id(blog.getId())
                 .title(blog.getTitle())
                 .topic(blog.getTopic().getName())
                 .description(blog.getDescription())
                 .content(blog.getContent())
-                .imageUrls(imageUrls)
+                .imageUrl(blog.getCoverImage())
                 .authorName(authorName)
                 .createdAt(blog.getCreatedAt())
                 .updatedAt(blog.getUpdatedAt())

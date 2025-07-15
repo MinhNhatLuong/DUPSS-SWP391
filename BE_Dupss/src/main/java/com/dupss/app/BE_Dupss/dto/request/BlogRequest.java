@@ -28,6 +28,6 @@ public class BlogRequest {
     @NotBlank(message = "Content cannot be blank")
     private String content;
 
-    private List<MultipartFile> images;
+    private MultipartFile coverImage;
 
 }
