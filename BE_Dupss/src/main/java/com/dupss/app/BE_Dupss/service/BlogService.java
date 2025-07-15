@@ -17,7 +17,7 @@ public interface BlogService {
     BlogResponse getBlogById(Long id);
     List<BlogResponse> getCreatedBlogs();
     List<BlogSummaryResponse> getLatestBlogs();
-    List<BlogSummaryResponse> getBlogsPendingApproval();
+    List<BlogManagerResponse> getBlogsPendingApproval();
     List<BlogManagerResponse> getAllBlogs();
     Page<BlogSummaryResponse> searchBlogs(String keyword, Long topic, Pageable pageable);
     void updateStatus(Long id, ApprovalStatus status);

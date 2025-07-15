@@ -174,21 +174,19 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogSummaryResponse> getBlogsPendingApproval() {
+    public List<BlogManagerResponse> getBlogsPendingApproval() {
         List<Blog> blogs = blogRepository.findAllByStatusAndActiveTrue(ApprovalStatus.PENDING);
         return blogs.stream()
                 .map(blog -> {
-                    BlogSummaryResponse res = new BlogSummaryResponse();
+                    BlogManagerResponse res = new BlogManagerResponse();
                     res.setId(blog.getId());
                     res.setTitle(blog.getTitle());
+                    res.setCoverImage(blog.getImages().getFirst().getImageUrl());
                     res.setTopic(blog.getTopic().getName());
-
-                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
-                    }
-
-                    res.setSummary(blog.getDescription());
+                    res.setDescription(blog.getDescription());
+                    res.setContent(blog.getContent());
                     res.setCreatedAt(blog.getCreatedAt());
+                    res.setStatus(blog.getStatus());
                     return res;
                 })
                 .collect(Collectors.toList());

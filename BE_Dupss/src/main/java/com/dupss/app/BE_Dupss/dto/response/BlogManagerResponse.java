@@ -17,12 +17,12 @@ public class BlogManagerResponse {
     private Long id;
     private String title;
     private String topic;
+    private String coverImage;
     private String description;
     private String content;
     private String authorName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private ApprovalStatus status;
-    private String tags;
     private String checkedBy;
 } 

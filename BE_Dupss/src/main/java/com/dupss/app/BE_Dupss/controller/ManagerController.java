@@ -131,8 +131,8 @@ public class ManagerController {
      */
     @GetMapping("/blogs/pending")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
-    public ResponseEntity<List<BlogSummaryResponse>> getPendingBlogs() {
-        List<BlogSummaryResponse> responses = blogService.getBlogsPendingApproval();
+    public ResponseEntity<List<BlogManagerResponse>> getPendingBlogs() {
+        List<BlogManagerResponse> responses = blogService.getBlogsPendingApproval();
         return ResponseEntity.ok(responses);
     }
 
