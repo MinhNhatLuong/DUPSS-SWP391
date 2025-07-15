@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,6 +43,7 @@ public class CourseService {
     private final SurveyService surveyService;
     private final SurveyRepo surveyRepository;
     private final ObjectMapper objectMapper;
+    private final ActionLogRepo actionLogRepo;
 
     @Transactional
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
@@ -199,9 +201,12 @@ public class CourseService {
 
         return courses.stream()
                 .map(course -> {
-                    List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+//                    List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+                    Optional<ActionLog> optionalLog = actionLogRepo.findFirstByTargetTypeAndTargetIdAndActionType(
+                            TargetType.COURSE, course.getId(), ActionType.UPDATE);
                     return CourseManagerResponse.builder()
                             .id(course.getId())
+                            .topicName(course.getTopic().getName())
                             .title(course.getTitle())
                             .description(course.getDescription())
                             .coverImage(course.getCoverImage())
@@ -209,6 +214,8 @@ public class CourseService {
                             .updatedAt(course.getUpdatedAt())
                             .creatorName(course.getCreator().getFullname())
                             .status(course.getStatus())
+                            .duration(course.getDuration())
+                            .checkedBy(optionalLog.isPresent() ? optionalLog.get().getPerformedBy().getFullname() : "N/A")
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -457,6 +464,31 @@ public class CourseService {
         }
 
         return mapToCourseResponse(savedCourse, modules, currentUser);
+    }
+
+    public void updateStatus(Long courseId, ApprovalStatus status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Course course = courseRepository.findByIdAndActiveTrue(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + courseId));
+        if(course.getStatus().equals(ApprovalStatus.PENDING)) {
+            course.setStatus(status);
+        } else {
+            throw new RuntimeException("Blog đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
+        }
+        courseRepository.save(course);
+
+        ActionLog actionLog = ActionLog.builder()
+                .performedBy(currentUser)
+                .actionType(ActionType.UPDATE)
+                .targetType(TargetType.COURSE)
+                .targetId(course.getId())
+                .actionTime(course.getUpdatedAt())
+                .build();
+        actionLogRepo.save(actionLog);
     }
     
     private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {

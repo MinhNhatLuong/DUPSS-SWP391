@@ -69,7 +69,6 @@ public class ManagerController {
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<CourseManagerResponse>> getAllCourses() {
         List<CourseManagerResponse> responses = courseService.getAllCourses();
-
         return ResponseEntity.ok(responses);
     }
 
@@ -151,50 +150,22 @@ public class ManagerController {
      * API phê duyệt khóa học
      * Chỉ dành cho Manager và Admin
      */
-    @PatchMapping("/courses/{id}/approve")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
-    public ResponseEntity<?> approveCourse(@PathVariable Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        course.setStatus(ApprovalStatus.APPROVED);
-//        course.setCheckedBy(currentUser);
-        courseRepository.save(course);
-        return ResponseEntity.ok(Map.of("message", "Khóa học đã được phê duyệt thành công"));
+    @PatchMapping("/course/{id}/approval")
+    public ResponseEntity<?> approvalCourse(@PathVariable Long id, @RequestParam("status") ApprovalStatus status) {
+        String message = "";
+        if(status.equals(ApprovalStatus.APPROVED)) {
+            message = "Khóa học đã được phê duyệt thành công";
+        } else if(status.equals(ApprovalStatus.REJECTED)) {
+            message = "Khóa học đã bị từ chối";
+        } else {
+            message = "Trạng thái không hợp lệ";
+            return ResponseEntity.badRequest().body(message);
+        }
+        courseService.updateStatus(id, status);
+        return ResponseEntity.ok(message);
+
     }
 
-    /**
-     * API từ chối khóa học
-     * Chỉ dành cho Manager và Admin
-     */
-    @PatchMapping("/courses/{id}/reject")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
-    public ResponseEntity<?> rejectCourse(@PathVariable Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        course.setStatus(ApprovalStatus.REJECTED);
-//        course.setCheckedBy(currentUser);
-        courseRepository.save(course);
-        return ResponseEntity.ok(Map.of("message", "Khóa học đã bị từ chối"));
-    }
-
-    /**
-     * API phê duyệt khảo sát
-     * Chỉ dành cho Manager và Admin
-     */
 //    @PatchMapping("/surveys/{id}/approve")
 //    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 //    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
