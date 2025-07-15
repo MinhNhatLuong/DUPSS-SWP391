@@ -60,7 +60,7 @@ const Navbar = () => {
           padding: '8px 15px',
           textAlign: 'right'
         }}
-      >
+            >
         <IconButton 
           onClick={handleMenuToggle} 
           sx={{ 
@@ -93,7 +93,7 @@ const Navbar = () => {
             color: 'white'
           },
         }}
-      >
+            >
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'flex-start', 
@@ -110,7 +110,7 @@ const Navbar = () => {
               marginRight: 'auto',
               padding: 1
             }}
-          >
+            >
             <CloseIcon sx={{ fontSize: 28 }} />
           </IconButton>
         </Box>
@@ -163,15 +163,15 @@ const Navbar = () => {
           <ul className="nav-links">
             {navLinks.map((link) => (
               <li key={link.id}>
-                <RouterLink 
+            <RouterLink 
                   to={link.path} 
                   className={activePage === link.id ? 'active' : ''}
-                >
+            >
                   {link.text}
-                </RouterLink>
-              </li>
+            </RouterLink>
+          </li>
             ))}
-          </ul>
+        </ul>
         )}
       </div>
     </nav>

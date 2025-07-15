@@ -63,75 +63,75 @@ const Contact = () => {
           sx={{ mt: 3 }}
         >
           <Grid item>
-            <IconButton
-              aria-label="facebook"
-              component="a"
-              href="#"
-              sx={{
-                bgcolor: '#0056b3',
-                color: 'white',
+          <IconButton 
+            aria-label="facebook" 
+            component="a" 
+            href="#" 
+            sx={{ 
+              bgcolor: '#0056b3', 
+              color: 'white',
                 width: '40px',
                 height: '40px',
-                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-                transition: 'background-color 0.3s ease, transform 0.3s ease'
-              }}
-            >
+              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+              transition: 'background-color 0.3s ease, transform 0.3s ease'
+            }}
+          >
               <FacebookIcon fontSize="small" />
-            </IconButton>
+          </IconButton>
           </Grid>
           
           <Grid item>
-            <IconButton
-              aria-label="twitter"
-              component="a"
-              href="#"
-              sx={{
-                bgcolor: '#0056b3',
-                color: 'white',
+          <IconButton 
+            aria-label="twitter" 
+            component="a" 
+            href="#" 
+            sx={{ 
+              bgcolor: '#0056b3', 
+              color: 'white',
                 width: '40px',
                 height: '40px',
-                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-                transition: 'background-color 0.3s ease, transform 0.3s ease'
-              }}
-            >
+              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+              transition: 'background-color 0.3s ease, transform 0.3s ease'
+            }}
+          >
               <TwitterIcon fontSize="small" />
-            </IconButton>
+          </IconButton>
           </Grid>
           
           <Grid item>
-            <IconButton
-              aria-label="instagram"
-              component="a"
-              href="#"
-              sx={{
-                bgcolor: '#0056b3',
-                color: 'white',
+          <IconButton 
+            aria-label="instagram" 
+            component="a" 
+            href="#" 
+            sx={{ 
+              bgcolor: '#0056b3', 
+              color: 'white',
                 width: '40px',
                 height: '40px',
-                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-                transition: 'background-color 0.3s ease, transform 0.3s ease'
-              }}
-            >
+              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+              transition: 'background-color 0.3s ease, transform 0.3s ease'
+            }}
+          >
               <InstagramIcon fontSize="small" />
-            </IconButton>
+          </IconButton>
           </Grid>
           
           <Grid item>
-            <IconButton
-              aria-label="youtube"
-              component="a"
-              href="#"
-              sx={{
-                bgcolor: '#0056b3',
-                color: 'white',
+          <IconButton 
+            aria-label="youtube" 
+            component="a" 
+            href="#" 
+            sx={{ 
+              bgcolor: '#0056b3', 
+              color: 'white',
                 width: '40px',
                 height: '40px',
-                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-                transition: 'background-color 0.3s ease, transform 0.3s ease'
-              }}
-            >
+              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+              transition: 'background-color 0.3s ease, transform 0.3s ease'
+            }}
+          >
               <YouTubeIcon fontSize="small" />
-            </IconButton>
+          </IconButton>
           </Grid>
         </Grid>
       </Box>

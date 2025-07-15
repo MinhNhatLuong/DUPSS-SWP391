@@ -231,12 +231,25 @@ const CommentSection = ({ comments }) => {
       </Box>
       
       {comments.length > commentsPerPage && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          width: '100%', 
+          mt: 3,
+          px: { xs: 2, sm: 0 }
+        }}>
           <Pagination 
             count={Math.ceil(comments.length / commentsPerPage)} 
             page={page}
             onChange={handlePageChange}
             color="primary"
+            sx={{ 
+              '& .MuiPagination-ul': { 
+                justifyContent: 'center',
+                width: '100%'
+              }
+            }}
           />
         </Box>
       )}
