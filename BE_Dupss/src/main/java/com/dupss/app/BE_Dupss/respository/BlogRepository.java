@@ -12,12 +12,15 @@ import org.springframework.stereotype.Repository;
 
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     List<Blog> findByAuthor(User author);
     List<Blog> findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus status);
-    List<Blog> findByStatus(ApprovalStatus status);
+    List<Blog> findAllByActiveTrue();
+    List<Blog> findAllByStatusAndActiveTrue(ApprovalStatus status);
+    Optional<Blog> findByIdAndActiveTrue(Long id);
     @Query("SELECT b FROM Blog b " +
             "WHERE b.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED " +
             "AND (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

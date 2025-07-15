@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -19,8 +20,8 @@ public class BlogManagerResponse {
     private String description;
     private String content;
     private String authorName;
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private ApprovalStatus status;
     private String tags;
     private String checkedBy;

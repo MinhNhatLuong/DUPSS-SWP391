@@ -47,26 +47,6 @@ public class StaffController {
     private final BlogRepository blogRepository;
     private final SurveyRepo surveyRepository;
 
-    @GetMapping("/dashboard")
-    @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_ADMIN', 'ROLE_MANAGER')")
-    public ResponseEntity<Map<String, String>> getStaffDashboard() {
-        return ResponseEntity.ok(Map.of(
-                "message", "Welcome to Staff Dashboard",
-                "role", "STAFF"
-        ));
-    }
-
-    @PostMapping("/tasks")
-    @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> createTask() {
-        // Implement task creation logic here
-        return ResponseEntity.ok(Map.of("message", "Task created successfully"));
-    }
-    
-    /**
-     * API tạo khảo sát mới
-     * Chỉ dành cho Staff
-     */
 
     
     /**

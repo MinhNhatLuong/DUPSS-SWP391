@@ -1,15 +1,12 @@
 package com.dupss.app.BE_Dupss.service.impl;
 
 import com.dupss.app.BE_Dupss.dto.request.BlogRequest;
-import com.dupss.app.BE_Dupss.dto.response.BlogHomeResponse;
+import com.dupss.app.BE_Dupss.dto.response.BlogManagerResponse;
+import com.dupss.app.BE_Dupss.dto.response.BlogSummaryResponse;
 import com.dupss.app.BE_Dupss.dto.response.BlogResponse;
-import com.dupss.app.BE_Dupss.dto.response.CourseResponse;
 import com.dupss.app.BE_Dupss.entity.*;
 
-import com.dupss.app.BE_Dupss.respository.BlogImageRepository;
-import com.dupss.app.BE_Dupss.respository.BlogRepository;
-import com.dupss.app.BE_Dupss.respository.TopicRepo;
-import com.dupss.app.BE_Dupss.respository.UserRepository;
+import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.BlogService;
 
 import com.dupss.app.BE_Dupss.service.CloudinaryService;
@@ -29,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +39,7 @@ public class BlogServiceImpl implements BlogService {
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final TopicRepo topicRepository;
+    private final ActionLogRepo actionLogRepo;
 
     @Override
     @Transactional
@@ -58,6 +57,7 @@ public class BlogServiceImpl implements BlogService {
         blog.setContent(blogRequest.getContent());
         blog.setAuthor(author);
         blog.setStatus(ApprovalStatus.PENDING);
+        blog.setActive(true);
         Topic topic = topicRepository.findByIdAndActive(blogRequest.getTopicId(), true);
         if(topic == null) {
             throw new EntityNotFoundException("Topic không được tìm thấy với id: " + blogRequest.getTopicId());
@@ -112,7 +112,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public BlogResponse getBlogById(Long id) {
 
-        Blog blog = blogRepository.findById(id)
+        Blog blog = blogRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
 
         List<BlogImage> blogImages = blogImageRepository.findByBlogPostId(blog.getId());
@@ -153,11 +153,11 @@ public class BlogServiceImpl implements BlogService {
     }
 
 
-    public List<BlogHomeResponse> getLatestBlogs() {
+    public List<BlogSummaryResponse> getLatestBlogs() {
         return blogRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
                 .stream()
                 .map(blog -> {
-                    BlogHomeResponse res = new BlogHomeResponse();
+                    BlogSummaryResponse res = new BlogSummaryResponse();
                     res.setId(blog.getId());
                     res.setTitle(blog.getTitle());
                     res.setTopic(blog.getTopic().getName());
@@ -174,14 +174,57 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Page<BlogHomeResponse> searchBlogs(String keyword, Long topic, Pageable pageable) {
+    public List<BlogSummaryResponse> getBlogsPendingApproval() {
+        List<Blog> blogs = blogRepository.findAllByStatusAndActiveTrue(ApprovalStatus.PENDING);
+        return blogs.stream()
+                .map(blog -> {
+                    BlogSummaryResponse res = new BlogSummaryResponse();
+                    res.setId(blog.getId());
+                    res.setTitle(blog.getTitle());
+                    res.setTopic(blog.getTopic().getName());
+
+                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
+                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
+                    }
+
+                    res.setSummary(blog.getDescription());
+                    res.setCreatedAt(blog.getCreatedAt());
+                    return res;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BlogManagerResponse> getAllBlogs() {
+        List<Blog> blogs = blogRepository.findAllByActiveTrue();
+
+        return blogs.stream()
+                .map(blog -> {
+                    Optional<ActionLog> optionalLog = actionLogRepo.findFirstByTargetTypeAndTargetIdAndActionType(
+                            TargetType.BLOG, blog.getId(), ActionType.UPDATE);
+                    BlogManagerResponse res = new BlogManagerResponse();
+                    res.setId(blog.getId());
+                    res.setTitle(blog.getTitle());
+                    res.setTopic(blog.getTopic().getName());
+                    res.setAuthorName(blog.getAuthor().getFullname());
+                    res.setStatus(blog.getStatus());
+                    res.setCreatedAt(blog.getCreatedAt());
+                    res.setUpdatedAt(blog.getUpdatedAt());
+                    optionalLog.ifPresent(log -> res.setCheckedBy(log.getPerformedBy().getFullname()));
+                    return res;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<BlogSummaryResponse> searchBlogs(String keyword, Long topic, Pageable pageable) {
         log.info("Searching blogs with keyword: {}, tags: {}", keyword, topic);
 
         Page<Blog> blogPage = blogRepository.search(keyword, topic, pageable);
 
-        List<BlogHomeResponse> blogResponses = blogPage.getContent().stream()
+        List<BlogSummaryResponse> blogResponses = blogPage.getContent().stream()
                 .map(blog -> {
-                    BlogHomeResponse dto = new BlogHomeResponse();
+                    BlogSummaryResponse dto = new BlogSummaryResponse();
                     dto.setId(blog.getId());
                     dto.setTitle(blog.getTitle());
                     dto.setTopic(blog.getTopic().getName());
@@ -196,6 +239,33 @@ public class BlogServiceImpl implements BlogService {
                 }).collect(Collectors.toList());
 
         return new PageImpl<>(blogResponses, pageable, blogPage.getTotalElements());
+    }
+
+    @Override
+    public void updateStatus(Long id, ApprovalStatus status) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Blog blog = blogRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
+        if(blog.getStatus().equals(ApprovalStatus.PENDING)) {
+            blog.setStatus(status);
+        } else {
+            throw new RuntimeException("Blog đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
+        }
+        blogRepository.save(blog);
+
+        ActionLog actionLog = ActionLog.builder()
+                .performedBy(currentUser)
+                .actionType(ActionType.UPDATE)
+                .targetType(TargetType.BLOG)
+                .targetId(blog.getId())
+                .actionTime(blog.getUpdatedAt())
+                .build();
+        actionLogRepo.save(actionLog);
     }
 
     private BlogResponse mapToResponse(Blog blog, List<String> imageUrls, String authorName) {

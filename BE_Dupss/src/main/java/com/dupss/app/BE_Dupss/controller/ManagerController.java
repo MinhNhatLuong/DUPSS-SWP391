@@ -80,21 +80,7 @@ public class ManagerController {
     @GetMapping("/blogs/all")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<BlogManagerResponse>> getAllBlogs() {
-        List<Blog> blogs = blogRepository.findAll();
-        List<BlogManagerResponse> responses = blogs.stream()
-                .map(blog -> BlogManagerResponse.builder()
-                        .id(blog.getId())
-                        .title(blog.getTitle())
-                        .description(blog.getDescription())
-                        .content(blog.getContent())
-                        .createdAt(blog.getCreatedAt())
-                        .updatedAt(blog.getUpdatedAt())
-                        .status(blog.getStatus())
-                        .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
-                        .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
-//                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
-                        .build())
-                .collect(Collectors.toList());
+        List<BlogManagerResponse> responses = blogService.getAllBlogs();
         return ResponseEntity.ok(responses);
     }
 
@@ -155,23 +141,9 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/blogs/pending")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<List<BlogManagerResponse>> getPendingBlogs() {
-        List<Blog> blogs = blogRepository.findByStatus(ApprovalStatus.PENDING);
-        List<BlogManagerResponse> responses = blogs.stream()
-                .map(blog -> BlogManagerResponse.builder()
-                        .id(blog.getId())
-                        .title(blog.getTitle())
-                        .description(blog.getDescription())
-                        .content(blog.getContent())
-                        .createdAt(blog.getCreatedAt())
-                        .updatedAt(blog.getUpdatedAt())
-                        .status(blog.getStatus())
-                        .topic(blog.getTopic() != null ? blog.getTopic().getName() : null)
-                        .authorName(blog.getAuthor() != null ? blog.getAuthor().getFullname() : null)
-//                        .checkedBy(blog.getCheckedBy() != null ? blog.getCheckedBy().getFullname() : null)
-                        .build())
-                .collect(Collectors.toList());
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
+    public ResponseEntity<List<BlogSummaryResponse>> getPendingBlogs() {
+        List<BlogSummaryResponse> responses = blogService.getBlogsPendingApproval();
         return ResponseEntity.ok(responses);
     }
 
@@ -231,50 +203,6 @@ public class ManagerController {
     }
 
     /**
-     * API phê duyệt bài viết
-     * Chỉ dành cho Manager và Admin
-     */
-    @PatchMapping("/blogs/{id}/approve")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveBlog(@PathVariable Long id) {
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        blog.setStatus(ApprovalStatus.APPROVED);
-//        blog.setCheckedBy(currentUser);
-        blogRepository.save(blog);
-        return ResponseEntity.ok(Map.of("message", "Bài viết đã được phê duyệt thành công"));
-    }
-
-    /**
-     * API từ chối bài viết
-     * Chỉ dành cho Manager và Admin
-     */
-    @PatchMapping("/blogs/{id}/reject")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectBlog(@PathVariable Long id) {
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        blog.setStatus(ApprovalStatus.REJECTED);
-//        blog.setCheckedBy(currentUser);
-        blogRepository.save(blog);
-        return ResponseEntity.ok(Map.of("message", "Bài viết đã bị từ chối"));
-    }
-
-    /**
      * API phê duyệt khảo sát
      * Chỉ dành cho Manager và Admin
      */
@@ -326,9 +254,25 @@ public class ManagerController {
         } else if(status.equals(ApprovalStatus.REJECTED)) {
             message = "Khảo sát đã bị từ chối";
         } else {
-            return ResponseEntity.badRequest().body("Trạng thái không hợp lệ");
+            message = "Trạng thái không hợp lệ";
+            return ResponseEntity.badRequest().body(message);
         }
         surveyService.updateStatus(status, id);
+        return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/blog/{id}/approval")
+    public ResponseEntity<String> approvalBlog(@PathVariable Long id, @RequestParam("status") ApprovalStatus status) {
+        String message = "";
+        if(status.equals(ApprovalStatus.APPROVED)) {
+            message = "Khảo sát đã được phê duyệt thành công";
+        } else if(status.equals(ApprovalStatus.REJECTED)) {
+            message = "Khảo sát đã bị từ chối";
+        } else {
+            message = "Trạng thái không hợp lệ";
+            return ResponseEntity.badRequest().body(message);
+        }
+        blogService.updateStatus(id, status);
         return ResponseEntity.ok(message);
     }
 

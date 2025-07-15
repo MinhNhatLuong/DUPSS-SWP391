@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,8 +38,10 @@ public class Blog {
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    private boolean active;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -46,11 +49,11 @@ public class Blog {
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDate.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDate.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

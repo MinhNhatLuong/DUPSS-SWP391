@@ -57,7 +57,6 @@ public class User implements UserDetails {
     @Column(name = "role")
     private ERole role;
 
-
     private boolean enabled = true;
 
 
