@@ -99,6 +99,30 @@ const ParticipantView = (props) => {
   // Tạo màu avatar nhất quán cho người tham gia
   const avatarColor = getAvatarColor(participantId, displayName);
   
+  // Add cleanup effect for the component
+  useEffect(() => {
+    return () => {
+      // Clean up audio and video elements
+      if (audioRef.current) {
+        audioRef.current.srcObject = null;
+        audioRef.current.pause();
+      }
+      
+      if (webcamRef.current) {
+        webcamRef.current.srcObject = null;
+      }
+      
+      if (screenShareRef.current) {
+        screenShareRef.current.srcObject = null;
+      }
+      
+      // Cancel any pending animation frames
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+  
   // Set up audio element for remote participants
   useEffect(() => {
     if (isLocal) return; // Skip for local participant
@@ -614,6 +638,31 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   
+  // Initialize tracking of local streams for proper cleanup
+  useEffect(() => {
+    if (!window.localStreams) {
+      window.localStreams = [];
+    }
+    
+    // Clean up on component unmount
+    return () => {
+      if (window.localStreams) {
+        window.localStreams.forEach(stream => {
+          if (stream) {
+            stream.getTracks().forEach(track => {
+              try {
+                track.stop();
+              } catch (e) {
+                console.error("Error stopping track:", e);
+              }
+            });
+          }
+        });
+        window.localStreams = [];
+      }
+    };
+  }, []);
+  
   const { 
     localParticipant,
     participants,
@@ -641,52 +690,47 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
   
   // Custom toggleMic with proper resource management
   const toggleMic = async () => {
-    console.log("Toggling microphone. Current state:", localMicOn);
     try {
-      // If turning off mic, ensure we properly clean up
-      if (localMicOn) {
-        // First stop any active audio tracks from our side
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getAudioTracks().forEach(track => {
-            track.stop();
-          });
-        }
-      } else {
-        // If turning on mic, ensure permissions are granted
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-        }
+      await sdkToggleMic();
+      
+      // If turning on mic, store the stream for later cleanup
+      if (!localMicOn) {
+        // Get the mic stream from the localParticipant after a short delay
+        // to ensure it's available after the toggle
+        setTimeout(() => {
+          if (localParticipant && localParticipant.micStream) {
+            const stream = new MediaStream([localParticipant.micStream.track]);
+            if (!window.localStreams) window.localStreams = [];
+            window.localStreams.push(stream);
+          }
+        }, 500);
       }
-      // Then use SDK's toggle
-      sdkToggleMic();
-      console.log("Microphone toggled. New state:", !localMicOn);
-    } catch (err) {
-      console.error("Error toggling microphone:", err);
-      // If there was an error in our cleanup, still try the SDK toggle
-      sdkToggleMic();
+      
+    } catch (error) {
+      console.error('Error toggling mic:', error);
     }
   };
   
   // Custom toggleWebcam with proper resource management
   const toggleWebcam = async () => {
     try {
-      // If turning off webcam, ensure we properly clean up
-      if (localWebcamOn) {
-        // First stop any active webcam tracks from our side
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          stream.getVideoTracks().forEach(track => {
-            track.stop();
-          });
-        }
+      await sdkToggleWebcam();
+      
+      // If turning on webcam, store the stream for later cleanup
+      if (!localWebcamOn) {
+        // Get the webcam stream from the localParticipant after a short delay
+        // to ensure it's available after the toggle
+        setTimeout(() => {
+          if (localParticipant && localParticipant.webcamStream) {
+            const stream = new MediaStream([localParticipant.webcamStream.track]);
+            if (!window.localStreams) window.localStreams = [];
+            window.localStreams.push(stream);
+          }
+        }, 500);
       }
-      // Then use SDK's toggle
-      sdkToggleWebcam();
-    } catch (err) {
-      console.error("Error toggling webcam:", err);
-      // If there was an error in our cleanup, still try the SDK toggle
-      sdkToggleWebcam();
+      
+    } catch (error) {
+      console.error('Error toggling webcam:', error);
     }
   };
   
@@ -723,9 +767,36 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
   
   function meetingLeft() {
     console.log("Meeting left.");
+    
+    // Clean up any audio/video analyzers
+    if (window.audioContext && window.audioContext.state !== 'closed') {
+      try {
+        window.audioContext.close();
+      } catch (err) {
+        console.error("Error closing audio context:", err);
+      }
+    }
+    
+    // Clean up any media streams
+    if (window.localStreams) {
+      window.localStreams.forEach(stream => {
+        if (stream) {
+          stream.getTracks().forEach(track => {
+            try {
+              track.stop();
+            } catch (e) {
+              console.error("Error stopping track:", e);
+            }
+          });
+        }
+      });
+      window.localStreams = [];
+    }
+    
+    // Call the onMeetingLeave callback to notify parent components
     onMeetingLeave();
   }
-  
+
   const { publish: publishChat, messages: pubsubMessages } = usePubSub("CHAT");
 
   useEffect(() => {
@@ -1018,6 +1089,29 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
     }
   };
 
+  // Handle screen sharing
+  const handleToggleScreenShare = async () => {
+    try {
+      if (localScreenShareOn) {
+        await stopScreenShare();
+      } else {
+        await startScreenShare();
+        
+        // Store the screen share stream for later cleanup
+        setTimeout(() => {
+          if (localParticipant && localParticipant.screenShareStream) {
+            const stream = new MediaStream([localParticipant.screenShareStream.track]);
+            if (!window.localStreams) window.localStreams = [];
+            window.localStreams.push(stream);
+          }
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error toggling screen share:', error);
+      showErrorAlert('Không thể chia sẻ màn hình: ' + error.message);
+    }
+  };
+
   return (
     <Box sx={{ 
       height: 'calc(100vh - 150px)', 
@@ -1239,6 +1333,22 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
             }}
           >
             {localWebcamOn ? <VideocamIcon /> : <VideocamOffIcon />}
+          </IconButton>
+        </Tooltip>
+        
+        <Tooltip title={localScreenShareOn ? "Dừng chia sẻ màn hình" : "Chia sẻ màn hình"}>
+          <IconButton
+            onClick={handleToggleScreenShare}
+            sx={{ 
+              p: 1.5,
+              bgcolor: localScreenShareOn ? 'secondary.main' : 'grey.700',
+              color: 'white',
+              '&:hover': {
+                bgcolor: localScreenShareOn ? 'secondary.dark' : 'grey.900',
+              }
+            }}
+          >
+            {localScreenShareOn ? <StopScreenShareIcon /> : <ScreenShareIcon />}
           </IconButton>
         </Tooltip>
         

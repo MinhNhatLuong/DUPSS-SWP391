@@ -61,6 +61,35 @@ const VideoMeeting = () => {
     console.log("openStartDialog changed:", openStartDialog);
   }, [openStartDialog]);
 
+  // Add cleanup effect to ensure meeting is left if component unmounts unexpectedly
+  useEffect(() => {
+    return () => {
+      // When component unmounts, ensure meeting is properly left
+      if (meetingRef.current && typeof meetingRef.current.leave === 'function') {
+        console.log("Unmounting VideoMeeting component - cleaning up meeting session");
+        try {
+          // Stop screen sharing explicitly if active
+          if (meetingRef.current.localScreenShareOn && typeof meetingRef.current.stopScreenShare === 'function') {
+            meetingRef.current.stopScreenShare();
+          }
+          
+          // Now leave the meeting
+          meetingRef.current.leave();
+        } catch (err) {
+          console.error("Error leaving meeting on unmount:", err);
+        }
+      }
+      
+      // Clean up any media streams
+      if (customAudioStream) {
+        customAudioStream.getTracks().forEach(track => track.stop());
+      }
+      if (customVideoStream) {
+        customVideoStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [customAudioStream, customVideoStream]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -437,9 +466,26 @@ const VideoMeeting = () => {
   };
 
   const handleOnMeetingLeave = useCallback(() => {
+    // Make sure to properly clean up the meeting to avoid lingering participants
+    if (meetingRef.current && typeof meetingRef.current.leave === 'function') {
+      meetingRef.current.leave();
+    }
+    
+    // Clean up any media streams
+    if (customAudioStream) {
+      customAudioStream.getTracks().forEach(track => track.stop());
+    }
+    if (customVideoStream) {
+      customVideoStream.getTracks().forEach(track => track.stop());
+    }
+    
+    // Clear the meeting reference to avoid memory leaks
+    meetingRef.current = null;
+    
+    // Now set the state and navigate
     setIsMeetingStarted(false);
     navigate('/');
-  }, [navigate]);
+  }, [navigate, customAudioStream, customVideoStream]);
 
   // Generate a stable participant ID based on user information and meeting
   const getParticipantId = () => {
