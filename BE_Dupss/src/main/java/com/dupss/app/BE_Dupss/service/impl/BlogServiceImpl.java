@@ -186,6 +186,7 @@ public class BlogServiceImpl implements BlogService {
                     res.setDescription(blog.getDescription());
                     res.setContent(blog.getContent());
                     res.setCreatedAt(blog.getCreatedAt());
+                    res.setAuthorName(blog.getAuthor().getFullname());
                     res.setStatus(blog.getStatus());
                     return res;
                 })
