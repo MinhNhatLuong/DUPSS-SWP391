@@ -142,6 +142,9 @@ public class SurveyServiceImpl implements SurveyService {
             .orElseThrow(() -> new RuntimeException("Survey not found"));
         return SurveyResponse.builder()
                 .title(survey.getTitle())
+                .surveyImage(survey.getSurveyImage())
+                .description(survey.getDescription())
+                .createdAt(survey.getCreatedAt())
                 .sections(survey.getSections().stream()
                         .map(SurveyResponse.SurveySectionDTO::fromEntity)
                         .collect(Collectors.toList()))
@@ -253,6 +256,24 @@ public class SurveyServiceImpl implements SurveyService {
         }
 //        survey.setCheckedBy(currentUser);
         surveyRepository.save(survey);
+    }
+
+    @Override
+    public List<SurveyManagerResponse> getPendingSurveys() {
+        List<Survey> surveys = surveyRepository.findByStatusAndActiveTrueAndForCourseFalse(ApprovalStatus.PENDING);
+        return surveys.stream()
+                .map(survey -> SurveyManagerResponse.builder()
+                        .surveyId(survey.getId())
+                        .surveyTitle(survey.getTitle())
+                        .description(survey.getDescription())
+                        .surveyImage(survey.getSurveyImage())
+                        .active(survey.isActive())
+                        .forCourse(survey.isForCourse())
+                        .createdAt(survey.getCreatedAt())
+                        .createdBy(survey.getCreatedBy().getFullname())
+                        .status(survey.getStatus())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Override

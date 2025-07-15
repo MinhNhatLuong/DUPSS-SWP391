@@ -6,6 +6,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
 import { styled } from '@mui/material/styles';
 import { API_URL } from '../../services/config';
+import { showSuccessAlert } from '../common/AlertNotification';
 
 // Create custom MenuItem component, override default styles
 const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
@@ -167,6 +168,10 @@ const AuthButtons = () => {
     // Don't wait for API response, directly clear local tokens
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    
+    // Show logout success alert directly
+    showSuccessAlert('Đăng xuất thành công!');
+    
     setIsLoggedIn(false);
     setUserData(null);
     navigate('/');

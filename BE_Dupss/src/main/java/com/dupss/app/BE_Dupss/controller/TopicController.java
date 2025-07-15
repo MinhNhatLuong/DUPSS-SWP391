@@ -47,5 +47,4 @@ public class TopicController {
         return ResponseEntity.ok(topics);
     }
 
-
 } 

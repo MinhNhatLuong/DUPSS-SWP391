@@ -48,14 +48,6 @@ public class ManagerController {
     private final SurveyRepo surveyRepository;
     private final UserRepository userRepository;
 
-    @GetMapping("/dashboard")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> getManagerDashboard() {
-        return ResponseEntity.ok(Map.of(
-                "message", "Welcome to Manager Dashboard",
-                "role", "MANAGER"
-        ));
-    }
 
     @GetMapping("/staff")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -76,23 +68,8 @@ public class ManagerController {
     @GetMapping("/courses/all")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<List<CourseManagerResponse>> getAllCourses() {
-        List<Course> courses = courseRepository.findAll();
-        List<CourseManagerResponse> responses = courses.stream()
-                .map(course -> CourseManagerResponse.builder()
-                        .id(course.getId())
-                        .title(course.getTitle())
-                        .description(course.getDescription())
-                        .coverImage(course.getCoverImage())
-                        .content(course.getContent())
-                        .duration(course.getDuration())
-                        .status(course.getStatus())
-                        .createdAt(course.getCreatedAt())
-                        .updatedAt(course.getUpdatedAt())
-                        .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
-                        .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
-//                        .checkedBy(course.getCheckedBy() != null ? course.getCheckedBy().getFullname() : null)
-                        .build())
-                .collect(Collectors.toList());
+        List<CourseManagerResponse> responses = courseService.getAllCourses();
+
         return ResponseEntity.ok(responses);
     }
 
@@ -203,23 +180,9 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/surveys/pending")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
     public ResponseEntity<List<SurveyManagerResponse>> getPendingSurveys() {
-        List<Survey> surveys = surveyRepository.findByStatus(ApprovalStatus.PENDING);
-        List<SurveyManagerResponse> responses = surveys.stream()
-                .map(survey -> SurveyManagerResponse.builder()
-                        .surveyId(survey.getId())
-                        .surveyTitle(survey.getTitle())
-                        .description(survey.getDescription())
-                        .surveyImage(survey.getSurveyImage())
-                        .active(survey.isActive())
-                        .forCourse(survey.isForCourse())
-                        .createdAt(survey.getCreatedAt())
-                        .createdBy(survey.getCreatedBy() != null ? survey.getCreatedBy().getFullname() : null)
-                        .status(survey.getStatus())
-//                        .checkedBy(survey.getCheckedBy() != null ? survey.getCheckedBy().getFullname() : null)
-                        .build())
-                .collect(Collectors.toList());
+        List<SurveyManagerResponse> responses = surveyService.getPendingSurveys();
         return ResponseEntity.ok(responses);
     }
 
@@ -228,7 +191,7 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @PatchMapping("/courses/{id}/approve")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
     public ResponseEntity<?> approveCourse(@PathVariable Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
@@ -250,7 +213,7 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @PatchMapping("/courses/{id}/reject")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
     public ResponseEntity<?> rejectCourse(@PathVariable Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + id));
@@ -315,45 +278,45 @@ public class ManagerController {
      * API phê duyệt khảo sát
      * Chỉ dành cho Manager và Admin
      */
-    @PatchMapping("/surveys/{id}/approve")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
-        Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        survey.setStatus(ApprovalStatus.APPROVED);
-//        survey.setCheckedBy(currentUser);
-        surveyRepository.save(survey);
-        return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
-    }
-
-    /**
-     * API từ chối khảo sát
-     * Chỉ dành cho Manager và Admin
-     */
-    @PatchMapping("/surveys/{id}/reject")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
-        Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
-        
-        // Lấy thông tin người dùng hiện tại
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-        
-        survey.setStatus(ApprovalStatus.REJECTED);
-//        survey.setCheckedBy(currentUser);
-        surveyRepository.save(survey);
-        return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
-    }
+//    @PatchMapping("/surveys/{id}/approve")
+//    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+//    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
+//        Survey survey = surveyRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+//
+//        // Lấy thông tin người dùng hiện tại
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String username = authentication.getName();
+//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+//
+//        survey.setStatus(ApprovalStatus.APPROVED);
+////        survey.setCheckedBy(currentUser);
+//        surveyRepository.save(survey);
+//        return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
+//    }
+//
+//    /**
+//     * API từ chối khảo sát
+//     * Chỉ dành cho Manager và Admin
+//     */
+//    @PatchMapping("/surveys/{id}/reject")
+//    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+//    public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
+//        Survey survey = surveyRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
+//
+//        // Lấy thông tin người dùng hiện tại
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String username = authentication.getName();
+//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+//
+//        survey.setStatus(ApprovalStatus.REJECTED);
+////        survey.setCheckedBy(currentUser);
+//        surveyRepository.save(survey);
+//        return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
+//    }
 
     @PatchMapping("/surveys/{id}/approval")
     public ResponseEntity<String> approvalSurvey(@PathVariable Long id, @RequestParam("status") ApprovalStatus status) {
@@ -369,12 +332,6 @@ public class ManagerController {
         return ResponseEntity.ok(message);
     }
 
-    @PostMapping("/reports")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> generateReport() {
-        // Implement report generation logic here
-        return ResponseEntity.ok(Map.of("message", "Report generated successfully"));
-    }
 
     @PostMapping("/topic")
     public ResponseEntity<TopicResponse> createTopic(@RequestBody TopicRequest topic) {

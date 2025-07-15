@@ -178,7 +178,6 @@
 //
 package com.dupss.app.BE_Dupss.config;
 
-import com.dupss.app.BE_Dupss.service.CustomOAuth2UserService;
 import com.dupss.app.BE_Dupss.service.JwtService;
 import com.dupss.app.BE_Dupss.service.UserDetailServiceCustomizer;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
@@ -186,7 +185,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -214,10 +212,7 @@ public class SecurityConfig {
     private final JwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsService;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-    private final CustomOAuth2UserService customOAuth2UserService;
-
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
+//    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -283,8 +278,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler =
-                new OAuth2LoginSuccessHandler(userRepository, jwtService, passwordEncoder());
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -297,11 +290,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(oAuth2LoginSuccessHandler)
-                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder)

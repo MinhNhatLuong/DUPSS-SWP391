@@ -7,10 +7,15 @@ import com.dupss.app.BE_Dupss.dto.request.RefreshTokenRequest;
 import com.dupss.app.BE_Dupss.dto.response.ChangePasswordResponse;
 import com.dupss.app.BE_Dupss.dto.response.LoginResponse;
 import com.dupss.app.BE_Dupss.dto.response.RefreshTokenResponse;
+import com.dupss.app.BE_Dupss.entity.ERole;
 import com.dupss.app.BE_Dupss.entity.InvalidatedToken;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.InvalidatedTokenRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.jwt.SignedJWT;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.time.LocalDateTime;
 
 @Service
@@ -55,6 +62,46 @@ public class AuthenticationService {
             throw e;
         }
     }
+
+    public Map<String, String> loginWithGoogle(String idTokenString) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList("1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com"))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken == null) {
+            throw new GeneralSecurityException("Invalid ID token.");
+        }
+
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+        String picture = (String) payload.get("picture");
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        User user = optionalUser.orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setFullname(name);
+            newUser.setUsername(email);
+            newUser.setAvatar(picture);
+            newUser.setPassword(passwordEncoder.encode("oauth2_default_password"));
+            newUser.setRole(ERole.ROLE_MEMBER);
+            newUser.setEnabled(true);
+            return userRepository.save(newUser);
+        });
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+        tokens.put("refreshToken", refreshToken);
+
+        return tokens;
+    }
+
 
     public void logout(LogoutRequest request) throws ParseException {
         // 1. Kiểm tra xem token đó có phải là token của hệ thống mình sản xuất ra hay không

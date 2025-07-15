@@ -12,8 +12,6 @@ import {
   InputAdornment, 
   IconButton,
   Grid,
-  Alert,
-  Snackbar,
   CircularProgress
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
@@ -24,7 +22,6 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -32,6 +29,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format, parse } from 'date-fns';
 import { API_URL } from '../../services/config';
+import { showSuccessAlert, showErrorAlert } from '../common/AlertNotification';
+
+// Lấy Google Client ID từ biến môi trường
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const Register = () => {
   const navigate = useNavigate();
@@ -47,16 +48,13 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [alert, setAlert] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
   const [processing, setProcessing] = useState(false);
   const googleButtonRef = useRef(null);
 
   useEffect(() => {
     document.title = "Đăng Ký - DUPSS";
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
     
     // Khởi tạo Google Identity
     window.handleGoogleRegister = (response) => {
@@ -71,7 +69,7 @@ const Register = () => {
       googleButtonRef.current.appendChild(googleLoginDiv);
       
       google.accounts.id.initialize({
-        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        client_id: GOOGLE_CLIENT_ID,
         callback: window.handleGoogleRegister,
         auto_select: false,
         cancel_on_tap_outside: true,
@@ -100,50 +98,41 @@ const Register = () => {
       [name]: type === 'checkbox' ? checked : value
     });
   };
-
-  const handleCloseAlert = () => {
-    setAlert({
-      ...alert,
-      open: false
-    });
-  };
-
+  
   // Function to handle Google register response
   const handleGoogleRegisterResponse = async (response) => {
     // Set processing state to true
     setProcessing(true);
     
     try {
-      // Send the credential to your backend
-      const apiResponse = await axios.post(`${API_URL}/auth/google-register`, {
+      // Send the credential to your backend using google-login endpoint instead of google-register
+      const apiResponse = await axios.post(`${API_URL}/auth/google-login`, {
         credential: response.credential
       });
       
-      if (apiResponse.status === 201) {
-        setProcessing(false);
-        
-        setAlert({
-          open: true,
-          message: 'Đăng ký bằng Google thành công!',
-          severity: 'success'
-        });
-        
-        // Redirect to login page after a short delay
-        setTimeout(() => {
-          navigate('/login');
-        }, 1500);
-      }
+      // Store tokens in local storage (like in Login component)
+      const { accessToken, refreshToken } = apiResponse.data;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      // Store registration success flag in localStorage with registration message
+      localStorage.setItem('loginSuccess', 'true');
+      localStorage.setItem('registrationMessage', 'Đăng ký bằng Google thành công!');
+      
+      setProcessing(false);
+      
+      // Scroll to top before redirecting
+      window.scrollTo(0, 0);
+      
+      // Redirect to home page (like Login does) instead of login page
+      window.location.href = '/';
     } catch (error) {
       setProcessing(false);
       
       const errorMessage = error.response?.data?.message || 
                         'Đăng ký bằng Google thất bại. Vui lòng thử lại sau.';
                         
-      setAlert({
-        open: true,
-        message: errorMessage,
-        severity: 'error'
-      });
+      showErrorAlert(errorMessage);
     }
   };
 
@@ -152,11 +141,7 @@ const Register = () => {
     
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setAlert({
-        open: true,
-        message: 'Mật khẩu không khớp!',
-        severity: 'error'
-      });
+      showErrorAlert('Mật khẩu không khớp!');
       return;
     }
     
@@ -191,11 +176,10 @@ const Register = () => {
         // Set processing state to false
         setProcessing(false);
         
-        setAlert({
-          open: true,
-          message: 'Đăng ký thành công!',
-          severity: 'success'
-        });
+        showSuccessAlert('Đăng ký thành công!');
+        
+        // Scroll to top before redirecting
+        window.scrollTo(0, 0);
         
         // Redirect to login page after a short delay
         setTimeout(() => {
@@ -209,12 +193,8 @@ const Register = () => {
       const errorMessage = error.response?.data?.confirmPassword || 
                           error.response?.data?.message ||
                           'Đã có lỗi xảy ra khi đăng ký!';
-                          
-      setAlert({
-        open: true,
-        message: errorMessage,
-        severity: 'error'
-      });
+      
+      showErrorAlert(errorMessage);
     }
   };
 
@@ -225,6 +205,12 @@ const Register = () => {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
+  
+  // Function to handle navigation to login page
+  const handleLoginClick = () => {
+    window.scrollTo(0, 0);
+    navigate('/login');
+  };
 
   return (
     <Box sx={{
@@ -234,37 +220,6 @@ const Register = () => {
       display: 'flex',
       alignItems: 'center'
     }}>
-      <Snackbar
-        open={alert.open}
-        autoHideDuration={3000}
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        sx={{ 
-          '& .MuiPaper-root': { 
-            width: '320px',
-            fontSize: '1.1rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }
-        }}
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={alert.severity} 
-          variant="filled"
-          sx={{ 
-            width: '100%',
-            fontSize: '1rem',
-            fontWeight: 500,
-            padding: '12px 16px',
-            backgroundColor: alert.severity === 'success' ? '#4caf50' : 
-                              alert.severity === 'error' ? '#f44336' : '#f0ad4e',
-            color: '#ffffff'
-          }}
-        >
-          {alert.message}
-        </Alert>
-      </Snackbar>
-      
       <Card sx={{
         maxWidth: '1000px',
         width: '100%',
@@ -606,9 +561,9 @@ const Register = () => {
               <div ref={googleButtonRef} style={{ width: '100%' }}></div>
             </Box>
 
-            <Box sx={{ textAlign: 'center' }}>
+            <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
               <Typography variant="body2">
-                Đã có tài khoản? <Link component={RouterLink} to="/login" sx={{ color: '#0056b3', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>Đăng nhập ngay</Link>
+                Đã có tài khoản? <Link onClick={handleLoginClick} sx={{ color: '#0056b3', fontWeight: 500, textDecoration: 'none', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>Đăng nhập ngay</Link>
               </Typography>
             </Box>
           </Box>

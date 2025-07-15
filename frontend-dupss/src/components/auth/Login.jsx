@@ -24,6 +24,9 @@ import { submitSurveyResult } from '../../services/surveyService';
 import axios from 'axios';
 import { API_URL } from '../../services/config';
 
+// Lấy Google Client ID từ biến môi trường
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +44,9 @@ const Login = () => {
 
   useEffect(() => {
     document.title = "Đăng Nhập - DUPSS";
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
     
     // If there's an alert message, display it in the top right corner via AlertNotification component
     if (authAlert && authMessage) {
@@ -73,7 +79,7 @@ const Login = () => {
       googleButtonRef.current.appendChild(googleLoginDiv);
       
       google.accounts.id.initialize({
-        client_id: '1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com',
+        client_id: GOOGLE_CLIENT_ID,
         callback: window.handleGoogleLogin,
         auto_select: false,
         cancel_on_tap_outside: true,
@@ -113,7 +119,8 @@ const Login = () => {
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       
-      showSuccessAlert('Đăng nhập bằng Google thành công!');
+      // Store login success flag in localStorage
+      localStorage.setItem('loginSuccess', 'true');
       
       // Process pending survey submissions if any
       await handlePendingSurveySubmission();
@@ -197,7 +204,8 @@ const Login = () => {
       // Use the login function from authService
       const userData = await login({ username, password });
       
-      showSuccessAlert('Đăng nhập thành công!');
+      // Store login success flag in localStorage instead of showing alert immediately
+      localStorage.setItem('loginSuccess', 'true');
       
       // Kiểm tra và gửi kết quả khảo sát đã lưu (nếu có)
       await handlePendingSurveySubmission();
@@ -234,6 +242,12 @@ const Login = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+  
+  // Function to handle navigation to register page
+  const handleRegisterClick = () => {
+    window.scrollTo(0, 0);
+    navigate('/register');
   };
 
   return (
@@ -434,7 +448,7 @@ const Login = () => {
             <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
               <Typography variant="body2">
                 Chưa có tài khoản? {' '}
-                <Link component={RouterLink} to="/register" sx={{ color: '#0056b3', fontWeight: 500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                <Link onClick={handleRegisterClick} sx={{ color: '#0056b3', fontWeight: 500, textDecoration: 'none', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
                   Đăng ký ngay
                 </Link>
               </Typography>
