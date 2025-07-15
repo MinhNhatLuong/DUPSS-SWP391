@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Chip,
   Grid,
   CircularProgress,
@@ -28,7 +27,6 @@ const ContentReview = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedContent, setSelectedContent] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [courses, setCourses] = useState([]);
@@ -66,7 +64,7 @@ const ContentReview = () => {
       }
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError(err.response?.data?.message || err.message || 'Error fetching data');
+      setError(err.response?.data?.message || err.message || 'Lỗi khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
@@ -79,7 +77,6 @@ const ContentReview = () => {
   const handleReview = (content) => {
     setSelectedContent(content);
     setOpenDialog(true);
-    setComment('');
   };
 
   const handleApprove = async () => {
@@ -114,14 +111,14 @@ const ContentReview = () => {
 
       setSnackbar({
         open: true,
-        message: 'Content approved successfully',
+        message: 'Đã duyệt nội dung thành công',
         severity: 'success'
       });
     } catch (err) {
       console.error('Error approving content:', err);
       setSnackbar({
         open: true,
-        message: err.response?.data?.message || err.message || 'Error approving content',
+        message: err.response?.data?.message || err.message || 'Lỗi khi duyệt nội dung',
         severity: 'error'
       });
     } finally {
@@ -148,7 +145,7 @@ const ContentReview = () => {
       }
 
       await apiClient.post(endpoint, {
-        reason: comment
+        reason: "Nội dung bị từ chối"
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
       });
@@ -164,14 +161,14 @@ const ContentReview = () => {
 
       setSnackbar({
         open: true,
-        message: 'Content rejected successfully',
+        message: 'Đã từ chối nội dung thành công',
         severity: 'info'
       });
     } catch (err) {
       console.error('Error rejecting content:', err);
       setSnackbar({
         open: true,
-        message: err.response?.data?.message || err.message || 'Error rejecting content',
+        message: err.response?.data?.message || err.message || 'Lỗi khi từ chối nội dung',
         severity: 'error'
       });
     } finally {
@@ -183,7 +180,16 @@ const ContentReview = () => {
   const handlePreviewBlog = (content) => {
     setPreviewDialog({
       open: true,
-      content: content.content
+      content: content.content,
+      title: 'Xem trước bài viết'
+    });
+  };
+
+  const handlePreviewCourse = (content) => {
+    setPreviewDialog({
+      open: true,
+      content: content.content,
+      title: 'Xem trước khóa học'
     });
   };
 
@@ -191,7 +197,7 @@ const ContentReview = () => {
     setPreviewDialog({
       open: true,
       content: content.description,
-      title: 'Survey Description Preview'
+      title: 'Xem trước khảo sát'
     });
   };
 
@@ -237,7 +243,7 @@ const ContentReview = () => {
     if (content.length === 0) {
       return (
         <Alert severity="info" sx={{ mt: 2 }}>
-          No pending {selectedTab === 0 ? 'courses' : selectedTab === 1 ? 'blogs' : 'surveys'} to review.
+          Không có {selectedTab === 0 ? 'khóa học' : selectedTab === 1 ? 'bài viết' : 'khảo sát'} nào đang chờ duyệt.
         </Alert>
       );
     }
@@ -288,10 +294,10 @@ const ContentReview = () => {
                       {title}
                     </Typography>
                     <Typography color="textSecondary" gutterBottom>
-                      Author: {authorName}
+                      Tác giả: {authorName}
                     </Typography>
                     <Typography color="textSecondary" gutterBottom>
-                      Created: {createdAt}
+                      Ngày tạo: {createdAt}
                     </Typography>
                     <Box 
                       sx={{ 
@@ -301,26 +307,43 @@ const ContentReview = () => {
                         flexGrow: 1
                       }}
                       onClick={() => {
-                        setPreviewDialog({
-                          open: true,
-                          content: item.description,
-                          title: `${title} Description`
-                        });
+                        if (selectedTab !== 2) {
+                          setPreviewDialog({
+                            open: true,
+                            content: item.description,
+                            title: `Mô tả ${title}`
+                          });
+                        }
                       }}
                     >
-                      <Typography variant="body2" sx={{ 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis', 
-                        display: '-webkit-box', 
-                        WebkitLineClamp: 3, 
-                        WebkitBoxOrient: 'vertical',
-                        '&:hover': { textDecoration: 'underline' }
-                      }}>
-                        {item.description || 'No description available'}
-                      </Typography>
+                      {selectedTab !== 2 ? (
+                        <Typography variant="body2" sx={{ 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 3, 
+                          WebkitBoxOrient: 'vertical',
+                          '&:hover': { textDecoration: 'underline' }
+                        }}>
+                          {item.description || 'Không có mô tả'}
+                        </Typography>
+                      ) : (
+                        <Button
+                          size="small"
+                          variant="text"
+                          color="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreviewSurvey(item);
+                          }}
+                          sx={{ mt: 1 }}
+                        >
+                          Xem mô tả
+                        </Button>
+                      )}
                     </Box>
                     <Chip
-                      label={item.status}
+                      label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
                       color="warning"
                       size="small"
                       sx={{ alignSelf: 'flex-start' }}
@@ -333,8 +356,18 @@ const ContentReview = () => {
                       variant="outlined"
                       onClick={() => handleReview(item)}
                     >
-                      Review
+                      Xem xét
                     </Button>
+                    {selectedTab === 0 && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewCourse(item)}
+                      >
+                        Xem trước
+                      </Button>
+                    )}
                     {selectedTab === 1 && (
                       <Button
                         size="small"
@@ -342,7 +375,7 @@ const ContentReview = () => {
                         startIcon={<VisibilityIcon />}
                         onClick={() => handlePreviewBlog(item)}
                       >
-                        Preview
+                        Xem trước
                       </Button>
                     )}
                     {selectedTab === 2 && (
@@ -352,7 +385,7 @@ const ContentReview = () => {
                         startIcon={<VisibilityIcon />}
                         onClick={() => handlePreviewSurvey(item)}
                       >
-                        Preview
+                        Xem trước
                       </Button>
                     )}
                   </CardActions>
@@ -368,7 +401,7 @@ const ContentReview = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Content Review
+        Duyệt nội dung
       </Typography>
 
       <Paper sx={{ mb: 3 }}>
@@ -378,9 +411,9 @@ const ContentReview = () => {
           indicatorColor="primary"
           textColor="primary"
         >
-          <Tab label="Courses" />
-          <Tab label="Blogs" />
-          <Tab label="Surveys" />
+          <Tab label="Khóa học" />
+          <Tab label="Bài viết" />
+          <Tab label="Khảo sát" />
         </Tabs>
       </Paper>
 
@@ -394,40 +427,58 @@ const ContentReview = () => {
         fullWidth
       >
         <DialogTitle>
-          Review {selectedTab === 0 ? 'Course' : selectedTab === 1 ? 'Blog' : 'Survey'}: {selectedContent?.title || selectedContent?.surveyTitle}
+          Xem xét {selectedTab === 0 ? 'Khóa học' : selectedTab === 1 ? 'Bài viết' : 'Khảo sát'}: {selectedContent?.title || selectedContent?.surveyTitle}
         </DialogTitle>
         <DialogContent dividers>
           {selectedContent && (
             <Box sx={{ mt: 1 }}>
               <Typography variant="subtitle1" gutterBottom>
-                <strong>Author:</strong> {selectedTab === 0 ? selectedContent.creatorName : 
+                <strong>Tác giả:</strong> {selectedTab === 0 ? selectedContent.creatorName : 
                   selectedTab === 1 ? selectedContent.authorName : selectedContent.createdBy}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                <strong>Created at:</strong> {formatDate(selectedContent.createdAt)}
+                <strong>Ngày tạo:</strong> {formatDate(selectedContent.createdAt)}
               </Typography>
               {selectedTab === 0 && (
                 <Typography variant="subtitle1" gutterBottom>
-                  <strong>Topic:</strong> {selectedContent.topicName}
+                  <strong>Chủ đề:</strong> {selectedContent.topicName}
                 </Typography>
               )}
               {selectedTab === 1 && (
                 <Typography variant="subtitle1" gutterBottom>
-                  <strong>Topic:</strong> {selectedContent.topic}
+                  <strong>Chủ đề:</strong> {selectedContent.topic}
                 </Typography>
               )}
               
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Description</Typography>
-              <Typography variant="body1" paragraph>
-                {selectedContent.description}
-              </Typography>
+              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Mô tả</Typography>
+              {selectedTab !== 2 ? (
+                <Typography variant="body1" paragraph>
+                  {selectedContent.description}
+                </Typography>
+              ) : (
+                <Button
+                  variant="outlined"
+                  startIcon={<VisibilityIcon />}
+                  onClick={() => handlePreviewSurvey(selectedContent)}
+                  sx={{ mb: 2 }}
+                >
+                  Xem mô tả khảo sát
+                </Button>
+              )}
               
               {selectedTab === 0 && (
                 <>
-                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Content</Typography>
-                  <Typography variant="body1">
-                    {selectedContent.content}
-                  </Typography>
+                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Nội dung</Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewCourse(selectedContent)}
+                      sx={{ mb: 2 }}
+                    >
+                      Xem nội dung khóa học
+                    </Button>
+                  </Box>
                 </>
               )}
               
@@ -439,7 +490,7 @@ const ContentReview = () => {
                     onClick={() => handlePreviewBlog(selectedContent)}
                     sx={{ mb: 2 }}
                   >
-                    Preview Blog Content
+                    Xem nội dung bài viết
                   </Button>
                 </Box>
               )}
@@ -451,7 +502,7 @@ const ContentReview = () => {
             onClick={() => setOpenDialog(false)}
             disabled={processingAction}
           >
-            Cancel
+            Hủy
           </Button>
           <Button
             onClick={handleReject}
@@ -459,7 +510,7 @@ const ContentReview = () => {
             disabled={processingAction}
             startIcon={processingAction ? <CircularProgress size={20} /> : <CloseIcon />}
           >
-            Reject
+            Từ chối
           </Button>
           <Button
             onClick={handleApprove}
@@ -468,12 +519,12 @@ const ContentReview = () => {
             disabled={processingAction}
             startIcon={processingAction ? <CircularProgress size={20} /> : <CheckIcon />}
           >
-            Approve
+            Duyệt
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Blog Preview Dialog */}
+      {/* Content Preview Dialog */}
       <Dialog
         open={previewDialog.open}
         onClose={() => setPreviewDialog({ ...previewDialog, open: false })}
@@ -481,7 +532,7 @@ const ContentReview = () => {
         fullWidth
       >
         <DialogTitle>
-          {previewDialog.title || 'Blog Preview'}
+          {previewDialog.title || 'Xem trước nội dung'}
         </DialogTitle>
         <DialogContent dividers>
           <Box sx={{ mt: 1 }}>
@@ -490,7 +541,7 @@ const ContentReview = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPreviewDialog({ ...previewDialog, open: false })}>
-            Close
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>

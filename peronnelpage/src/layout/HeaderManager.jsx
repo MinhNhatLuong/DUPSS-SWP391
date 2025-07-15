@@ -80,11 +80,11 @@ const HeaderManager = ({ userName }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/manager/dashboard' },
+    { text: 'Trang chủ', icon: <DashboardIcon />, path: '/manager/dashboard' },
     { text: 'Nhân viên', icon: <PeopleIcon />, path: '/manager/employees' },
-    { text: 'Content Review', icon: <RateReviewIcon />, path: '/manager/content-review' },
-    { text: 'History', icon: <HistoryIcon />, path: '/manager/history' },
-    { text: 'Topics', icon: <TopicIcon />, path: '/manager/topics' },
+    { text: 'Duyệt nội dung', icon: <RateReviewIcon />, path: '/manager/content-review' },
+    { text: 'Lịch sử', icon: <HistoryIcon />, path: '/manager/history' },
+    { text: 'Chủ đề', icon: <TopicIcon />, path: '/manager/topics' },
   ];
 
   // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar
@@ -122,7 +122,7 @@ const HeaderManager = ({ userName }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {userName || 'Manager'}
+            {userName || 'Quản lý'}
           </Typography>
           <IconButton
             onClick={handleClick}
@@ -136,7 +136,7 @@ const HeaderManager = ({ userName }) => {
               <Avatar 
                 sx={{ width: 32, height: 32 }} 
                 src={userInfo.avatar}
-                alt={userName || 'Manager'}
+                alt={userName || 'Quản lý'}
               />
             ) : (
               <Avatar sx={{ width: 32, height: 32, bgcolor: '#ffa000' }}>{getAvatarText()}</Avatar>
@@ -157,7 +157,7 @@ const HeaderManager = ({ userName }) => {
             <ListItemIcon>
               <AccountCircle fontSize="small" />
             </ListItemIcon>
-            Profile
+            Hồ sơ cá nhân
           </MenuItem>
           <MenuItem onClick={() => navigate('/manager/change-password')}>
             <ListItemIcon>
@@ -170,7 +170,7 @@ const HeaderManager = ({ userName }) => {
             <ListItemIcon>
               <Logout fontSize="small" />
             </ListItemIcon>
-            {loggingOut ? 'Logging out...' : 'Logout'}
+            {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
           </MenuItem>
         </Menu>
       </Toolbar>
