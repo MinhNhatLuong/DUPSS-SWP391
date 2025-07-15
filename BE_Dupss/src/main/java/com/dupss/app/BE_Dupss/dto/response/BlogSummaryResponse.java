@@ -1,5 +1,6 @@
 package com.dupss.app.BE_Dupss.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +19,7 @@ public class BlogSummaryResponse {
     private String topic;
     private String summary;
     private String coverImage;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime createdAt;
 }
