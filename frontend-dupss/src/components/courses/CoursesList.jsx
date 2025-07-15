@@ -84,6 +84,33 @@ const LoadingOverlay = styled(Box)(({ theme }) => ({
   zIndex: 2,
 }));
 
+const DateText = styled(Typography)({
+  fontSize: '0.8rem',
+  color: '#666',
+  marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  height: '24px',
+  padding: '0 4px',
+  whiteSpace: 'nowrap',
+});
+
+const MetaInfoRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  marginBottom: '8px',
+  flexWrap: 'nowrap',
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    '& > *': {
+      margin: 0,
+    }
+  }
+}));
+
 function CoursesList() {
   const [courses, setCourses] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -327,15 +354,15 @@ function CoursesList() {
                       {course.title}
                     </Typography>
 
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                    <MetaInfoRow>
                       <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
                         <PersonIcon fontSize="small" sx={{ mr: 0.5 }} />
                         {course.creatorName}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                      <DateText>
                         {new Date(course.createdAt).toLocaleDateString('vi-VN')}
-                      </Typography>
-                    </Box>
+                      </DateText>
+                    </MetaInfoRow>
 
                     <Typography variant="body2" color="text.secondary" sx={{
                       flexGrow: 1,
