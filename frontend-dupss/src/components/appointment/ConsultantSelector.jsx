@@ -245,11 +245,15 @@ const ConsultantSelector = ({ onSlotSelect }) => {
   }
 
   return (
-    <Box sx={{ mb: 4 }}>      
-      <Grid container spacing={3}>
+    <Box sx={{ mb: 4, width: '100%' }}>      
+      <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
         {consultants.map((consultant) => (
-          <Grid item xs={12} md={6} lg={6} key={consultant.id}>
-            <Card sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, height: '100%' }}>
+          <Grid item xs={12} md={12} key={consultant.id} sx={{ width: '100%', p: '12px' }}>
+            <Card sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', md: 'row' },
+              width: '100%'
+            }}>
               {/* Left side - Consultant Info */}
               <Box sx={{ 
                 width: { xs: '100%', md: '40%' }, 
@@ -260,7 +264,7 @@ const ConsultantSelector = ({ onSlotSelect }) => {
                 borderRight: { xs: 'none', md: '1px solid #e0e0e0' },
                 borderBottom: { xs: '1px solid #e0e0e0', md: 'none' },
                 overflowY: 'auto',
-                maxHeight: { xs: 'auto', md: '400px' }
+                height: { xs: 'auto', md: '400px' }
               }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
                   <Avatar 
