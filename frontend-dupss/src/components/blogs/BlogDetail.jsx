@@ -44,7 +44,7 @@ const BlogDetail = () => {
         title: response.data.title,
         tag: response.data.topic,
         createdDate: response.data.createdAt,
-        thumbnail: response.data.imageUrls[0],
+        thumbnail: response.data.imageUrl,
         blogContent: response.data.content,
         authorName: response.data.authorName
       });
