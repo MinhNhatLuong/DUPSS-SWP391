@@ -156,7 +156,7 @@ const LatestNews = () => {
               <ArticleCard key={news.id}>
                 <ArticleImage>
                   <StyledCardMedia
-                    src={news.coverImage || 'https://via.placeholder.com/300x200'}
+                    src={news.coverImage || 'https://res.cloudinary.com/dpunnm4ns/image/upload/v1752587161/404-medical_reysxh.jpg'}
                     alt={news.title}
                     loading="lazy"
                   />

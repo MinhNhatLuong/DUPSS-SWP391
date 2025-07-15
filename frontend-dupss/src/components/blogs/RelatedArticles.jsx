@@ -106,7 +106,7 @@ const RelatedArticles = ({ articles }) => {
         <ArticleCard key={article.id}>
           <ArticleImage>
             <StyledCardMedia
-              src={article.coverImage}
+              src={article.coverImage || "https://res.cloudinary.com/dpunnm4ns/image/upload/v1752587161/404-medical_reysxh.jpg"}
               alt={article.title}
               loading="lazy"
             />
