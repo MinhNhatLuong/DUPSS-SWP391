@@ -177,7 +177,7 @@ function App() {
             element={
               <ProtectedRoute requiredRole="ROLE_MANAGER">
                 <>
-                  <HeaderManager userName={userInfo?.fullName || 'Manager'} />
+                  <HeaderManager userName={userInfo?.fullName || 'Quản lý'} />
                   <main className="content">
                     <Routes>
                       <Route path="dashboard" element={
