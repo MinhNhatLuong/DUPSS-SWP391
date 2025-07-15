@@ -1,4 +1,4 @@
-import { Typography, Box, IconButton } from '@mui/material';
+import { Typography, Box, IconButton, Grid } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
@@ -56,63 +56,84 @@ const Contact = () => {
           </Box>
         </Box>
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-          <IconButton 
-            aria-label="facebook" 
-            component="a" 
-            href="#" 
-            sx={{ 
-              bgcolor: '#0056b3', 
-              color: 'white',
-              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-              transition: 'background-color 0.3s ease, transform 0.3s ease'
-            }}
-          >
-            <FacebookIcon />
-          </IconButton>
+        <Grid 
+          container 
+          spacing={2} 
+          justifyContent="center" 
+          sx={{ mt: 3 }}
+        >
+          <Grid item>
+            <IconButton
+              aria-label="facebook"
+              component="a"
+              href="#"
+              sx={{
+                bgcolor: '#0056b3',
+                color: 'white',
+                width: '40px',
+                height: '40px',
+                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+                transition: 'background-color 0.3s ease, transform 0.3s ease'
+              }}
+            >
+              <FacebookIcon fontSize="small" />
+            </IconButton>
+          </Grid>
           
-          <IconButton 
-            aria-label="twitter" 
-            component="a" 
-            href="#" 
-            sx={{ 
-              bgcolor: '#0056b3', 
-              color: 'white',
-              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-              transition: 'background-color 0.3s ease, transform 0.3s ease'
-            }}
-          >
-            <TwitterIcon />
-          </IconButton>
+          <Grid item>
+            <IconButton
+              aria-label="twitter"
+              component="a"
+              href="#"
+              sx={{
+                bgcolor: '#0056b3',
+                color: 'white',
+                width: '40px',
+                height: '40px',
+                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+                transition: 'background-color 0.3s ease, transform 0.3s ease'
+              }}
+            >
+              <TwitterIcon fontSize="small" />
+            </IconButton>
+          </Grid>
           
-          <IconButton 
-            aria-label="instagram" 
-            component="a" 
-            href="#" 
-            sx={{ 
-              bgcolor: '#0056b3', 
-              color: 'white',
-              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-              transition: 'background-color 0.3s ease, transform 0.3s ease'
-            }}
-          >
-            <InstagramIcon />
-          </IconButton>
+          <Grid item>
+            <IconButton
+              aria-label="instagram"
+              component="a"
+              href="#"
+              sx={{
+                bgcolor: '#0056b3',
+                color: 'white',
+                width: '40px',
+                height: '40px',
+                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+                transition: 'background-color 0.3s ease, transform 0.3s ease'
+              }}
+            >
+              <InstagramIcon fontSize="small" />
+            </IconButton>
+          </Grid>
           
-          <IconButton 
-            aria-label="youtube" 
-            component="a" 
-            href="#" 
-            sx={{ 
-              bgcolor: '#0056b3', 
-              color: 'white',
-              '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
-              transition: 'background-color 0.3s ease, transform 0.3s ease'
-            }}
-          >
-            <YouTubeIcon />
-          </IconButton>
-        </Box>
+          <Grid item>
+            <IconButton
+              aria-label="youtube"
+              component="a"
+              href="#"
+              sx={{
+                bgcolor: '#0056b3',
+                color: 'white',
+                width: '40px',
+                height: '40px',
+                '&:hover': { bgcolor: '#003d82', transform: 'translateY(-3px)' },
+                transition: 'background-color 0.3s ease, transform 0.3s ease'
+              }}
+            >
+              <YouTubeIcon fontSize="small" />
+            </IconButton>
+          </Grid>
+        </Grid>
       </Box>
     </section>
   );
