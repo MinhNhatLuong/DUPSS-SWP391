@@ -21,11 +21,13 @@ import CourseQuiz from './components/courses/CourseQuiz';
 import SurveysList from './components/surveys/SurveysList';
 import SurveyDetail from './components/surveys/SurveyDetail';
 import AlertNotification from './components/common/AlertNotification';
+import AutoScrollToTop from './components/layout/AutoScrollToTop';
 import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
+      <AutoScrollToTop />
       <AlertNotification />
       <Routes>
         <Route path="/" element={

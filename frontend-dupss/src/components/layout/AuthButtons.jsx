@@ -229,19 +229,19 @@ const AuthButtons = () => {
               display: 'flex', 
               alignItems: 'center', 
               cursor: 'pointer',
-              padding: isMobile ? '4px 10px' : '6px 15px',
+              padding: isMobile ? '0' : '6px 15px',
               borderRadius: '4px',
-              border: '1px solid #dddddd',
-              backgroundColor: '#ffffff',
-              '&:hover': { backgroundColor: 'rgba(0,0,0,0.02)' }
+              border: isMobile ? 'none' : '1px solid #dddddd',
+              backgroundColor: isMobile ? 'transparent' : '#ffffff',
+              '&:hover': { backgroundColor: isMobile ? 'transparent' : 'rgba(0,0,0,0.02)' }
             }}
           >
             <Avatar 
               src={userData?.avatar} 
               alt={userData?.fullName || 'User'} 
               sx={{ 
-                width: isMobile ? 30 : 36, 
-                height: isMobile ? 30 : 36, 
+                width: isMobile ? 40 : 36, 
+                height: isMobile ? 40 : 36, 
                 mr: isMobile ? 1 : 1.5
               }}
             />
