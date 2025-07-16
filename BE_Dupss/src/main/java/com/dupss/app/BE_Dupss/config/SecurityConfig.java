@@ -184,6 +184,7 @@ import com.dupss.app.BE_Dupss.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -212,7 +213,7 @@ public class SecurityConfig {
     private final JwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsService;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-//    private final CustomOAuth2UserService customOAuth2UserService;
+    // private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -264,8 +265,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173", "http://localhost:3000",
                 "https://dupss.vercel.app", "http://34.87.106.55:5173",
-                "https://admin.dupssapp.id.vn", "https://dupssapp.id.vn"
-        ));
+                "https://admin.dupssapp.id.vn", "https://dupssapp.id.vn","http://34.87.106.55:8080","http://34.87.106.55:3000"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
@@ -276,29 +276,54 @@ public class SecurityConfig {
         return source;
     }
 
+    //        @Bean
+//        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//
+//                http
+//                                .csrf(csrf -> csrf.disable())
+//                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+//                                .sessionManagement(session -> session
+//                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                                .authorizeHttpRequests(auth -> auth
+//                                                .requestMatchers(WHITE_LIST).permitAll()
+//                                                .requestMatchers("/api/**").permitAll()
+//                                                .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
+//                                                .requestMatchers(MANAGER_ENDPOINTS)
+//                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+//                                                .anyRequest().authenticated())
+//                                .exceptionHandling(exception -> exception
+//                                                .authenticationEntryPoint(authenticationEntryPoint))
+//                                .oauth2ResourceServer(oauth2 -> oauth2
+//                                                .jwt(jwt -> jwt
+//                                                                .decoder(jwtDecoder)
+//                                                                .jwtAuthenticationConverter(
+//                                                                                jwtAuthenticationConverter())));
+//
+//                return http.build();
+//        }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👉 Cần cho CORS
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
                         .requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
+                        .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                );
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
+
 }
-
-
