@@ -307,34 +307,34 @@ public class CourseEnrollmentService {
                 .build();
     }
     
-    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
-        List<CourseModuleResponse> moduleResponses = modules.stream()
-                .map(m -> mapToModuleResponse(m, currentUser))
-                .collect(Collectors.toList());
-                
-        long enrollmentCount = enrollmentRepository.countByCourse(course);
-        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
-
-        double progress = 0.0;
-        if (currentUser != null) {
-            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
-            if (enrollmentOpt.isPresent()) {
-                enrollmentStatus = enrollmentOpt.get().getStatus();
-                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
-            }
-        }
-        return CourseResponse.builder()
-                .id(course.getId())
-                .title(course.getTitle())
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .creator(course.getCreator().getFullname())
-                .modules(moduleResponses)
-                .enrollmentCount((int) enrollmentCount)
-                .enrollmentStatus(enrollmentStatus)
-                .progress(progress)
-                .build();
-    }
+//    private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
+//        List<CourseModuleResponse> moduleResponses = modules.stream()
+//                .map(m -> mapToModuleResponse(m, currentUser))
+//                .collect(Collectors.toList());
+//
+//        long enrollmentCount = enrollmentRepository.countByCourse(course);
+//        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+//
+//        double progress = 0.0;
+//        if (currentUser != null) {
+//            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
+//            if (enrollmentOpt.isPresent()) {
+//                enrollmentStatus = enrollmentOpt.get().getStatus();
+//                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
+//            }
+//        }
+//        return CourseResponse.builder()
+//                .id(course.getId())
+//                .title(course.getTitle())
+//                .createdAt(course.getCreatedAt())
+//                .updatedAt(course.getUpdatedAt())
+//                .creator(course.getCreator().getFullname())
+//                .modules(moduleResponses)
+//                .enrollmentCount((int) enrollmentCount)
+//                .enrollmentStatus(enrollmentStatus)
+//                .progress(progress)
+//                .build();
+//    }
     
     private CourseModuleResponse mapToModuleResponse(CourseModule module, User currentUser) {
 
