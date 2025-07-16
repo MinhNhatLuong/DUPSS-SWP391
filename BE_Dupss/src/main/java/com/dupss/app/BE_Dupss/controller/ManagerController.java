@@ -119,8 +119,8 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/courses/pending")
-    public ResponseEntity<List<CourseManagerResponse>> getPendingCourses() {
-        List<CourseManagerResponse> responses = courseService.getCoursePending();
+    public ResponseEntity<List<CourseResponse>> getPendingCourses() {
+        List<CourseResponse> responses = courseService.getCoursePending();
         return ResponseEntity.ok(responses);
     }
 

@@ -276,22 +276,18 @@ public class CourseService {
         return mapToCourseResponse(course, modules, course.getCreator());
     }
 
-    public List<CourseManagerResponse> getCoursePending(){
+    public List<CourseResponse> getCoursePending(){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         List<Course> courses = courseRepository.findByStatusAndActiveTrue(ApprovalStatus.PENDING);
-        List<CourseManagerResponse> responses = courses.stream()
-                .map(course -> CourseManagerResponse.builder()
-                        .id(course.getId())
-                        .title(course.getTitle())
-                        .description(course.getDescription())
-                        .coverImage(course.getCoverImage())
-                        .duration(course.getDuration())
-                        .createdAt(course.getCreatedAt())
-                        .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
-                        .status(course.getStatus())
-                        .creatorName(course.getCreator() != null ? course.getCreator().getFullname() : null)
-                        .build())
+        List<CourseResponse> response = courses.stream()
+                .map(course -> mapToCourseResponse(course, course.getModules(), currentUser))
                 .collect(Collectors.toList());
-        return responses;
+        return response;
     }
 
 
@@ -495,17 +491,17 @@ public class CourseService {
         List<CourseModuleResponse> moduleResponses = modules.stream()
                 .map(m -> mapToModuleResponse(m, currentUser))
                 .collect(Collectors.toList());
-                
-        long enrollmentCount = enrollmentRepository.countByCourse(course);
-        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
-        double progress = 0.0;
-        if (currentUser != null) {
-            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
-            if (enrollmentOpt.isPresent()) {
-                enrollmentStatus = enrollmentOpt.get().getStatus();
-                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
-            }
-        }
+//
+//        long enrollmentCount = enrollmentRepository.countByCourse(course);
+//        EnrollmentStatus enrollmentStatus = EnrollmentStatus.NOT_ENROLLED;
+//        double progress = 0.0;
+//        if (currentUser != null) {
+//            Optional<CourseEnrollment> enrollmentOpt = enrollmentRepository.findByUserAndCourse(currentUser, course);
+//            if (enrollmentOpt.isPresent()) {
+//                enrollmentStatus = enrollmentOpt.get().getStatus();
+//                progress = enrollmentOpt.get().getProgress() != null ? enrollmentOpt.get().getProgress() : 0.0;
+//            }
+//        }
 
         SurveyResponse quizResponse = null;
         if (course.getSurveyQuiz() != null) {
@@ -531,9 +527,10 @@ public class CourseService {
                 .creator(course.getCreator().getFullname())
                 .modules(moduleResponses)
                 .quiz(quizResponse)
-                .enrollmentCount((int) enrollmentCount)
-                .enrollmentStatus(enrollmentStatus)
-                .progress(progress)
+                .status(course.getStatus())
+//                .enrollmentCount((int) enrollmentCount)
+//                .enrollmentStatus(enrollmentStatus)
+//                .progress(progress)
                 .build();
     }
 
@@ -554,12 +551,12 @@ public class CourseService {
     private CourseModuleResponse mapToModuleResponse(CourseModule module, User currentUser) {
         List<VideoCourseResponse> videoDTOs = module.getVideos().stream()
                 .map(video -> {
-                    boolean watched = watchedVideoRepository.existsByUserAndVideoAndWatchedTrue(currentUser, video);
+//                    boolean watched = watchedVideoRepository.existsByUserAndVideoAndWatchedTrue(currentUser, video);
                     return VideoCourseResponse.builder()
                             .id(video.getId())
                             .title(video.getTitle())
                             .videoUrl(video.getVideoUrl())
-                            .watched(watched)
+//                            .watched(watched)
                             .build();
                 })
                 .collect(Collectors.toList());
