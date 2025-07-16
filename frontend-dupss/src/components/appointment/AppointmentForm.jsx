@@ -371,6 +371,7 @@ const AppointmentForm = () => {
               {/* Phone Number */}
               <TextField
                 fullWidth
+                required
                 id="phoneNumber"
                 name="phoneNumber"
                 label="Số điện thoại"
