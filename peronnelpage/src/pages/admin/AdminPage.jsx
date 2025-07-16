@@ -54,6 +54,7 @@ const roleColors = {
 
 const roleList = ['ROLE_MEMBER', 'ROLE_STAFF', 'ROLE_CONSULTANT', 'ROLE_MANAGER', 'ROLE_ADMIN'];
 const genderList = ['male', 'female', 'other'];
+const academicTitleList = ['GS', 'PGS', 'ThS', 'CN', 'BS', 'TVV'];
 
 const searchCategories = [
   { value: 'all', label: 'Tất cả' },
@@ -97,6 +98,9 @@ export default function AdminPage() {
     phone: '',
     address: '',
     role: 'ROLE_MEMBER',
+    bio: '',
+    certificates: '',
+    academicTitle: '',
   });
   const [processing, setProcessing] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
@@ -230,7 +234,7 @@ export default function AdminPage() {
     
     setProcessing(true);
     try {
-      await apiClient.delete(`/admin/users/${editUser.id}`);
+      await apiClient.patch(`/admin/users/delete/${editUser.id}`);
       setUsers(prev => prev.filter(u => u.id !== editUser.id));
       setSelected(prev => prev.filter(id => id !== editUser.id));
       setNotification({
@@ -264,7 +268,7 @@ export default function AdminPage() {
     setProcessing(true);
     
     try {
-      await Promise.all(selected.map(id => apiClient.delete(`/admin/users/${id}`)));
+      await Promise.all(selected.map(id => apiClient.patch(`/admin/users/delete/${id}`)));
       setUsers(prev => prev.filter(user => !selected.includes(user.id)));
       setSelected([]);
       setNotification({
@@ -287,29 +291,36 @@ export default function AdminPage() {
 
   const handleOpenDialog = (user = null) => {
     setEditUser(user);
-    setForm(
-      user
-        ? {
-            username: user.username || '',
-            fullname: user.fullName || '',
-            gender: user.gender || '',
-            email: user.email || '',
-            phone: user.phone || '',
-            address: user.address || '',
-            role: user.role || 'ROLE_MEMBER',
-            password: '', // We don't set password when editing
-          }
-        : {
-            username: '',
-            password: '',
-            fullname: '',
-            gender: '',
-            email: '',
-            phone: '',
-            address: '',
-            role: 'ROLE_MEMBER',
-          }
-    );
+    if (user) {
+      const isConsultant = user.role === 'ROLE_CONSULTANT';
+      setForm({
+        username: user.username || '',
+        fullname: user.fullName || '',
+        gender: user.gender || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        role: user.role || 'ROLE_MEMBER',
+        bio: isConsultant ? (user.bio || '') : '',
+        certificates: isConsultant ? (user.certificates || '') : '',
+        academicTitle: isConsultant ? (user.academicTitle || '') : '',
+        password: '', // We don't set password when editing
+      });
+    } else {
+      setForm({
+        username: '',
+        password: '',
+        fullname: '',
+        gender: '',
+        email: '',
+        phone: '',
+        address: '',
+        role: 'ROLE_MEMBER',
+        bio: '',
+        certificates: '',
+        academicTitle: '',
+      });
+    }
     setOpenDialog(true);
   };
 
@@ -321,7 +332,19 @@ export default function AdminPage() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      // If changing from ROLE_CONSULTANT to another role, clear consultant-specific fields
+      if (name === 'role' && prev.role === 'ROLE_CONSULTANT' && value !== 'ROLE_CONSULTANT') {
+        return { 
+          ...prev, 
+          [name]: value,
+          bio: '',
+          certificates: '',
+          academicTitle: ''
+        };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   const validateForm = () => {
@@ -329,7 +352,6 @@ export default function AdminPage() {
     if (!form.username) errors.username = 'Tên đăng nhập là bắt buộc';
     if (!editUser && !form.password) errors.password = 'Mật khẩu là bắt buộc';
     if (!form.fullname) errors.fullname = 'Họ tên là bắt buộc';
-    if (!form.phone) errors.phone = 'Số điện thoại là bắt buộc';
     if (!form.email) errors.email = 'Email là bắt buộc';
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Định dạng email không hợp lệ';
     return errors;
@@ -354,18 +376,33 @@ export default function AdminPage() {
     setProcessing(true);
     
     try {
-      const payload = {
-        username: form.username,
-        password: form.password,
-        fullname: form.fullname,
-        gender: form.gender || null,
-        email: form.email,
-        phone: form.phone,
-        address: form.address || null,
-        role: form.role
-      };
+      const isConsultant = form.role === 'ROLE_CONSULTANT';
       
-      const response = await apiClient.post('/admin/users', payload);
+      // Create FormData object instead of JSON
+      const formData = new FormData();
+      formData.append('username', form.username);
+      formData.append('password', form.password);
+      formData.append('fullname', form.fullname);
+      formData.append('gender', form.gender || '');
+      formData.append('email', form.email);
+      formData.append('phone', form.phone || '');
+      formData.append('address', form.address || '');
+      formData.append('role', form.role);
+      
+      // Only add consultant-specific fields if the role is ROLE_CONSULTANT
+      if (isConsultant) {
+        formData.append('bio', form.bio || '');
+        formData.append('certificates', form.certificates || '');
+        formData.append('academicTitle', form.academicTitle || '');
+      }
+      
+      // Use custom config to override the default content-type
+      const response = await apiClient.post('/admin/users', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       setUsers(prev => [...prev, response.data]);
       
       setNotification({
@@ -392,33 +429,54 @@ export default function AdminPage() {
     setProcessing(true);
     
     try {
-      const payload = {
-        fullname: form.fullname,
-        gender: form.gender || null,
-        email: form.email,
-        phone: form.phone,
-        address: form.address || null,
-        role: form.role
-      };
+      const isConsultant = form.role === 'ROLE_CONSULTANT';
       
-      await apiClient.patch(`/admin/users/${editUser.id}`, payload);
+      // Create FormData object instead of JSON
+      const formData = new FormData();
+      formData.append('fullname', form.fullname);
+      formData.append('gender', form.gender || '');
+      formData.append('email', form.email);
+      formData.append('phone', form.phone || '');
+      formData.append('address', form.address || '');
+      formData.append('role', form.role);
+      
+      // Only add consultant-specific fields if the role is ROLE_CONSULTANT
+      if (isConsultant) {
+        formData.append('bio', form.bio || '');
+        formData.append('certificates', form.certificates || '');
+        formData.append('academicTitle', form.academicTitle || '');
+      }
+      
+      // Use custom config to override the default content-type
+      await apiClient.patch(`/admin/users/${editUser.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       
       // Update local state
-      setUsers(prev => 
-        prev.map(u => 
-          u.id === editUser.id 
-            ? { 
-                ...u, 
-                fullName: form.fullname, 
-                gender: form.gender,
-                email: form.email,
-                phone: form.phone,
-                address: form.address,
-                role: form.role
-              } 
-            : u
-        )
-      );
+      const updatedUser = {
+        ...editUser,
+        fullName: form.fullname,
+        gender: form.gender,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        role: form.role,
+      };
+      
+      // Only update consultant-specific fields if the role is ROLE_CONSULTANT
+      if (isConsultant) {
+        updatedUser.bio = form.bio;
+        updatedUser.certificates = form.certificates;
+        updatedUser.academicTitle = form.academicTitle;
+      } else {
+        updatedUser.bio = null;
+        updatedUser.certificates = null;
+        updatedUser.academicTitle = null;
+      }
+      
+      setUsers(prev => prev.map(u => u.id === editUser.id ? updatedUser : u));
       
       setNotification({
         open: true,
@@ -791,17 +849,16 @@ export default function AdminPage() {
               helperText={formErrors.email}
             />
             
-            <TextField
-              margin="normal"
-              label="Số điện thoại"
-              name="phone"
-              value={form.phone}
-              onChange={handleFormChange}
-              fullWidth
-              required
-              error={!!formErrors.phone}
-              helperText={formErrors.phone}
-            />
+                          <TextField
+                margin="normal"
+                label="Số điện thoại"
+                name="phone"
+                value={form.phone}
+                onChange={handleFormChange}
+                fullWidth
+                error={!!formErrors.phone}
+                helperText={formErrors.phone}
+              />
             
             <TextField
               margin="normal"
@@ -828,6 +885,48 @@ export default function AdminPage() {
                 <MenuItem value="ROLE_ADMIN">Quản trị viên</MenuItem>
               </Select>
             </FormControl>
+
+            {form.role === 'ROLE_CONSULTANT' && (
+              <>
+                <TextField
+                  margin="normal"
+                  label="Tiểu sử (tùy chọn)"
+                  name="bio"
+                  value={form.bio}
+                  onChange={handleFormChange}
+                  fullWidth
+                  multiline
+                  rows={3}
+                />
+
+                <TextField
+                  margin="normal"
+                  label="Chứng chỉ (tùy chọn)"
+                  name="certificates"
+                  value={form.certificates}
+                  onChange={handleFormChange}
+                  fullWidth
+                />
+
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Học vị (tùy chọn)</InputLabel>
+                  <Select
+                    name="academicTitle"
+                    value={form.academicTitle}
+                    label="Học vị (tùy chọn)"
+                    onChange={handleFormChange}
+                  >
+                    <MenuItem value="">Không có</MenuItem>
+                    <MenuItem value="GS">Giáo sư (GS)</MenuItem>
+                    <MenuItem value="PGS">Phó giáo sư (PGS)</MenuItem>
+                    <MenuItem value="ThS">Thạc sĩ (ThS)</MenuItem>
+                    <MenuItem value="CN">Cử nhân (CN)</MenuItem>
+                    <MenuItem value="BS">Bác sĩ (BS)</MenuItem>
+                    <MenuItem value="TVV">Tư vấn viên (TVV)</MenuItem>
+                  </Select>
+                </FormControl>
+              </>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
