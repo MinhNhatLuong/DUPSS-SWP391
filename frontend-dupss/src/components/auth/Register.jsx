@@ -46,6 +46,7 @@ const Register = () => {
     birthDate: '',
     terms: false
   });
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -97,6 +98,14 @@ const Register = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+    
+    // Clear error for the field being changed
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
   
   // Function to handle Google register response
@@ -136,12 +145,60 @@ const Register = () => {
     }
   };
 
+  // Function to validate the form
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate username
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username là bắt buộc';
+    }
+    
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email là bắt buộc';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email không hợp lệ';
+    }
+    
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = 'Mật khẩu là bắt buộc';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+    
+    // Validate confirm password
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Vui lòng nhập lại mật khẩu';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu không khớp';
+    }
+    
+    // Validate full name
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Họ và tên là bắt buộc';
+    }
+    
+    // Validate phone number
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Số điện thoại là bắt buộc';
+    }
+    
+    // Validate terms acceptance
+    if (!formData.terms) {
+      newErrors.terms = 'Vui lòng đồng ý với điều khoản sử dụng và chính sách bảo mật';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      showErrorAlert('Mật khẩu không khớp!');
+    // Validate form
+    if (!validateForm()) {
       return;
     }
     
@@ -244,7 +301,7 @@ const Register = () => {
             </Typography>
           </Box>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: '500px', margin: '0 auto' }}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '500px', margin: '0 auto' }}>
             <Box sx={{ marginBottom: '20px' }}>
               <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 500, color: '#555' }}>
                 Username <span style={{ color: '#e74c3c' }}>*</span>
@@ -255,7 +312,8 @@ const Register = () => {
                 placeholder="Nhập username của bạn"
                 value={formData.username}
                 onChange={handleChange}
-                required
+                error={!!errors.username}
+                helperText={errors.username}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -284,7 +342,8 @@ const Register = () => {
                 placeholder="Nhập địa chỉ email của bạn"
                 value={formData.email}
                 onChange={handleChange}
-                required
+                error={!!errors.email}
+                helperText={errors.email}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -313,7 +372,8 @@ const Register = () => {
                 placeholder="Nhập mật khẩu của bạn"
                 value={formData.password}
                 onChange={handleChange}
-                required
+                error={!!errors.password}
+                helperText={errors.password}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -352,7 +412,8 @@ const Register = () => {
                 placeholder="Nhập lại mật khẩu của bạn"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -390,7 +451,8 @@ const Register = () => {
                 placeholder="Nhập họ và tên của bạn"
                 value={formData.fullName}
                 onChange={handleChange}
-                required
+                error={!!errors.fullName}
+                helperText={errors.fullName}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -418,7 +480,8 @@ const Register = () => {
                 placeholder="Nhập số điện thoại của bạn"
                 value={formData.phone}
                 onChange={handleChange}
-                required
+                error={!!errors.phone}
+                helperText={errors.phone}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -466,26 +529,31 @@ const Register = () => {
               />
             </Box>
 
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  name="terms"
-                  checked={formData.terms}
-                  onChange={handleChange}
-                  required
-                  sx={{
-                    color: '#0056b3',
-                    '&.Mui-checked': { color: '#0056b3' },
-                  }}
-                />
-              }
-              label={
-                <Typography variant="body2">
-                  Tôi đồng ý với <Link href="#" sx={{ color: '#0056b3' }}>Điều khoản sử dụng</Link> và <Link href="#" sx={{ color: '#0056b3' }}>Chính sách bảo mật</Link>
+            <Box sx={{ marginBottom: '20px' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    name="terms"
+                    checked={formData.terms}
+                    onChange={handleChange}
+                    sx={{
+                      color: errors.terms ? '#e74c3c' : '#0056b3',
+                      '&.Mui-checked': { color: '#0056b3' },
+                    }}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    Tôi đồng ý với <Link href="#" sx={{ color: '#0056b3' }}>Điều khoản sử dụng</Link> và <Link href="#" sx={{ color: '#0056b3' }}>Chính sách bảo mật</Link>
+                  </Typography>
+                }
+              />
+              {errors.terms && (
+                <Typography variant="caption" sx={{ color: '#e74c3c', display: 'block', mt: 0.5, ml: 2 }}>
+                  {errors.terms}
                 </Typography>
-              }
-              sx={{ marginBottom: '20px' }}
-            />
+              )}
+            </Box>
 
             <Button 
               fullWidth 

@@ -172,6 +172,11 @@ const AppointmentForm = () => {
       newErrors.fullName = 'Họ và tên là bắt buộc';
     }
     
+    // Validate phone number
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Số điện thoại là bắt buộc';
+    }
+    
     // Validate email
     if (!formData.email) {
       newErrors.email = 'Email là bắt buộc';
@@ -377,6 +382,8 @@ const AppointmentForm = () => {
                 label="Số điện thoại"
                 value={formData.phoneNumber}
                 onChange={handleChange}
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
