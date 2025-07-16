@@ -202,13 +202,17 @@ const ContentReview = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Không xác định';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
+    }
   };
 
   const getContentByType = () => {
@@ -224,184 +228,141 @@ const ContentReview = () => {
   const renderContent = () => {
     const content = getContentByType();
 
-    if (loading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-          <CircularProgress />
-        </Box>
-      );
-    }
-
-    if (error) {
-      return (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      );
-    }
-
-    if (content.length === 0) {
-      return (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          Không có {selectedTab === 0 ? 'khóa học' : selectedTab === 1 ? 'bài viết' : 'khảo sát'} nào đang chờ duyệt.
-        </Alert>
-      );
-    }
-
     return (
-      <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
-        <Box 
-          sx={{ 
-            display: 'flex',
-            flexWrap: 'wrap',
-            margin: -1.5, // Negative margin to compensate for padding
-          }}
-        >
-          {content.map((item) => {
-            const isSurvey = selectedTab === 2;
-            const id = isSurvey ? item.surveyId : item.id;
-            const title = isSurvey ? item.surveyTitle : item.title;
-            const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
-            const createdAt = formatDate(item.createdAt);
-            
-            return (
-              <Box 
-                key={id}
-                sx={{
-                  width: {
-                    xs: '100%',    // Full width on mobile
-                    sm: '50%',     // Half width on tablet
-                    md: '33.333%', // One third on desktop
-                  },
-                  padding: 1.5,
-                  boxSizing: 'border-box',
-                }}
-              >
-                <Card sx={{ 
-                  height: 320, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  width: '100%'
+      <Grid container spacing={3}>
+        {content.map((item) => {
+          const isSurvey = selectedTab === 2;
+          const id = isSurvey ? item.surveyId : item.id;
+          const title = isSurvey ? item.surveyTitle : item.title;
+          const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
+          const createdAt = formatDate(item.createdAt);
+          
+          return (
+            <Grid item xs={12} sm={6} md={4} key={id}>
+              <Card sx={{ 
+                height: 320, 
+                display: 'flex', 
+                flexDirection: 'column',
+                width: '100%'
+              }}>
+                <CardContent sx={{ 
+                  flexGrow: 1, 
+                  height: '210px', 
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}>
-                  <CardContent sx={{ 
-                    flexGrow: 1, 
-                    height: '210px', 
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    <Typography variant="h6" gutterBottom noWrap sx={{ fontWeight: 'bold' }}>
-                      {title}
-                    </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      Tác giả: {authorName}
-                    </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      Ngày tạo: {createdAt}
-                    </Typography>
-                    <Box 
-                      sx={{ 
-                        cursor: 'pointer',
-                        mt: 1,
-                        mb: 1,
-                        flexGrow: 1
-                      }}
-                      onClick={() => {
-                        if (selectedTab !== 2) {
-                          setPreviewDialog({
-                            open: true,
-                            content: item.description,
-                            title: `Mô tả ${title}`
-                          });
-                        }
-                      }}
-                    >
-                      {selectedTab !== 2 ? (
-                        <Typography variant="body2" sx={{ 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis', 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 3, 
-                          WebkitBoxOrient: 'vertical',
-                          '&:hover': { textDecoration: 'underline' }
-                        }}>
-                          {item.description || 'Không có mô tả'}
-                        </Typography>
-                      ) : (
-                        <Button
-                          size="small"
-                          variant="text"
-                          color="primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePreviewSurvey(item);
-                          }}
-                          sx={{ mt: 1 }}
-                        >
-                          Xem mô tả
-                        </Button>
-                      )}
-                    </Box>
-                    <Chip
-                      label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
-                      color="warning"
-                      size="small"
-                      sx={{ alignSelf: 'flex-start' }}
-                    />
-                  </CardContent>
-                  <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
+                  <Typography variant="h6" gutterBottom noWrap sx={{ fontWeight: 'bold' }}>
+                    {title}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Tác giả: {authorName}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Ngày tạo: {createdAt}
+                  </Typography>
+                  <Box 
+                    sx={{ 
+                      cursor: 'pointer',
+                      mt: 1,
+                      mb: 1,
+                      flexGrow: 1
+                    }}
+                    onClick={() => {
+                      if (selectedTab !== 2) {
+                        setPreviewDialog({
+                          open: true,
+                          content: item.description,
+                          title: `Mô tả ${title}`
+                        });
+                      }
+                    }}
+                  >
+                    {selectedTab !== 2 ? (
+                      <Typography variant="body2" sx={{ 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 3, 
+                        WebkitBoxOrient: 'vertical',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}>
+                        {item.description || 'Không có mô tả'}
+                      </Typography>
+                    ) : (
+                      <Button
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreviewSurvey(item);
+                        }}
+                        sx={{ mt: 1 }}
+                      >
+                        Xem mô tả
+                      </Button>
+                    )}
+                  </Box>
+                  <Chip
+                    label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
+                    color="warning"
+                    size="small"
+                    sx={{ alignSelf: 'flex-start' }}
+                  />
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
+                  <Button
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    onClick={() => handleReview(item)}
+                  >
+                    Xem xét
+                  </Button>
+                  {selectedTab === 0 && (
                     <Button
                       size="small"
-                      color="primary"
                       variant="outlined"
-                      onClick={() => handleReview(item)}
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewCourse(item)}
                     >
-                      Xem xét
+                      Xem trước
                     </Button>
-                    {selectedTab === 0 && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => handlePreviewCourse(item)}
-                      >
-                        Xem trước
-                      </Button>
-                    )}
-                    {selectedTab === 1 && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => handlePreviewBlog(item)}
-                      >
-                        Xem trước
-                      </Button>
-                    )}
-                    {selectedTab === 2 && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => handlePreviewSurvey(item)}
-                      >
-                        Xem trước
-                      </Button>
-                    )}
-                  </CardActions>
-                </Card>
-              </Box>
-            );
-          })}
-        </Box>
-      </Box>
+                  )}
+                  {selectedTab === 1 && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewBlog(item)}
+                    >
+                      Xem trước
+                    </Button>
+                  )}
+                  {selectedTab === 2 && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handlePreviewSurvey(item)}
+                    >
+                      Xem trước
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
     );
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Duyệt nội dung
+      <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold' }}>
+        Duyệt Nội Dung
       </Typography>
 
       <Paper sx={{ mb: 3 }}>
@@ -410,134 +371,123 @@ const ContentReview = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
+          variant="fullWidth"
         >
-          <Tab label="Khóa học" />
-          <Tab label="Bài viết" />
-          <Tab label="Khảo sát" />
+          <Tab label="Khóa Học" />
+          <Tab label="Bài Viết" />
+          <Tab label="Khảo Sát" />
         </Tabs>
       </Paper>
 
-      {renderContent()}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      ) : (
+        <Grid container spacing={3}>
+          {getContentByType().length === 0 ? (
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, textAlign: 'center' }}>
+                <Typography variant="h6">
+                  {selectedTab === 0
+                    ? 'Không có khóa học nào cần duyệt'
+                    : selectedTab === 1
+                    ? 'Không có bài viết nào cần duyệt'
+                    : 'Không có khảo sát nào cần duyệt'}
+                </Typography>
+              </Paper>
+            </Grid>
+          ) : (
+            renderContent()
+          )}
+        </Grid>
+      )}
 
-      {/* Review Dialog */}
-      <Dialog 
-        open={openDialog} 
-        onClose={() => !processingAction && setOpenDialog(false)} 
-        maxWidth="md" 
-        fullWidth
-      >
+      {/* Dialog for content review */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          Xem xét {selectedTab === 0 ? 'Khóa học' : selectedTab === 1 ? 'Bài viết' : 'Khảo sát'}: {selectedContent?.title || selectedContent?.surveyTitle}
+          {selectedTab === 0
+            ? 'Duyệt Khóa Học'
+            : selectedTab === 1
+            ? 'Duyệt Bài Viết'
+            : 'Duyệt Khảo Sát'}
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent>
           {selectedContent && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                <strong>Tác giả:</strong> {selectedTab === 0 ? selectedContent.creatorName : 
-                  selectedTab === 1 ? selectedContent.authorName : selectedContent.createdBy}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {selectedContent.title}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              
+              <Typography variant="body2" color="textSecondary" paragraph>
+                <strong>ID:</strong> {selectedContent.id || selectedContent.surveyId}
+              </Typography>
+              
+              <Typography variant="body2" color="textSecondary" paragraph>
+                <strong>Người tạo:</strong> {selectedContent.creator?.fullName || 'Không xác định'}
+              </Typography>
+              
+              <Typography variant="body2" color="textSecondary" paragraph>
                 <strong>Ngày tạo:</strong> {formatDate(selectedContent.createdAt)}
               </Typography>
-              {selectedTab === 0 && (
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Chủ đề:</strong> {selectedContent.topicName}
-                </Typography>
-              )}
-              {selectedTab === 1 && (
-                <Typography variant="subtitle1" gutterBottom>
-                  <strong>Chủ đề:</strong> {selectedContent.topic}
-                </Typography>
-              )}
               
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Mô tả</Typography>
-              {selectedTab !== 2 ? (
-                <Typography variant="body1" paragraph>
-                  {selectedContent.description}
-                </Typography>
-              ) : (
-                <Button
-                  variant="outlined"
-                  startIcon={<VisibilityIcon />}
-                  onClick={() => handlePreviewSurvey(selectedContent)}
-                  sx={{ mb: 2 }}
-                >
-                  Xem mô tả khảo sát
-                </Button>
-              )}
-              
-              {selectedTab === 0 && (
-                <>
-                  <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Nội dung</Typography>
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewCourse(selectedContent)}
-                      sx={{ mb: 2 }}
-                    >
-                      Xem nội dung khóa học
-                    </Button>
-                  </Box>
-                </>
-              )}
-              
-              {selectedTab === 1 && (
+              {selectedTab === 1 && selectedContent.content && (
                 <Box sx={{ mt: 2 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<VisibilityIcon />}
-                    onClick={() => handlePreviewBlog(selectedContent)}
-                    sx={{ mb: 2 }}
-                  >
-                    Xem nội dung bài viết
-                  </Button>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Nội dung:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
+                    <div dangerouslySetInnerHTML={{ __html: selectedContent.content }} />
+                  </Paper>
+                </Box>
+              )}
+              
+              {selectedTab === 0 && selectedContent.description && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Mô tả:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
+                    <Typography>{selectedContent.description}</Typography>
+                  </Paper>
+                </Box>
+              )}
+              
+              {selectedTab === 2 && selectedContent.description && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Mô tả:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
+                    <Typography>{selectedContent.description}</Typography>
+                  </Paper>
                 </Box>
               )}
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setOpenDialog(false)}
-            disabled={processingAction}
-          >
-            Hủy
+          <Button onClick={() => setOpenDialog(false)} color="inherit" disabled={processingAction}>
+            Đóng
           </Button>
-          <Button
-            onClick={handleReject}
-            color="error"
-            disabled={processingAction}
-            startIcon={processingAction ? <CircularProgress size={20} /> : <CloseIcon />}
-          >
-            Từ chối
+          <Button onClick={handleReject} color="error" disabled={processingAction}>
+            {processingAction ? 'Đang xử lý...' : 'Từ chối'}
           </Button>
-          <Button
-            onClick={handleApprove}
-            color="success"
-            variant="contained"
-            disabled={processingAction}
-            startIcon={processingAction ? <CircularProgress size={20} /> : <CheckIcon />}
-          >
-            Duyệt
+          <Button onClick={handleApprove} color="primary" variant="contained" disabled={processingAction}>
+            {processingAction ? 'Đang xử lý...' : 'Duyệt'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Content Preview Dialog */}
-      <Dialog
-        open={previewDialog.open}
-        onClose={() => setPreviewDialog({ ...previewDialog, open: false })}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>
-          {previewDialog.title || 'Xem trước nội dung'}
-        </DialogTitle>
-        <DialogContent dividers>
-          <Box sx={{ mt: 1 }}>
-            <div dangerouslySetInnerHTML={{ __html: previewDialog.content }} />
-          </Box>
+      {/* Preview Dialog */}
+      <Dialog open={previewDialog.open} onClose={() => setPreviewDialog({ ...previewDialog, open: false })} maxWidth="md" fullWidth>
+        <DialogTitle>{previewDialog.title || 'Xem trước nội dung'}</DialogTitle>
+        <DialogContent>
+          <div dangerouslySetInnerHTML={{ __html: previewDialog.content }} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPreviewDialog({ ...previewDialog, open: false })}>
@@ -551,13 +501,8 @@ const ContentReview = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -200,21 +200,16 @@ export default function EmployeeManagement() {
 
   // Format date for display (YYYY-MM-DD)
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    
+    if (!dateString) return 'Không xác định';
     try {
-      // Handle ISO date string
-      if (typeof dateString === 'string') {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'N/A';
-        
-        // Format as YYYY
-        return date.getFullYear().toString();
-      }
-      return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'N/A';
+      return dateString;
     }
   };
 
@@ -231,7 +226,15 @@ export default function EmployeeManagement() {
   const getRoleDisplay = (role, type) => {
     if (role === 'CONSULTANT' || type === 'consultant') return 'Tư vấn viên';
     if (role === 'STAFF' || type === 'staff') return 'Nhân viên';
-    return role || 'N/A';
+    return role || type || 'Không xác định';
+  };
+
+  // Translate gender
+  const getGenderDisplay = (gender) => {
+    if (gender === 'male') return 'Nam';
+    if (gender === 'female') return 'Nữ';
+    if (gender === 'other') return 'Khác';
+    return 'Không xác định';
   };
 
   return (
@@ -321,7 +324,7 @@ export default function EmployeeManagement() {
                   </TableCell>
                   <TableCell>{employee.email}</TableCell>
                   <TableCell>{employee.phone || 'N/A'}</TableCell>
-                  <TableCell>{employee.gender || 'N/A'}</TableCell>
+                  <TableCell>{getGenderDisplay(employee.gender)}</TableCell>
                   <TableCell>{formatDate(employee.yob)}</TableCell>
                   <TableCell align="center">
                     <IconButton 
@@ -404,7 +407,7 @@ export default function EmployeeManagement() {
                   
                   <Typography variant="body2" color="text.secondary">Giới tính</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {detailDialog.employee.gender || 'Không có thông tin'}
+                    {getGenderDisplay(detailDialog.employee.gender)}
                   </Typography>
                 </Box>
               </Grid>
