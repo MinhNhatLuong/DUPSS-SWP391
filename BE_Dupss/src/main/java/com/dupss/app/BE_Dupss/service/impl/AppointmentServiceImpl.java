@@ -91,8 +91,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         String videoCallId = requestDto.getVideoCallId();
-        // String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
-        String meetingLink = "http://localhost:5173/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+         String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
+//        String meetingLink = "http://localhost:5173/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
 
         savedAppointment.setLinkMeet(meetingLink);
 
@@ -579,13 +579,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     private AppointmentResponseDto mapToResponseDto(Appointment appointment) {
         AppointmentResponseDto responseDto = new AppointmentResponseDto();
         responseDto.setId(appointment.getId());
-        responseDto.setCustomerName(appointment.getCustomerName());
+        responseDto.setCustomerName(appointment.getCustomerName() != null ? appointment.getCustomerName() : "N/A");
         responseDto.setPhoneNumber(appointment.getPhoneNumber());
         responseDto.setEmail(appointment.getEmail());
         responseDto.setAppointmentDate(appointment.getAppointmentDate());
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
-        responseDto.setConsultantName(appointment.getConsultant().getFullname());
+        responseDto.setConsultantName(appointment.getConsultant() != null ? appointment.getConsultant().getFullname() : "Chưa phân công");;
 
         // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân
         // công" và consultantId = null

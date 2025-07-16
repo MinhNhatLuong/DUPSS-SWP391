@@ -10,6 +10,7 @@ import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
 import com.dupss.app.BE_Dupss.entity.*;
+import com.dupss.app.BE_Dupss.respository.ActionLogRepo;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ActionLogRepo actionLogRepo;
 
     public List<UserDetailResponse> getAllUsers() {
         List<User> users = userRepository.findAllByEnabled(true);
@@ -96,6 +98,9 @@ public class AdminService {
         logEntry.setTargetType(TargetType.USER);
         logEntry.setTargetId(savedUser.getId());
         logEntry.setActionTime(LocalDateTime.now());
+
+        actionLogRepo.save(logEntry);
+
         log.info("Admin created user: {}", savedUser.getUsername());
 
         return CreateUserResponse.builder()

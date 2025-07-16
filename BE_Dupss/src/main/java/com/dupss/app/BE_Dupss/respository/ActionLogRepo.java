@@ -12,4 +12,6 @@ public interface ActionLogRepo extends JpaRepository<ActionLog, Long> {
     List<ActionLog> findByTargetTypeAndTargetIdOrderByActionTimeDesc(TargetType type, Long targetId);
 
     Optional<ActionLog> findFirstByTargetTypeAndTargetIdAndActionType(TargetType targetType, Long targetId, ActionType actionType);
+
+    List<ActionLog> findAllByTargetTypeOrderByActionTimeDesc(TargetType targetType);
 }

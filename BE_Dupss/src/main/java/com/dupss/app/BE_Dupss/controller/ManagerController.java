@@ -3,20 +3,12 @@ package com.dupss.app.BE_Dupss.controller;
 import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
 import com.dupss.app.BE_Dupss.dto.request.TopicRequest;
 import com.dupss.app.BE_Dupss.dto.response.*;
-import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
-import com.dupss.app.BE_Dupss.entity.Blog;
-import com.dupss.app.BE_Dupss.entity.Course;
-import com.dupss.app.BE_Dupss.entity.Survey;
-import com.dupss.app.BE_Dupss.entity.User;
+import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.BlogRepository;
 import com.dupss.app.BE_Dupss.respository.CourseRepository;
 import com.dupss.app.BE_Dupss.respository.SurveyRepo;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
-import com.dupss.app.BE_Dupss.service.AdminService;
-import com.dupss.app.BE_Dupss.service.BlogService;
-import com.dupss.app.BE_Dupss.service.CourseService;
-import com.dupss.app.BE_Dupss.service.SurveyService;
-import com.dupss.app.BE_Dupss.service.TopicService;
+import com.dupss.app.BE_Dupss.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,10 +35,9 @@ public class ManagerController {
     private final SurveyService surveyService;
     private final CourseService courseService;
     private final BlogService blogService;
-    private final CourseRepository courseRepository;
-    private final BlogRepository blogRepository;
     private final SurveyRepo surveyRepository;
-    private final UserRepository userRepository;
+    private final AppointmentService appointmentService;
+    private final ActionLogService actionLogService;
 
 
     @GetMapping("/staff")
@@ -113,6 +104,12 @@ public class ManagerController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
     }
+
+    @GetMapping("/appointments")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
+        return ResponseEntity.ok(appointmentService.getAllAppointments());
+    }
+
 
     /**
      * API lấy tất cả khóa học đang chờ phê duyệt
