@@ -90,13 +90,33 @@ const History = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Không xác định';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Format duration from minutes to hours and minutes
+  const formatDuration = (minutes) => {
+    if (!minutes && minutes !== 0) return 'Không xác định';
+    
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours === 0) {
+      return `${remainingMinutes} phút`;
+    } else if (remainingMinutes === 0) {
+      return `${hours} giờ`;
+    } else {
+      return `${hours} giờ ${remainingMinutes} phút`;
+    }
   };
 
   const getStatusColor = (status) => {
@@ -110,6 +130,21 @@ const History = () => {
       default:
         return 'default';
     }
+  };
+
+  // Function to translate status labels
+  const getStatusLabel = (status) => {
+    if (!status) return 'Không xác định';
+    
+    const statusMap = {
+      'PENDING': 'Chờ duyệt',
+      'APPROVED': 'Đã duyệt',
+      'REJECTED': 'Đã từ chối',
+      'DRAFT': 'Bản nháp',
+      'PUBLISHED': 'Đã xuất bản'
+    };
+    
+    return statusMap[status] || status;
   };
 
   // Filter function for courses
@@ -161,15 +196,15 @@ const History = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell>ID</TableCell>
-                <TableCell>Title</TableCell>
-                <TableCell>Topic</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Duration</TableCell>
-                <TableCell>Creator</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Updated At</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Checked By</TableCell>
+                <TableCell>Tiêu đề</TableCell>
+                <TableCell>Chủ đề</TableCell>
+                <TableCell>Mô tả</TableCell>
+                <TableCell>Thời lượng</TableCell>
+                <TableCell>Người tạo</TableCell>
+                <TableCell>Ngày tạo</TableCell>
+                <TableCell>Cập nhật</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Người duyệt</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -187,13 +222,13 @@ const History = () => {
                     }}>
                       {course.description}
                     </TableCell>
-                    <TableCell>{course.duration} min</TableCell>
+                    <TableCell>{formatDuration(course.duration)}</TableCell>
                     <TableCell>{course.creatorName}</TableCell>
                     <TableCell>{formatDate(course.createdAt)}</TableCell>
                     <TableCell>{formatDate(course.updatedAt)}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={course.status} 
+                        label={getStatusLabel(course.status)} 
                         size="small" 
                         color={getStatusColor(course.status)} 
                       />
@@ -204,7 +239,7 @@ const History = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={10} align="center">
-                    No courses found
+                    Không tìm thấy khóa học nào
                   </TableCell>
                 </TableRow>
               )}
@@ -212,13 +247,14 @@ const History = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredCourses.length}
-          rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
         />
       </>
     );
@@ -235,14 +271,14 @@ const History = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell>ID</TableCell>
-                <TableCell>Title</TableCell>
-                <TableCell>Topic</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Author</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Updated At</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Checked By</TableCell>
+                <TableCell>Tiêu đề</TableCell>
+                <TableCell>Chủ đề</TableCell>
+                <TableCell>Mô tả</TableCell>
+                <TableCell>Tác giả</TableCell>
+                <TableCell>Ngày tạo</TableCell>
+                <TableCell>Cập nhật</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Người duyệt</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -265,7 +301,7 @@ const History = () => {
                     <TableCell>{formatDate(blog.updatedAt)}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={blog.status} 
+                        label={getStatusLabel(blog.status)} 
                         size="small" 
                         color={getStatusColor(blog.status)} 
                       />
@@ -276,7 +312,7 @@ const History = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={9} align="center">
-                    No blogs found
+                    Không tìm thấy bài viết nào
                   </TableCell>
                 </TableRow>
               )}
@@ -284,13 +320,14 @@ const History = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredBlogs.length}
-          rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
         />
       </>
     );
@@ -307,14 +344,14 @@ const History = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                 <TableCell>ID</TableCell>
-                <TableCell>Title</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Active</TableCell>
-                <TableCell>For Course</TableCell>
-                <TableCell>Created By</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Checked By</TableCell>
+                <TableCell>Tiêu đề</TableCell>
+                <TableCell>Mô tả</TableCell>
+                <TableCell>Hoạt động</TableCell>
+                <TableCell>Cho khóa học</TableCell>
+                <TableCell>Người tạo</TableCell>
+                <TableCell>Ngày tạo</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Người duyệt</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -331,13 +368,13 @@ const History = () => {
                     }}>
                       {survey.description}
                     </TableCell>
-                    <TableCell>{survey.active ? 'Yes' : 'No'}</TableCell>
-                    <TableCell>{survey.forCourse ? 'Yes' : 'No'}</TableCell>
+                    <TableCell>{survey.active ? 'Có' : 'Không'}</TableCell>
+                    <TableCell>{survey.forCourse ? 'Có' : 'Không'}</TableCell>
                     <TableCell>{survey.createdBy}</TableCell>
                     <TableCell>{formatDate(survey.createdAt)}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={survey.status} 
+                        label={getStatusLabel(survey.status)} 
                         size="small" 
                         color={getStatusColor(survey.status)} 
                       />
@@ -348,7 +385,7 @@ const History = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={9} align="center">
-                    No surveys found
+                    Không tìm thấy khảo sát nào
                   </TableCell>
                 </TableRow>
               )}
@@ -356,13 +393,14 @@ const History = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredSurveys.length}
-          rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
         />
       </>
     );
@@ -397,8 +435,8 @@ const History = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Content History
+      <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold' }}>
+        Lịch Sử Quản Lý
       </Typography>
 
       <Paper sx={{ mb: 3 }}>
@@ -407,19 +445,19 @@ const History = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
+          variant="fullWidth"
         >
-          <Tab label="Courses" />
-          <Tab label="Blogs" />
-          <Tab label="Surveys" />
+          <Tab label="Khóa Học" />
+          <Tab label="Bài Viết" />
+          <Tab label="Khảo Sát" />
         </Tabs>
       </Paper>
 
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder={`Search by ${selectedTab === 0 ? 'ID or Course Title' : 
-                               selectedTab === 1 ? 'ID or Blog Title' : 
-                               'ID or Survey Title'}`}
+          variant="outlined"
+          placeholder="Tìm kiếm theo tiêu đề hoặc ID"
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
@@ -429,12 +467,23 @@ const History = () => {
               </InputAdornment>
             ),
           }}
-          variant="outlined"
           size="small"
         />
       </Box>
 
-      {renderContent()}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        renderContent()
+      )}
     </Box>
   );
 };

@@ -32,6 +32,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
   const googleButtonRef = useRef(null);
@@ -190,11 +191,49 @@ const Login = () => {
     }
   };
 
+  // Hàm xử lý validation form
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate username
+    if (!username.trim()) {
+      newErrors.username = 'Username là bắt buộc';
+    }
+    
+    // Validate password
+    if (!password) {
+      newErrors.password = 'Mật khẩu là bắt buộc';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+    if (errors.username) {
+      setErrors({
+        ...errors,
+        username: ''
+      });
+    }
+  };
+  
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (errors.password) {
+      setErrors({
+        ...errors,
+        password: ''
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!username || !password) {
-      showErrorAlert('Vui lòng nhập đầy đủ thông tin đăng nhập');
+    // Validate form
+    if (!validateForm()) {
       return;
     }
     
@@ -275,7 +314,7 @@ const Login = () => {
             </Typography>
           </Box>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: '400px', margin: '0 auto' }}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '400px', margin: '0 auto' }}>
             <Box sx={{ marginBottom: '20px' }}>
               <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 500, color: '#555' }}>
                 Username
@@ -284,8 +323,9 @@ const Login = () => {
                 fullWidth
                 placeholder="Nhập username của bạn"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
+                onChange={handleUsernameChange}
+                error={!!errors.username}
+                helperText={errors.username}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -321,8 +361,9 @@ const Login = () => {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Nhập mật khẩu của bạn"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={handlePasswordChange}
+                error={!!errors.password}
+                helperText={errors.password}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

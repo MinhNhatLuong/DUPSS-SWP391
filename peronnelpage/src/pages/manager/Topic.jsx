@@ -186,28 +186,28 @@ export default function Topic() {
 
   // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'Không xác định';
     
-    // Handle different date formats
-    let date;
-    if (typeof dateString === 'string' && dateString.includes('/')) {
-      // Format: DD/MM/YYYY HH:MM
-      const [datePart, timePart] = dateString.split(' ');
-      const [day, month, year] = datePart.split('/');
-      date = new Date(`${year}-${month}-${day}${timePart ? ' ' + timePart : ''}`);
-    } else {
-      date = new Date(dateString);
+    try {
+      // Handle different date formats
+      let date;
+      if (typeof dateString === 'string' && dateString.includes('/')) {
+        // Format: DD/MM/YYYY HH:MM
+        const [datePart, timePart] = dateString.split(' ');
+        const [day, month, year] = datePart.split('/');
+        date = new Date(`${year}-${month}-${day}${timePart ? ' ' + timePart : ''}`);
+      } else {
+        date = new Date(dateString);
+      }
+      
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
     }
-    
-    if (isNaN(date.getTime())) return dateString; // Return original if parsing failed
-    
-    return date.toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   // Handle edit button click
@@ -440,11 +440,11 @@ export default function Topic() {
     <Box sx={{ p: 3, backgroundColor: '#f5f7fa', minHeight: 'calc(100vh - 64px)' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" fontWeight="bold" color="text.primary">
-          Quản lý chủ đề tư vấn
+          Quản Lý Chủ Đề
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
+        <Button
+          variant="contained"
+          color="primary"
           startIcon={<TopicIcon />}
           onClick={handleCreateTopic}
         >
@@ -466,20 +466,20 @@ export default function Topic() {
           </Select>
         </FormControl>
 
-                 <FormControl size="small" sx={{ minWidth: 200 }}>
-           <InputLabel>Sắp xếp theo</InputLabel>
-           <Select
-             value={sortOption}
-             label="Sắp xếp theo"
-             onChange={handleSortChange}
-           >
-             <MenuItem value="all">Tất cả</MenuItem>
-             <MenuItem value="newest-created">Tạo gần đây nhất</MenuItem>
-             <MenuItem value="oldest-created">Tạo cũ nhất</MenuItem>
-             <MenuItem value="newest-updated">Cập nhật gần đây nhất</MenuItem>
-             <MenuItem value="oldest-updated">Cập nhật cũ nhất</MenuItem>
-           </Select>
-         </FormControl>
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Sắp xếp theo</InputLabel>
+          <Select
+            value={sortOption}
+            label="Sắp xếp theo"
+            onChange={handleSortChange}
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="newest-created">Tạo gần đây nhất</MenuItem>
+            <MenuItem value="oldest-created">Tạo cũ nhất</MenuItem>
+            <MenuItem value="newest-updated">Cập nhật gần đây nhất</MenuItem>
+            <MenuItem value="oldest-updated">Cập nhật cũ nhất</MenuItem>
+          </Select>
+        </FormControl>
 
         <TextField
           size="small"
@@ -540,27 +540,29 @@ export default function Topic() {
                           WebkitBoxOrient: 'vertical',
                         }}
                       >
-                        {topic.topicDescription}
+                        {topic.topicDescription || 'Không có mô tả'}
                       </Typography>
                     </Tooltip>
                   </TableCell>
                   <TableCell>{formatDate(topic.createdAt)}</TableCell>
                   <TableCell>{formatDate(topic.updatedAt)}</TableCell>
-                  <TableCell>{topic.creatorName}</TableCell>
+                  <TableCell>{topic.creatorName || 'Không xác định'}</TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         color="primary" 
                         onClick={() => handleEditClick(topic)}
                         sx={{ mr: 1 }}
+                        title="Chỉnh sửa"
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         color="error" 
                         onClick={() => handleDeleteClick(topic.id)}
+                        title="Xóa"
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -581,7 +583,7 @@ export default function Topic() {
         <DialogContent>
           <TextField
             autoFocus
-            margin="dense"
+            margin="normal"
             label="Tên chủ đề"
             fullWidth
             value={editDialog.name}
@@ -590,7 +592,7 @@ export default function Topic() {
             required
           />
           <TextField
-            margin="dense"
+            margin="normal"
             label="Mô tả"
             fullWidth
             multiline
@@ -631,12 +633,12 @@ export default function Topic() {
         </DialogContent>
         <DialogActions>
           <Button 
-            onClick={() => setConfirmDialog({ ...confirmDialog, open: false })}
+            onClick={() => setConfirmDialog({ ...confirmDialog, open: false })} 
             disabled={confirmDialog.loading}
           >
             Không
           </Button>
-          <Button
+          <Button 
             variant="contained"
             color={confirmDialog.type === 'delete' ? 'error' : 'primary'}
             onClick={handleConfirmAction}

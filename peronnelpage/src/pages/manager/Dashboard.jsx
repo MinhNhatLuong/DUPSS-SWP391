@@ -36,7 +36,7 @@ import '@fontsource/roboto';
 // Remove hardcoded URL
 // const API_BASE_URL = 'http://localhost:8080';
 
-const Dashboard = () => {
+export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [staffCount, setStaffCount] = useState(0);
@@ -610,6 +610,7 @@ const Dashboard = () => {
     XLSX.writeFile(wb, 'manager-dashboard-report.xlsx');
   };
 
+  // Function to get status color
   const getStatusColor = (status) => {
     switch(status) {
       case 'APPROVED': return 'success';
@@ -619,11 +620,36 @@ const Dashboard = () => {
     }
   };
 
+  // Function to translate status labels
+  const getStatusLabel = (status) => {
+    if (!status) return 'Không xác định';
+    
+    const statusMap = {
+      'PENDING': 'Chờ duyệt',
+      'APPROVED': 'Đã duyệt',
+      'REJECTED': 'Đã từ chối',
+      'DRAFT': 'Bản nháp',
+      'PUBLISHED': 'Đã xuất bản'
+    };
+    
+    return statusMap[status] || status;
+  };
+
+  // Function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Không xác định';
+    try {
+      return format(parseISO(dateString), 'dd/MM/yyyy');
+    } catch (e) {
+      return dateString; // Fallback to original string if parsing fails
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>Loading dashboard data...</Typography>
+        <Typography variant="h6" sx={{ mt: 2 }}>Đang tải dữ liệu...</Typography>
       </Box>
     );
   }
@@ -637,8 +663,8 @@ const Dashboard = () => {
       )}
       
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
-          Manager Dashboard
+        <Typography variant="h4" gutterBottom sx={{ mb: 0, fontWeight: 'bold' }}>
+          Bảng Điều Khiển
         </Typography>
         <div>
           <Button
@@ -657,7 +683,7 @@ const Dashboard = () => {
               }
             }}
           >
-            Export
+            Xuất báo cáo
           </Button>
           <Menu
             anchorEl={anchorEl}
@@ -674,11 +700,11 @@ const Dashboard = () => {
           >
             <MenuItem onClick={handleExportPDF}>
               <PictureAsPdfIcon sx={{ mr: 1, color: '#f44336' }} />
-              Export as PDF
+              Xuất PDF
             </MenuItem>
             <MenuItem onClick={handleExportExcel}>
               <GridOnIcon sx={{ mr: 1, color: '#4caf50' }} />
-              Export as Excel
+              Xuất Excel
             </MenuItem>
           </Menu>
         </div>
@@ -690,7 +716,7 @@ const Dashboard = () => {
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Total staffs
+                Tổng số nhân viên
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, color: '#2196f3' }}>
                 {staffCount}
@@ -703,7 +729,7 @@ const Dashboard = () => {
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Total consultants
+                Tổng số tư vấn viên
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, color: '#4caf50' }}>
                 {consultantCount}
@@ -719,7 +745,7 @@ const Dashboard = () => {
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Blogs created
+                Bài viết đã tạo
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, color: '#ff9800' }}>
                 {blogsCount}
@@ -732,7 +758,7 @@ const Dashboard = () => {
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Survey created
+                Khảo sát đã tạo
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, color: '#f44336' }}>
                 {surveysCount}
@@ -745,7 +771,7 @@ const Dashboard = () => {
           <Card sx={{ height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent sx={{ textAlign: 'center', width: '100%' }}>
               <Typography color="textSecondary" gutterBottom>
-                Course created
+                Khóa học đã tạo
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, color: '#9c27b0' }}>
                 {coursesCount}
@@ -761,7 +787,7 @@ const Dashboard = () => {
         <Box sx={{ width: '32.66%' }}>
           <Paper sx={{ height: '400px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-              <Typography variant="h6">List of blog created in a month</Typography>
+              <Typography variant="h6">Danh sách bài viết trong tháng</Typography>
             </Box>
             
             <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -769,8 +795,8 @@ const Dashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell width="10%" sx={{ fontWeight: 'bold' }}>#</TableCell>
-                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Title</TableCell>
-                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Tiêu đề</TableCell>
+                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -793,9 +819,9 @@ const Dashboard = () => {
                         </TableCell>
                         <TableCell>
                           <Chip 
-                            label={blog.status} 
+                            label={getStatusLabel(blog.status)} 
                             color={getStatusColor(blog.status)} 
-                            size="small"
+                            size="small" 
                           />
                         </TableCell>
                       </TableRow>
@@ -803,7 +829,7 @@ const Dashboard = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={3} align="center">
-                        No blogs in the last 30 days
+                        Không có bài viết nào trong 30 ngày qua
                       </TableCell>
                     </TableRow>
                   )}
@@ -817,7 +843,7 @@ const Dashboard = () => {
         <Box sx={{ width: '32.66%' }}>
           <Paper sx={{ height: '400px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-              <Typography variant="h6">List of survey created in a month</Typography>
+              <Typography variant="h6">Danh sách khảo sát trong tháng</Typography>
             </Box>
             
             <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -825,8 +851,8 @@ const Dashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell width="10%" sx={{ fontWeight: 'bold' }}>#</TableCell>
-                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Title</TableCell>
-                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Tiêu đề</TableCell>
+                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -849,9 +875,9 @@ const Dashboard = () => {
                         </TableCell>
                         <TableCell>
                           <Chip 
-                            label={survey.status} 
+                            label={getStatusLabel(survey.status)} 
                             color={getStatusColor(survey.status)} 
-                            size="small"
+                            size="small" 
                           />
                         </TableCell>
                       </TableRow>
@@ -859,7 +885,7 @@ const Dashboard = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={3} align="center">
-                        No surveys in the last 30 days
+                        Không có khảo sát nào trong 30 ngày qua
                       </TableCell>
                     </TableRow>
                   )}
@@ -873,7 +899,7 @@ const Dashboard = () => {
         <Box sx={{ width: '32.66%' }}>
           <Paper sx={{ height: '400px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
-              <Typography variant="h6">List of course created in a month</Typography>
+              <Typography variant="h6">Danh sách khóa học trong tháng</Typography>
             </Box>
             
             <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -881,8 +907,8 @@ const Dashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell width="10%" sx={{ fontWeight: 'bold' }}>#</TableCell>
-                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Title</TableCell>
-                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell width="60%" sx={{ fontWeight: 'bold' }}>Tiêu đề</TableCell>
+                    <TableCell width="30%" sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -905,9 +931,9 @@ const Dashboard = () => {
                         </TableCell>
                         <TableCell>
                           <Chip 
-                            label={course.status} 
+                            label={getStatusLabel(course.status)} 
                             color={getStatusColor(course.status)} 
-                            size="small"
+                            size="small" 
                           />
                         </TableCell>
                       </TableRow>
@@ -915,7 +941,7 @@ const Dashboard = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={3} align="center">
-                        No courses in the last 30 days
+                        Không có khóa học nào trong 30 ngày qua
                       </TableCell>
                     </TableRow>
                   )}
@@ -927,6 +953,4 @@ const Dashboard = () => {
       </Box>
     </Box>
   );
-};
-
-export default Dashboard; 
+}; 
