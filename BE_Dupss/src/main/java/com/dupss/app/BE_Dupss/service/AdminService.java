@@ -158,6 +158,14 @@ public class AdminService {
         }
 
         User updatedUser = userRepository.save(user);
+        ActionLog logEntry = new ActionLog();
+        logEntry.setPerformedBy(updatedUser);
+        logEntry.setActionType(ActionType.UPDATE);
+        logEntry.setTargetType(TargetType.USER);
+        logEntry.setTargetId(updatedUser.getId());
+        logEntry.setActionTime(LocalDateTime.now());
+
+        actionLogRepo.save(logEntry);
         log.info("Admin updated user: {}", updatedUser.getUsername());
 
         return UpdateUserResponse.builder()
