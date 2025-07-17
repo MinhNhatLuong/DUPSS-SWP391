@@ -193,7 +193,7 @@ public class AdminService {
 
         ActionLog logEntry = new ActionLog();
         logEntry.setPerformedBy(savedUser);
-        logEntry.setActionType(ActionType.CREATE);
+        logEntry.setActionType(ActionType.DELETE);
         logEntry.setTargetType(TargetType.USER);
         logEntry.setTargetId(savedUser.getId());
         logEntry.setActionTime(LocalDateTime.now());
