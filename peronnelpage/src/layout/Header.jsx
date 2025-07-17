@@ -20,6 +20,7 @@ import {
   AccountCircle,
   Logout,
   Settings,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
@@ -78,7 +79,8 @@ const Header = ({ userName }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' }
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
+    { text: 'Bản ghi hoạt động', icon: <HistoryIcon />, path: '/admin/action-logs' }
   ];
 
   // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar

@@ -9,6 +9,7 @@ import Topic from './pages/manager/Topic';
 import HistoryManager from './pages/manager/HistoryManager';
 import Login from './pages/Login';
 import AdminPage from './pages/admin/AdminPage';
+import ActionLogs from './pages/admin/ActionLogs';
 import HeaderConsultant from './layout/HeaderConsultant';
 import ConsultantDashboard from './pages/consultant/Dashboard';
 import Schedule from './pages/consultant/Schedule';
@@ -149,6 +150,12 @@ function App() {
                         <>
                           <PageTitle title="Trang quản trị" />
                           <AdminPage />
+                        </>
+                      } />
+                      <Route path="action-logs" element={
+                        <>
+                          <PageTitle title="Bản ghi hoạt động" />
+                          <ActionLogs />
                         </>
                       } />
                       <Route path="profile" element={
