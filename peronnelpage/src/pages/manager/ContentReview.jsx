@@ -18,6 +18,7 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
+  Container,
 } from '@mui/material';
 import { Check as CheckIcon, Close as CloseIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -44,22 +45,14 @@ const ContentReview = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('accessToken');
-      
       if (selectedTab === 0) {
-        const response = await apiClient.get('/manager/courses/pending', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiClient.get('/manager/courses/pending');
         setCourses(response.data);
       } else if (selectedTab === 1) {
-        const response = await apiClient.get('/manager/blogs/pending', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiClient.get('/manager/blogs/pending');
         setBlogs(response.data);
       } else if (selectedTab === 2) {
-        const response = await apiClient.get('/manager/surveys/pending', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiClient.get('/manager/surveys/pending');
         setSurveys(response.data);
       }
     } catch (err) {
@@ -82,23 +75,25 @@ const ContentReview = () => {
   const handleApprove = async () => {
     setProcessingAction(true);
     try {
-      const token = localStorage.getItem('accessToken');
       let endpoint;
+      let id;
+      const status = 'APPROVED';
 
       if (selectedTab === 0) {
         // Course
-        endpoint = `/manager/courses/${selectedContent.id}/approve`;
+        id = selectedContent.id;
+        endpoint = `/manager/course/${id}/approval?status=${status}`;
       } else if (selectedTab === 1) {
         // Blog
-        endpoint = `/manager/blogs/${selectedContent.id}/approve`;
+        id = selectedContent.id;
+        endpoint = `/manager/blog/${id}/approval?status=${status}`;
       } else if (selectedTab === 2) {
         // Survey
-        endpoint = `/manager/surveys/${selectedContent.surveyId}/approve`;
+        id = selectedContent.surveyId;
+        endpoint = `/manager/surveys/${id}/approval?status=${status}`;
       }
 
-      await apiClient.post(endpoint, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-      });
+      await apiClient.patch(endpoint);
 
       // Remove the approved item from the list
       if (selectedTab === 0) {
@@ -130,25 +125,25 @@ const ContentReview = () => {
   const handleReject = async () => {
     setProcessingAction(true);
     try {
-      const token = localStorage.getItem('accessToken');
       let endpoint;
+      let id;
+      const status = 'REJECTED';
 
       if (selectedTab === 0) {
         // Course
-        endpoint = `/manager/courses/${selectedContent.id}/reject`;
+        id = selectedContent.id;
+        endpoint = `/manager/course/${id}/approval?status=${status}`;
       } else if (selectedTab === 1) {
         // Blog
-        endpoint = `/manager/blogs/${selectedContent.id}/reject`;
+        id = selectedContent.id;
+        endpoint = `/manager/blog/${id}/approval?status=${status}`;
       } else if (selectedTab === 2) {
         // Survey
-        endpoint = `/manager/surveys/${selectedContent.surveyId}/reject`;
+        id = selectedContent.surveyId;
+        endpoint = `/manager/surveys/${id}/approval?status=${status}`;
       }
 
-      await apiClient.post(endpoint, {
-        reason: "Nội dung bị từ chối"
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-      });
+      await apiClient.patch(endpoint);
 
       // Remove the rejected item from the list
       if (selectedTab === 0) {
@@ -162,7 +157,7 @@ const ContentReview = () => {
       setSnackbar({
         open: true,
         message: 'Đã từ chối nội dung thành công',
-        severity: 'info'
+        severity: 'success'
       });
     } catch (err) {
       console.error('Error rejecting content:', err);
@@ -229,138 +224,185 @@ const ContentReview = () => {
     const content = getContentByType();
 
     return (
-      <Grid container spacing={3}>
-        {content.map((item) => {
-          const isSurvey = selectedTab === 2;
-          const id = isSurvey ? item.surveyId : item.id;
-          const title = isSurvey ? item.surveyTitle : item.title;
-          const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
-          const createdAt = formatDate(item.createdAt);
-          
-          return (
-            <Grid item xs={12} sm={6} md={4} key={id}>
-              <Card sx={{ 
-                height: 320, 
-                display: 'flex', 
-                flexDirection: 'column',
-                width: '100%'
-              }}>
-                <CardContent sx={{ 
-                  flexGrow: 1, 
-                  height: '210px', 
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column'
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 3,
+          justifyContent: 'flex-start'
+        }}>
+          {content.map((item) => {
+            const isSurvey = selectedTab === 2;
+            const id = isSurvey ? item.surveyId : item.id;
+            const title = isSurvey ? item.surveyTitle : item.title;
+            const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
+            const createdAt = formatDate(item.createdAt);
+            
+            return (
+              <Box 
+                key={id} 
+                sx={{ 
+                  width: 'calc(25% - 18px)', 
+                  minWidth: '270px',
+                  '@media (max-width: 1200px)': {
+                    width: 'calc(33.333% - 16px)',
+                  },
+                  '@media (max-width: 900px)': {
+                    width: 'calc(50% - 12px)',
+                  },
+                  '@media (max-width: 600px)': {
+                    width: '100%',
+                  }
+                }}
+              >
+                <Card sx={{ 
+                  height: 320, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  width: '100%'
                 }}>
-                  <Typography variant="h6" gutterBottom noWrap sx={{ fontWeight: 'bold' }}>
-                    {title}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    Tác giả: {authorName}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    Ngày tạo: {createdAt}
-                  </Typography>
-                  <Box 
-                    sx={{ 
-                      cursor: 'pointer',
-                      mt: 1,
-                      mb: 1,
-                      flexGrow: 1
-                    }}
-                    onClick={() => {
-                      if (selectedTab !== 2) {
-                        setPreviewDialog({
-                          open: true,
-                          content: item.description,
-                          title: `Mô tả ${title}`
-                        });
-                      }
-                    }}
-                  >
-                    {selectedTab !== 2 ? (
-                      <Typography variant="body2" sx={{ 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis', 
-                        display: '-webkit-box', 
-                        WebkitLineClamp: 3, 
-                        WebkitBoxOrient: 'vertical',
-                        '&:hover': { textDecoration: 'underline' }
-                      }}>
-                        {item.description || 'Không có mô tả'}
-                      </Typography>
-                    ) : (
+                  <CardContent sx={{ 
+                    flexGrow: 1, 
+                    height: '210px', 
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography variant="h6" gutterBottom noWrap sx={{ fontWeight: 'bold' }}>
+                      {title}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Tác giả: {authorName}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Ngày tạo: {createdAt}
+                    </Typography>
+                    <Box 
+                      sx={{ 
+                        cursor: 'pointer',
+                        mt: 1,
+                        mb: 1,
+                        flexGrow: 1
+                      }}
+                      onClick={() => {
+                        if (selectedTab !== 2) {
+                          setPreviewDialog({
+                            open: true,
+                            content: item.description,
+                            title: `Mô tả ${title}`
+                          });
+                        }
+                      }}
+                    >
+                      {selectedTab !== 2 ? (
+                        <Typography variant="body2" sx={{ 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 3, 
+                          WebkitBoxOrient: 'vertical',
+                          '&:hover': { textDecoration: 'underline' }
+                        }}>
+                          {item.description || 'Không có mô tả'}
+                        </Typography>
+                      ) : (
+                        <Button
+                          size="small"
+                          variant="text"
+                          color="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreviewSurvey(item);
+                          }}
+                          sx={{ mt: 1 }}
+                        >
+                          Xem mô tả
+                        </Button>
+                      )}
+                    </Box>
+                    <Chip
+                      label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
+                      color="warning"
+                      size="small"
+                      sx={{ alignSelf: 'flex-start' }}
+                    />
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
+                    <Button
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      onClick={() => handleReview(item)}
+                    >
+                      Xem xét
+                    </Button>
+                    {selectedTab === 0 && (
                       <Button
                         size="small"
-                        variant="text"
-                        color="primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePreviewSurvey(item);
-                        }}
-                        sx={{ mt: 1 }}
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewCourse(item)}
                       >
-                        Xem mô tả
+                        Xem trước
                       </Button>
                     )}
-                  </Box>
-                  <Chip
-                    label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
-                    color="warning"
-                    size="small"
-                    sx={{ alignSelf: 'flex-start' }}
-                  />
-                </CardContent>
-                <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
-                  <Button
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    onClick={() => handleReview(item)}
-                  >
-                    Xem xét
-                  </Button>
-                  {selectedTab === 0 && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewCourse(item)}
-                    >
-                      Xem trước
-                    </Button>
-                  )}
-                  {selectedTab === 1 && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewBlog(item)}
-                    >
-                      Xem trước
-                    </Button>
-                  )}
-                  {selectedTab === 2 && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handlePreviewSurvey(item)}
-                    >
-                      Xem trước
-                    </Button>
-                  )}
-                </CardActions>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                    {selectedTab === 1 && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewBlog(item)}
+                      >
+                        Xem trước
+                      </Button>
+                    )}
+                    {selectedTab === 2 && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handlePreviewSurvey(item)}
+                      >
+                        Xem trước
+                      </Button>
+                    )}
+                  </CardActions>
+                </Card>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
     );
   };
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Snackbar for notifications - Moved to top */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ 
+            width: '100%',
+            ...(snackbar.severity === 'success' && {
+              bgcolor: 'success.main',
+              color: 'white',
+              '& .MuiAlert-icon': {
+                color: 'white'
+              }
+            })
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold' }}>
         Duyệt Nội Dung
       </Typography>
@@ -388,23 +430,21 @@ const ContentReview = () => {
           {error}
         </Alert>
       ) : (
-        <Grid container spacing={3}>
+        <Box sx={{ width: '100%' }}>
           {getContentByType().length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="h6">
-                  {selectedTab === 0
-                    ? 'Không có khóa học nào cần duyệt'
-                    : selectedTab === 1
-                    ? 'Không có bài viết nào cần duyệt'
-                    : 'Không có khảo sát nào cần duyệt'}
-                </Typography>
-              </Paper>
-            </Grid>
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6">
+                {selectedTab === 0
+                  ? 'Không có khóa học nào cần duyệt'
+                  : selectedTab === 1
+                  ? 'Không có bài viết nào cần duyệt'
+                  : 'Không có khảo sát nào cần duyệt'}
+              </Typography>
+            </Paper>
           ) : (
             renderContent()
           )}
-        </Grid>
+        </Box>
       )}
 
       {/* Dialog for content review */}
@@ -474,10 +514,38 @@ const ContentReview = () => {
           <Button onClick={() => setOpenDialog(false)} color="inherit" disabled={processingAction}>
             Đóng
           </Button>
-          <Button onClick={handleReject} color="error" disabled={processingAction}>
+          <Button 
+            onClick={handleReject} 
+            disabled={processingAction}
+            sx={{ 
+              bgcolor: 'error.main', 
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'error.dark',
+              },
+              '&.Mui-disabled': {
+                bgcolor: 'rgba(211, 47, 47, 0.5)',
+                color: 'white'
+              }
+            }}
+          >
             {processingAction ? 'Đang xử lý...' : 'Từ chối'}
           </Button>
-          <Button onClick={handleApprove} color="primary" variant="contained" disabled={processingAction}>
+          <Button 
+            onClick={handleApprove} 
+            disabled={processingAction}
+            sx={{ 
+              bgcolor: 'success.main', 
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'success.dark',
+              },
+              '&.Mui-disabled': {
+                bgcolor: 'rgba(46, 125, 50, 0.5)',
+                color: 'white'
+              }
+            }}
+          >
             {processingAction ? 'Đang xử lý...' : 'Duyệt'}
           </Button>
         </DialogActions>
@@ -495,17 +563,6 @@ const ContentReview = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
