@@ -89,7 +89,7 @@ const ContentReview = () => {
         endpoint = `/manager/blog/${id}/approval?status=${status}`;
       } else if (selectedTab === 2) {
         // Survey
-        id = selectedContent.surveyId;
+        id = selectedContent.id; // Sử dụng id thay vì surveyId theo API mới
         endpoint = `/manager/surveys/${id}/approval?status=${status}`;
       }
 
@@ -101,7 +101,7 @@ const ContentReview = () => {
       } else if (selectedTab === 1) {
         setBlogs(blogs.filter(b => b.id !== selectedContent.id));
       } else if (selectedTab === 2) {
-        setSurveys(surveys.filter(s => s.surveyId !== selectedContent.surveyId));
+        setSurveys(surveys.filter(s => s.id !== selectedContent.id)); // Sử dụng id thay vì surveyId
       }
 
       setSnackbar({
@@ -139,7 +139,7 @@ const ContentReview = () => {
         endpoint = `/manager/blog/${id}/approval?status=${status}`;
       } else if (selectedTab === 2) {
         // Survey
-        id = selectedContent.surveyId;
+        id = selectedContent.id;
         endpoint = `/manager/surveys/${id}/approval?status=${status}`;
       }
 
@@ -151,7 +151,7 @@ const ContentReview = () => {
       } else if (selectedTab === 1) {
         setBlogs(blogs.filter(b => b.id !== selectedContent.id));
       } else if (selectedTab === 2) {
-        setSurveys(surveys.filter(s => s.surveyId !== selectedContent.surveyId));
+        setSurveys(surveys.filter(s => s.id !== selectedContent.id));
       }
 
       setSnackbar({
@@ -181,17 +181,141 @@ const ContentReview = () => {
   };
 
   const handlePreviewCourse = (content) => {
+    // Tạo nội dung HTML để hiển thị khóa học
+    let previewContent = `<div style="padding: 10px;">
+      <h3>${content.title}</h3>
+      <p>${content.description || ''}</p>`;
+    
+    // Hiển thị các module và video
+    if (content.modules && content.modules.length > 0) {
+      previewContent += '<h4>Danh sách Module:</h4>';
+      
+      content.modules.forEach((module, mIndex) => {
+        previewContent += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+          <h5>${mIndex + 1}. ${module.title}</h5>`;
+        
+        if (module.videos && module.videos.length > 0) {
+          previewContent += '<ul>';
+          module.videos.forEach((video, vIndex) => {
+            previewContent += `<li>
+              ${video.title} 
+              ${video.videoUrl ? `<a href="${video.videoUrl}" target="_blank" style="color: blue; text-decoration: underline;">Xem video</a>` : ''}
+            </li>`;
+          });
+          previewContent += '</ul>';
+        }
+        
+        previewContent += '</div>';
+      });
+    }
+    
+    // Hiển thị quiz nếu có
+    if (content.quiz) {
+      previewContent += `<div style="margin-top: 20px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+        <h4>Quiz cuối khóa: ${content.quiz.title}</h4>
+        <p>${content.quiz.description || ''}</p>`;
+      
+      if (content.quiz.sections && content.quiz.sections.length > 0) {
+        content.quiz.sections.forEach((section, sIndex) => {
+          previewContent += `<div style="margin-top: 10px;">
+            <h5>Phần ${sIndex + 1}: ${section.sectionName}</h5>`;
+          
+          if (section.questions && section.questions.length > 0) {
+            section.questions.forEach((question, qIndex) => {
+              previewContent += `<p><strong>Câu ${qIndex + 1}: ${question.questionText}</strong></p>`;
+              
+              if (question.options && question.options.length > 0) {
+                previewContent += '<ul>';
+                question.options.forEach((option, oIndex) => {
+                  previewContent += `<li>${String.fromCharCode(65 + oIndex)}. ${option.optionText} ${option.score > 0 ? `<strong>(${option.score} điểm)</strong>` : ''}</li>`;
+                });
+                previewContent += '</ul>';
+              }
+            });
+          }
+          
+          previewContent += '</div>';
+        });
+      }
+      
+      previewContent += '</div>';
+    }
+    
+    // Hiển thị điều kiện nếu có
+    if (content.quiz && content.quiz.conditions && content.quiz.conditions.length > 0) {
+      previewContent += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+        <h4>Điều kiện đạt:</h4>
+        <ul>`;
+      
+      content.quiz.conditions.forEach((condition, cIndex) => {
+        previewContent += `<li><strong>${condition.operator} ${condition.value}:</strong> ${condition.message}</li>`;
+      });
+      
+      previewContent += `</ul></div>`;
+    }
+    
+    previewContent += '</div>';
+    
     setPreviewDialog({
       open: true,
-      content: content.content,
+      content: previewContent,
       title: 'Xem trước khóa học'
     });
   };
 
   const handlePreviewSurvey = (content) => {
+    // Tạo nội dung HTML để hiển thị khảo sát
+    let previewContent = `<div style="padding: 10px;">
+      <h3>${content.title}</h3>
+      <div>${content.description || ''}</div>`;
+    
+    // Hiển thị các phần và câu hỏi
+    if (content.sections && content.sections.length > 0) {
+      content.sections.forEach((section, sIndex) => {
+        previewContent += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+          <h4>Phần ${sIndex + 1}: ${section.sectionName}</h4>`;
+        
+        if (section.questions && section.questions.length > 0) {
+          section.questions.forEach((question, qIndex) => {
+            previewContent += `<div style="margin-top: 10px;">
+              <p><strong>Câu ${qIndex + 1}: ${question.questionText}</strong></p>`;
+            
+            if (question.options && question.options.length > 0) {
+              previewContent += '<ul style="list-style-type: none; padding-left: 10px;">';
+              question.options.forEach((option, oIndex) => {
+                previewContent += `<li style="margin: 5px 0;">
+                  ${String.fromCharCode(65 + oIndex)}. ${option.optionText} ${option.score > 0 ? `(${option.score} điểm)` : ''}
+                </li>`;
+              });
+              previewContent += '</ul>';
+            }
+            
+            previewContent += '</div>';
+          });
+        }
+        
+        previewContent += '</div>';
+      });
+    }
+    
+    // Hiển thị điều kiện nếu có
+    if (content.conditions && content.conditions.length > 0) {
+      previewContent += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px;">
+        <h4>Điều kiện:</h4>
+        <ul>`;
+      
+      content.conditions.forEach((condition, cIndex) => {
+        previewContent += `<li>${condition.operator} ${condition.value}: ${condition.message}</li>`;
+      });
+      
+      previewContent += `</ul></div>`;
+    }
+    
+    previewContent += '</div>';
+    
     setPreviewDialog({
       open: true,
-      content: content.description,
+      content: previewContent,
       title: 'Xem trước khảo sát'
     });
   };
@@ -232,10 +356,9 @@ const ContentReview = () => {
           justifyContent: 'flex-start'
         }}>
           {content.map((item) => {
-            const isSurvey = selectedTab === 2;
-            const id = isSurvey ? item.surveyId : item.id;
-            const title = isSurvey ? item.surveyTitle : item.title;
-            const authorName = isSurvey ? item.createdBy : selectedTab === 0 ? item.creatorName : item.authorName;
+            const id = item.id;
+            const title = item.title;
+            const authorName = selectedTab === 0 ? item.creator : selectedTab === 1 ? item.authorName : item.createdBy || 'Không xác định';
             const createdAt = formatDate(item.createdAt);
             
             return (
@@ -306,22 +429,20 @@ const ContentReview = () => {
                           {item.description || 'Không có mô tả'}
                         </Typography>
                       ) : (
-                        <Button
-                          size="small"
-                          variant="text"
-                          color="primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePreviewSurvey(item);
-                          }}
-                          sx={{ mt: 1 }}
-                        >
-                          Xem mô tả
-                        </Button>
+                        <Typography variant="body2" sx={{ 
+                          height: '60px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontStyle: 'italic',
+                          color: 'text.secondary'
+                        }}>
+                          Nhấn vào "Xem trước" để xem chi tiết khảo sát
+                        </Typography>
                       )}
                     </Box>
                     <Chip
-                      label={item.status === 'PENDING' ? 'Đang chờ' : item.status}
+                      label="Đang chờ"
                       color="warning"
                       size="small"
                       sx={{ alignSelf: 'flex-start' }}
@@ -468,13 +589,14 @@ const ContentReview = () => {
               </Typography>
               
               <Typography variant="body2" color="textSecondary" paragraph>
-                <strong>Người tạo:</strong> {selectedContent.creator?.fullName || 'Không xác định'}
+                <strong>Người tạo:</strong> {selectedContent.creator || 'Không xác định'}
               </Typography>
               
               <Typography variant="body2" color="textSecondary" paragraph>
                 <strong>Ngày tạo:</strong> {formatDate(selectedContent.createdAt)}
               </Typography>
               
+              {/* Nội dung bài viết */}
               {selectedTab === 1 && selectedContent.content && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>
@@ -486,24 +608,165 @@ const ContentReview = () => {
                 </Box>
               )}
               
-              {selectedTab === 0 && selectedContent.description && (
+              {/* Mô tả chung cho tất cả các loại nội dung */}
+              {selectedContent.description && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle1" gutterBottom>
                     <strong>Mô tả:</strong>
                   </Typography>
-                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
-                    <Typography>{selectedContent.description}</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '200px', overflow: 'auto' }}>
+                    <div dangerouslySetInnerHTML={{ __html: selectedContent.description }} />
                   </Paper>
                 </Box>
               )}
               
-              {selectedTab === 2 && selectedContent.description && (
-                <Box sx={{ mt: 2 }}>
+              {/* Chi tiết khóa học */}
+              {selectedTab === 0 && selectedContent.modules && selectedContent.modules.length > 0 && (
+                <Box sx={{ mt: 3 }}>
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>Mô tả:</strong>
+                    <strong>Danh sách module:</strong>
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
-                    <Typography>{selectedContent.description}</Typography>
+                    {selectedContent.modules.map((module, index) => (
+                      <Box key={module.id} sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                          {index + 1}. {module.title}
+                        </Typography>
+                        {module.videos && module.videos.length > 0 && (
+                          <Box sx={{ ml: 2, mt: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                              Videos:
+                            </Typography>
+                            {module.videos.map((video, vIndex) => (
+                              <Box key={video.id} sx={{ mb: 0.5 }}>
+                                <Typography variant="body2">
+                                  {vIndex + 1}. {video.title}
+                                  {video.videoUrl && (
+                                    <Button 
+                                      size="small" 
+                                      variant="text" 
+                                      color="primary"
+                                      sx={{ ml: 1 }}
+                                      onClick={() => window.open(video.videoUrl, '_blank')}
+                                    >
+                                      Xem video
+                                    </Button>
+                                  )}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    ))}
+                  </Paper>
+                </Box>
+              )}
+              
+              {/* Quiz của khóa học */}
+              {selectedTab === 0 && selectedContent.quiz && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Quiz cuối khóa:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      {selectedContent.quiz.title}
+                    </Typography>
+                    
+                    {selectedContent.quiz.description && (
+                      <Typography variant="body2" sx={{ mb: 2 }}>
+                        {selectedContent.quiz.description}
+                      </Typography>
+                    )}
+                    
+                    {selectedContent.quiz.sections && selectedContent.quiz.sections.map((section, sIndex) => (
+                      <Box key={section.id} sx={{ mb: 2 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                          Phần {sIndex + 1}: {section.sectionName}
+                        </Typography>
+                        
+                        {section.questions && section.questions.map((question, qIndex) => (
+                          <Box key={question.id} sx={{ ml: 2, mt: 1, mb: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              Câu hỏi {qIndex + 1}: {question.questionText}
+                            </Typography>
+                            
+                            {question.options && question.options.map((option, oIndex) => (
+                              <Box key={option.id} sx={{ ml: 2, mt: 0.5 }}>
+                                <Typography variant="body2">
+                                  {String.fromCharCode(65 + oIndex)}. {option.optionText} {option.score > 0 && `(${option.score} điểm)`}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        ))}
+                      </Box>
+                    ))}
+                    
+                    {selectedContent.quiz.conditions && selectedContent.quiz.conditions.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                          Điều kiện đạt:
+                        </Typography>
+                        {selectedContent.quiz.conditions.map((condition, cIndex) => (
+                          <Box key={cIndex} sx={{ ml: 2, mt: 0.5 }}>
+                            <Typography variant="body2">
+                              {condition.operator} {condition.value}: {condition.message}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Paper>
+                </Box>
+              )}
+              
+              {/* Chi tiết khảo sát */}
+              {selectedTab === 2 && selectedContent.sections && selectedContent.sections.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Nội dung khảo sát:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, maxHeight: '300px', overflow: 'auto' }}>
+                    {selectedContent.sections.map((section, sIndex) => (
+                      <Box key={section.id} sx={{ mb: 2 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                          Phần {sIndex + 1}: {section.sectionName}
+                        </Typography>
+                        
+                        {section.questions && section.questions.map((question, qIndex) => (
+                          <Box key={question.id} sx={{ ml: 2, mt: 1, mb: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              Câu hỏi {qIndex + 1}: {question.questionText}
+                            </Typography>
+                            
+                            {question.options && question.options.map((option, oIndex) => (
+                              <Box key={option.id} sx={{ ml: 2, mt: 0.5 }}>
+                                <Typography variant="body2">
+                                  {String.fromCharCode(65 + oIndex)}. {option.optionText} {option.score > 0 && `(${option.score} điểm)`}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        ))}
+                      </Box>
+                    ))}
+                    
+                    {selectedContent.conditions && selectedContent.conditions.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                          Điều kiện:
+                        </Typography>
+                        {selectedContent.conditions.map((condition, cIndex) => (
+                          <Box key={cIndex} sx={{ ml: 2, mt: 0.5 }}>
+                            <Typography variant="body2">
+                              {condition.operator} {condition.value}: {condition.message}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
                   </Paper>
                 </Box>
               )}
