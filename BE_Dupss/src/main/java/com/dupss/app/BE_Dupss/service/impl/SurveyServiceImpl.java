@@ -259,20 +259,10 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     @Override
-    public List<SurveyManagerResponse> getPendingSurveys() {
+    public List<SurveyResponse> getPendingSurveys() {
         List<Survey> surveys = surveyRepository.findByStatusAndActiveTrueAndForCourseFalse(ApprovalStatus.PENDING);
         return surveys.stream()
-                .map(survey -> SurveyManagerResponse.builder()
-                        .surveyId(survey.getId())
-                        .surveyTitle(survey.getTitle())
-                        .description(survey.getDescription())
-                        .surveyImage(survey.getSurveyImage())
-                        .active(survey.isActive())
-                        .forCourse(survey.isForCourse())
-                        .createdAt(survey.getCreatedAt())
-                        .createdBy(survey.getCreatedBy().getFullname())
-                        .status(survey.getStatus())
-                        .build())
+                .map(this::convertToSurveyResponse)
                 .collect(Collectors.toList());
     }
 

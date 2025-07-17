@@ -28,5 +28,5 @@ public interface SurveyService {
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);
     boolean evaluate(int score, SurveyCondition condition);
     void updateStatus(ApprovalStatus status, Long surveyId);
-    List<SurveyManagerResponse> getPendingSurveys();
+    List<SurveyResponse> getPendingSurveys();
 }

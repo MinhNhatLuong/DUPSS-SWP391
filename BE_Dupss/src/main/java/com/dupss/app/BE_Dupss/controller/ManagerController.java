@@ -138,8 +138,8 @@ public class ManagerController {
      */
     @GetMapping("/surveys/pending")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
-    public ResponseEntity<List<SurveyManagerResponse>> getPendingSurveys() {
-        List<SurveyManagerResponse> responses = surveyService.getPendingSurveys();
+    public ResponseEntity<List<SurveyResponse>> getPendingSurveys() {
+        List<SurveyResponse> responses = surveyService.getPendingSurveys();
         return ResponseEntity.ok(responses);
     }
 
