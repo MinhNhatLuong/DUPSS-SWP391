@@ -8,7 +8,8 @@ import {
   Button, 
   InputAdornment, 
   IconButton, 
-  CircularProgress 
+  CircularProgress,
+  FormHelperText 
 } from '@mui/material';
 import { 
   Lock as LockIcon, 
@@ -27,6 +28,11 @@ const ChangePassword = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [errors, setErrors] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -38,6 +44,14 @@ const ChangePassword = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const toggleShowPassword = (field) => {
@@ -56,18 +70,41 @@ const ChangePassword = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+    let isValid = true;
+
+    if (!passwordData.oldPassword) {
+      newErrors.oldPassword = 'Vui lòng nhập mật khẩu hiện tại';
+      isValid = false;
+    }
+
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+      isValid = false;
+    }
+
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+      isValid = false;
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      showErrorAlert('Vui lòng điền đầy đủ thông tin mật khẩu!');
-      return;
-    }
-
-    // Validate password match
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showErrorAlert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+    // Validate form with custom validation
+    if (!validateForm()) {
       return;
     }
 
@@ -108,91 +145,106 @@ const ChangePassword = () => {
         <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 500, mx: 'auto' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Current Password */}
-            <TextField
-              fullWidth
-              required
-              id="oldPassword"
-              name="oldPassword"
-              label="Mật khẩu hiện tại"
-              type={showOldPassword ? 'text' : 'password'}
-              value={passwordData.oldPassword}
-              onChange={handlePasswordChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => toggleShowPassword('old')}
-                      edge="end"
-                    >
-                      {showOldPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
+            <Box>
+              <TextField
+                fullWidth
+                id="oldPassword"
+                name="oldPassword"
+                label="Mật khẩu hiện tại"
+                type={showOldPassword ? 'text' : 'password'}
+                value={passwordData.oldPassword}
+                onChange={handlePasswordChange}
+                error={!!errors.oldPassword}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => toggleShowPassword('old')}
+                        edge="end"
+                      >
+                        {showOldPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              {errors.oldPassword && (
+                <FormHelperText error>{errors.oldPassword}</FormHelperText>
+              )}
+            </Box>
 
             {/* New Password */}
-            <TextField
-              fullWidth
-              required
-              id="newPassword"
-              name="newPassword"
-              label="Mật khẩu mới"
-              type={showNewPassword ? 'text' : 'password'}
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => toggleShowPassword('new')}
-                      edge="end"
-                    >
-                      {showNewPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
+            <Box>
+              <TextField
+                fullWidth
+                id="newPassword"
+                name="newPassword"
+                label="Mật khẩu mới"
+                type={showNewPassword ? 'text' : 'password'}
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                error={!!errors.newPassword}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => toggleShowPassword('new')}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              {errors.newPassword && (
+                <FormHelperText error>{errors.newPassword}</FormHelperText>
+              )}
+            </Box>
 
             {/* Confirm New Password */}
-            <TextField
-              fullWidth
-              required
-              id="confirmPassword"
-              name="confirmPassword"
-              label="Xác nhận mật khẩu mới"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => toggleShowPassword('confirm')}
-                      edge="end"
-                    >
-                      {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
+            <Box>
+              <TextField
+                fullWidth
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Xác nhận mật khẩu mới"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordChange}
+                error={!!errors.confirmPassword}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => toggleShowPassword('confirm')}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              {errors.confirmPassword && (
+                <FormHelperText error>{errors.confirmPassword}</FormHelperText>
+              )}
+            </Box>
           </Box>
 
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
