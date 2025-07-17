@@ -144,9 +144,19 @@ export default function AdminPage() {
           logout(() => navigate('/login'));
         }, 2000);
       } else {
+        let errorMessage = 'Không thể tải danh sách người dùng';
+        
+        // Xử lý thông báo lỗi từ API
+        if (error.response && error.response.data) {
+          const errorData = error.response.data;
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        }
+        
         setNotification({
           open: true,
-          message: 'Không thể tải danh sách người dùng',
+          message: errorMessage,
           severity: 'error'
         });
       }
@@ -235,7 +245,7 @@ export default function AdminPage() {
     setProcessing(true);
     try {
       await apiClient.patch(`/admin/users/delete/${editUser.id}`);
-      setUsers(prev => prev.filter(u => u.id !== editUser.id));
+      await fetchUsers();
       setSelected(prev => prev.filter(id => id !== editUser.id));
       setNotification({
         open: true,
@@ -244,9 +254,19 @@ export default function AdminPage() {
       });
     } catch (error) {
       console.error('Error deleting user:', error);
+      let errorMessage = 'Không thể xóa người dùng';
+      
+      // Xử lý thông báo lỗi từ API
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
       setNotification({
         open: true,
-        message: 'Không thể xóa người dùng',
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
@@ -269,7 +289,7 @@ export default function AdminPage() {
     
     try {
       await Promise.all(selected.map(id => apiClient.patch(`/admin/users/delete/${id}`)));
-      setUsers(prev => prev.filter(user => !selected.includes(user.id)));
+      await fetchUsers();
       setSelected([]);
       setNotification({
         open: true,
@@ -278,9 +298,19 @@ export default function AdminPage() {
       });
     } catch (error) {
       console.error('Error deleting multiple users:', error);
+      let errorMessage = 'Không thể xóa người dùng';
+      
+      // Xử lý thông báo lỗi từ API
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
       setNotification({
         open: true,
-        message: 'Không thể xóa người dùng',
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
@@ -403,7 +433,8 @@ export default function AdminPage() {
         }
       });
       
-      setUsers(prev => [...prev, response.data]);
+      // Sau khi thêm người dùng thành công, gọi lại API để lấy danh sách người dùng mới nhất
+      await fetchUsers();
       
       setNotification({
         open: true,
@@ -414,9 +445,19 @@ export default function AdminPage() {
       handleCloseDialog();
     } catch (error) {
       console.error('Error adding user:', error);
+      let errorMessage = 'Không thể thêm người dùng';
+      
+      // Xử lý thông báo lỗi từ API
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
       setNotification({
         open: true,
-        message: 'Không thể thêm người dùng',
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
@@ -454,29 +495,8 @@ export default function AdminPage() {
         }
       });
       
-      // Update local state
-      const updatedUser = {
-        ...editUser,
-        fullName: form.fullname,
-        gender: form.gender,
-        email: form.email,
-        phone: form.phone,
-        address: form.address,
-        role: form.role,
-      };
-      
-      // Only update consultant-specific fields if the role is ROLE_CONSULTANT
-      if (isConsultant) {
-        updatedUser.bio = form.bio;
-        updatedUser.certificates = form.certificates;
-        updatedUser.academicTitle = form.academicTitle;
-      } else {
-        updatedUser.bio = null;
-        updatedUser.certificates = null;
-        updatedUser.academicTitle = null;
-      }
-      
-      setUsers(prev => prev.map(u => u.id === editUser.id ? updatedUser : u));
+      // Sau khi cập nhật người dùng thành công, gọi lại API để lấy danh sách người dùng mới nhất
+      await fetchUsers();
       
       setNotification({
         open: true,
@@ -487,9 +507,19 @@ export default function AdminPage() {
       handleCloseDialog();
     } catch (error) {
       console.error('Error updating user:', error);
+      let errorMessage = 'Không thể cập nhật người dùng';
+      
+      // Xử lý thông báo lỗi từ API
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
       setNotification({
         open: true,
-        message: 'Không thể cập nhật người dùng',
+        message: errorMessage,
         severity: 'error'
       });
     } finally {

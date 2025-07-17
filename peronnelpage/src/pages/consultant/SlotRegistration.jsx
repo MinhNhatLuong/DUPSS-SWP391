@@ -44,15 +44,19 @@ function getWeeksInYear(year) {
   const weeks = [];
   const firstDay = dayjs(`${year}-01-01`);
   const lastDay = dayjs(`${year}-12-31`);
+  const today = dayjs();
   
   let weekStart = getStartOfWeek(firstDay);
   
   while (weekStart.isBefore(lastDay)) {
-    const weekEnd = weekStart.clone().add(6, 'day');
-    weeks.push({
-      value: weekStart.format('YYYY-MM-DD'),
-      label: `Tuần ${weekStart.week()}: ${weekStart.format('DD/MM')} - ${weekEnd.format('DD/MM')}`
-    });
+    // Only add weeks that are current or in the future
+    if (!weekStart.add(6, 'day').isBefore(today, 'day')) {
+      const weekEnd = weekStart.add(6, 'day');
+      weeks.push({
+        value: weekStart.format('YYYY-MM-DD'),
+        label: `Tuần ${weekStart.week()}: ${weekStart.format('DD/MM')} - ${weekEnd.format('DD/MM')}`
+      });
+    }
     weekStart = weekStart.add(7, 'day');
   }
   
@@ -75,8 +79,9 @@ const TIME_SLOTS = [
 const DAY_NAMES = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'];
 
 export default function SlotRegistration() {
-  const [weekStart, setWeekStart] = useState(getStartOfWeek(dayjs()));
-  const [selectedYear, setSelectedYear] = useState(dayjs().year());
+  const currentDate = dayjs();
+  const [weekStart, setWeekStart] = useState(getStartOfWeek(currentDate));
+  const [selectedYear, setSelectedYear] = useState(currentDate.year());
   const [weeksInYear, setWeeksInYear] = useState(getWeeksInYear(selectedYear));
   const [registeredSlots, setRegisteredSlots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -222,6 +227,23 @@ export default function SlotRegistration() {
     });
   };
 
+  // Check if a day is in the past
+  const isDayInPast = (day) => {
+    return day.isBefore(currentDate, 'day');
+  };
+
+  // Check if a time slot is in the past for a specific day
+  const isTimeSlotInPast = (day, slot) => {
+    if (isDayInPast(day)) return true;
+    
+    if (day.isSame(currentDate, 'day')) {
+      const currentHour = currentDate.hour();
+      return slot.start.hour <= currentHour;
+    }
+    
+    return false;
+  };
+
   // Open confirmation dialog for slot registration
   const handleRegisterConfirmation = (date, slot) => {
     setConfirmDialog({
@@ -243,7 +265,7 @@ export default function SlotRegistration() {
 
   // Handle direct slot selection
   const handleSlotSelect = (slot, day) => {
-    if (!isSlotRegistered(day, slot.start.hour)) {
+    if (!isSlotRegistered(day, slot.start.hour) && !isTimeSlotInPast(day, slot)) {
       setSelectedTimeSlot(slot);
       // Open confirmation directly
       handleRegisterConfirmation(day, slot);
@@ -313,6 +335,9 @@ export default function SlotRegistration() {
     }
   };
 
+  // Filter out past days from the week
+  const futureDays = weekDays.filter(day => !isDayInPast(day));
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -331,7 +356,7 @@ export default function SlotRegistration() {
                 label="Năm"
                 size="small"
               >
-                {[selectedYear - 1, selectedYear, selectedYear + 1].map(year => (
+                {[currentDate.year(), currentDate.year() + 1].map(year => (
                   <MenuItem key={year} value={year}>
                     {year}
                   </MenuItem>
@@ -374,85 +399,102 @@ export default function SlotRegistration() {
         </Box>
       )}
       
-      {/* Day accordions */}
+      {/* Message when no future days are available */}
+      {futureDays.length === 0 && !loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <Typography variant="h6" color="text.secondary">
+            Không có ngày nào trong tương lai trong tuần này. Vui lòng chọn tuần khác.
+          </Typography>
+        </Box>
+      )}
+      
+      {/* Day accordions - only show future days */}
       <Box sx={{ mt: 4 }}>
-        {weekDays.map((day, index) => (
-          <Accordion key={index} sx={{ mb: 1, borderRadius: '8px', overflow: 'hidden' }}>
-            <AccordionSummary 
-              expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-              sx={{ 
-                bgcolor: '#1976d2', 
-                color: 'white',
-                '&:hover': { bgcolor: '#1565c0' }
-              }}
-            >
-              <Typography sx={{ fontWeight: 'bold' }}>
-                {DAY_NAMES[index]} ({day.format('DD/MM/YYYY')})
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 3, pb: 3, bgcolor: '#f5f5f5' }}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
-                {TIME_SLOTS.map((slot, slotIndex) => {
-                                     const isRegistered = isSlotRegistered(day, slot.start.hour);
-                  
-                  return (
-                    <Box 
-                      key={slotIndex} 
-                      sx={{ 
-                        width: 'calc(25% - 12px)', 
-                        mb: 2 
-                      }}
-                    >
-                      {isRegistered ? (
-                        <Button
-                          disabled
-                          sx={{
-                            bgcolor: '#e3f2fd',
-                            border: '2px solid #42a5f5',
-                            borderRadius: 2,
-                            p: 2,
-                            color: '#1976d2',
-                            fontWeight: 'bold',
-                            minHeight: 60,
-                            '&.Mui-disabled': {
-                              color: '#1976d2',
-                              opacity: 1
-                            }
-                          }}
-                          fullWidth
-                        >
-                          {slot.label}
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant={selectedTimeSlot === slot ? "contained" : "outlined"}
-                          fullWidth
-                          sx={{
-                            p: 2,
-                            minHeight: 60,
-                            borderRadius: 2,
-                            borderColor: selectedTimeSlot === slot ? '#1976d2' : '#c0c0c0',
-                            backgroundColor: selectedTimeSlot === slot ? '#e3f2fd' : '#f5f5f5',
-                            color: selectedTimeSlot === slot ? '#1976d2' : '#666',
-                            fontWeight: selectedTimeSlot === slot ? 'bold' : 'normal',
-                            '&:hover': {
+        {futureDays.map((day, index) => {
+          const dayIndex = weekDays.findIndex(d => d.isSame(day, 'day'));
+          
+          return (
+            <Accordion key={index} sx={{ mb: 1, borderRadius: '8px', overflow: 'hidden' }}>
+              <AccordionSummary 
+                expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                sx={{ 
+                  bgcolor: '#1976d2', 
+                  color: 'white',
+                  '&:hover': { bgcolor: '#1565c0' }
+                }}
+              >
+                <Typography sx={{ fontWeight: 'bold' }}>
+                  {DAY_NAMES[dayIndex]} ({day.format('DD/MM/YYYY')})
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 3, pb: 3, bgcolor: '#f5f5f5' }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+                  {TIME_SLOTS.map((slot, slotIndex) => {
+                    const isRegistered = isSlotRegistered(day, slot.start.hour);
+                    const isPast = isTimeSlotInPast(day, slot);
+                    
+                    // Skip past time slots
+                    if (isPast) return null;
+                    
+                    return (
+                      <Box 
+                        key={slotIndex} 
+                        sx={{ 
+                          width: 'calc(25% - 12px)', 
+                          mb: 2 
+                        }}
+                      >
+                        {isRegistered ? (
+                          <Button
+                            disabled
+                            sx={{
                               bgcolor: '#e3f2fd',
-                              borderColor: '#1976d2',
-                              color: '#1976d2'
-                            }
-                          }}
-                          onClick={() => handleSlotSelect(slot, day)}
-                        >
-                          {slot.label}
-                        </Button>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        ))}
+                              border: '2px solid #42a5f5',
+                              borderRadius: 2,
+                              p: 2,
+                              color: '#1976d2',
+                              fontWeight: 'bold',
+                              minHeight: 60,
+                              '&.Mui-disabled': {
+                                color: '#1976d2',
+                                opacity: 1
+                              }
+                            }}
+                            fullWidth
+                          >
+                            {slot.label}
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant={selectedTimeSlot === slot ? "contained" : "outlined"}
+                            fullWidth
+                            sx={{
+                              p: 2,
+                              minHeight: 60,
+                              borderRadius: 2,
+                              borderColor: selectedTimeSlot === slot ? '#1976d2' : '#c0c0c0',
+                              backgroundColor: selectedTimeSlot === slot ? '#e3f2fd' : '#f5f5f5',
+                              color: selectedTimeSlot === slot ? '#1976d2' : '#666',
+                              fontWeight: selectedTimeSlot === slot ? 'bold' : 'normal',
+                              '&:hover': {
+                                bgcolor: '#e3f2fd',
+                                borderColor: '#1976d2',
+                                color: '#1976d2'
+                              }
+                            }}
+                            onClick={() => handleSlotSelect(slot, day)}
+                          >
+                            {slot.label}
+                          </Button>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          );
+        })}
       </Box>
       
       {/* Confirmation dialog */}
