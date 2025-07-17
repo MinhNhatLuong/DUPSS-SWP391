@@ -5,10 +5,12 @@ package com.dupss.app.BE_Dupss.controller;
 
 import com.dupss.app.BE_Dupss.dto.request.CreateUserRequest;
 import com.dupss.app.BE_Dupss.dto.request.UpdateUserRequest;
+import com.dupss.app.BE_Dupss.dto.response.ActionLogResponse;
 import com.dupss.app.BE_Dupss.dto.response.CreateUserResponse;
 
 import com.dupss.app.BE_Dupss.dto.response.UpdateUserResponse;
 import com.dupss.app.BE_Dupss.dto.response.UserDetailResponse;
+import com.dupss.app.BE_Dupss.service.ActionLogService;
 import com.dupss.app.BE_Dupss.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminService adminService;
+    private final ActionLogService actionLogService;
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -45,6 +48,12 @@ public class AdminController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')")
     public List<UserDetailResponse> getAllConsultants() {
         return adminService.getUsersByRole("ROLE_CONSULTANT");
+    }
+
+    @GetMapping("/actionLogs")
+    public ResponseEntity<List<ActionLogResponse>> getAllActionLogs() {
+        List<ActionLogResponse> actionLogs = actionLogService.getAllActionLog();
+        return ResponseEntity.ok(actionLogs);
     }
 
 

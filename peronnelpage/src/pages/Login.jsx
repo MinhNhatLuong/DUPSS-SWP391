@@ -42,6 +42,15 @@ const Login = ({ updateUserInfo }) => {
             accessToken: token
           });
           
+          // Kiểm tra nếu là ROLE_MEMBER thì không cho phép đăng nhập
+          if (response.data.role.includes('ROLE_MEMBER')) {
+            setError('Bạn không có quyền truy cập vào hệ thống này!');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userInfo');
+            return;
+          }
+          
           // Lưu thông tin người dùng
           setUserInfo(response.data);
           // Cập nhật state userInfo ở App component
@@ -102,17 +111,24 @@ const Login = ({ updateUserInfo }) => {
         password: formData.password
       });
 
-      // Lưu token vào local storage
-      localStorage.setItem('accessToken', response.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      
-      setSuccess('Đăng nhập thành công!');
-      
-      // Gọi API lấy thông tin người dùng
+      // Gọi API lấy thông tin người dùng trước khi lưu token
       try {
         const userResponse = await apiClient.post('/auth/me', {
           accessToken: response.data.accessToken
         });
+        
+        // Kiểm tra nếu là ROLE_MEMBER thì không cho phép đăng nhập
+        if (userResponse.data.role.includes('ROLE_MEMBER')) {
+          setError('Bạn không có quyền truy cập vào hệ thống này!');
+          setLoading(false);
+          return;
+        }
+        
+        // Nếu không phải ROLE_MEMBER, lưu token và thông tin người dùng
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        
+        setSuccess('Đăng nhập thành công!');
         
         // Lưu thông tin người dùng
         setUserInfo(userResponse.data);
@@ -160,17 +176,13 @@ const Login = ({ updateUserInfo }) => {
       navigate('/consultant/dashboard');
     } else if (role.includes('ROLE_STAFF') || role === 'staff') {
       navigate('/staff/dashboard');
-    } else if (role.includes('ROLE_MEMBER')) {
-      // Không cho phép member đăng nhập vào hệ thống
-      setError('Bạn không có quyền truy cập vào hệ thống này!');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userInfo');
     } else {
+      // Đối với các vai trò khác (bao gồm ROLE_MEMBER)
       setError('Bạn không có quyền truy cập vào hệ thống này!');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userInfo');
+      setLoading(false);
     }
   };
 
