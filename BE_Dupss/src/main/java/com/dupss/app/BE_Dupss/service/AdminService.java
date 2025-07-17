@@ -181,7 +181,17 @@ public class AdminService {
         if(user.isEnabled()){
             user.setEnabled(false);
         }
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        ActionLog logEntry = new ActionLog();
+        logEntry.setPerformedBy(savedUser);
+        logEntry.setActionType(ActionType.CREATE);
+        logEntry.setTargetType(TargetType.USER);
+        logEntry.setTargetId(savedUser.getId());
+        logEntry.setActionTime(LocalDateTime.now());
+
+        actionLogRepo.save(logEntry);
+
         log.info("Admin deleted user: {} with ID: {}", user.getUsername(), userId);
     }
 
