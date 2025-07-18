@@ -69,6 +69,8 @@ public interface AppointmentService {
      * Lấy danh sách cuộc hẹn chưa được phân công cho tư vấn viên
      */
     List<AppointmentResponseDto> getUnassignedAppointments();
+
+    List<AppointmentResponseDto> getAllAppointmentByManager();
     
     /**
      * Tư vấn viên nhận cuộc hẹn chưa được phân công
@@ -100,4 +102,5 @@ public interface AppointmentService {
      * Khách không đăng nhập đánh giá cuộc hẹn (qua email)
      */
     AppointmentResponseDto reviewAppointmentByGuest(Long appointmentId, Integer reviewScore, String customerReview, String email);
+
 } 

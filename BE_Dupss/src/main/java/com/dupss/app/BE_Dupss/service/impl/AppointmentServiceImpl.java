@@ -302,6 +302,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
+
+
     @Override
     public List<AppointmentResponseDto> getUnassignedAppointments() {
         // Lấy tất cả các cuộc hẹn có trạng thái PENDING và consultant là placeholder
@@ -311,6 +313,15 @@ public class AppointmentServiceImpl implements AppointmentService {
                         a.getConsultant() != null && a.getConsultant().getId() == 2L)
                 .collect(Collectors.toList());
 
+        return appointments.stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AppointmentResponseDto> getAllAppointmentByManager() {
+        List<String> statuses = List.of("COMPLETED", "CANCELLED");
+        List<Appointment> appointments = appointmentRepository.findByStatusInOrderByCheckOutTimeDesc(statuses);
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
@@ -357,38 +368,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    // @Override
-    // public AppointmentResponseDto approveAppointment(Long appointmentId, Long
-    // consultantId, String linkMeet) {
-    // Appointment appointment = appointmentRepository.findById(appointmentId)
-    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cuộc hẹn với
-    // ID: " + appointmentId));
-    //
-    // // Lấy thông tin tư vấn viên
-    // User consultant = userRepository.findById(consultantId)
-    // .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên
-    // với ID: " + consultantId));
-    //
-    // // Kiểm tra quyền cập nhật
-    //// if (appointment.getConsultant() != null &&
-    //// !Objects.equals(appointment.getConsultant().getId(), consultantId) &&
-    //// appointment.getConsultant().getId() != 2L) {
-    //// throw new IllegalArgumentException("Tư vấn viên không có quyền cập nhật
-    // cuộc hẹn này");
-    //// }
-    //
-    // // Cập nhật thông tin
-    // appointment.setConsultant(consultant);
-    // appointment.setStatus("CONFIRMED");
-    // appointment.setLinkMeet(linkMeet);
-    // // Lưu vào database
-    // Appointment updatedAppointment = appointmentRepository.save(appointment);
-    //
-    // // Gửi email thông báo duyệt cuộc hẹn với link Google Meet
-    // emailService.sendAppointmentStatusUpdate(updatedAppointment, "PENDING");
-    //
-    // return mapToResponseDto(updatedAppointment);
-    // }
 
     @Override
     public AppointmentResponseDto startAppointment(Long appointmentId, Long consultantId) {
@@ -586,21 +565,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         responseDto.setAppointmentTime(appointment.getAppointmentTime());
         responseDto.setTopicName(appointment.getTopic().getName());
         responseDto.setConsultantName(appointment.getConsultant() != null ? appointment.getConsultant().getFullname() : "Chưa phân công");;
-
-        // Xử lý consultant - nếu consultant ID = 2 (placeholder), hiển thị "Chưa phân
-        // công" và consultantId = null
-        // if (appointment.getConsultant() != null &&
-        // appointment.getConsultant().getId() != 2L) {
-        // // Nếu consultant không phải là placeholder, hiển thị thông tin thực
-        // responseDto.setConsultantName(appointment.getConsultant().getFullname());
-        // responseDto.setConsultantId(appointment.getConsultant().getId());
-        // } else {
-        // // Nếu consultant là placeholder (ID = 2) hoặc null, hiển thị "Chưa phân
-        // công"
-        // responseDto.setConsultantName("Chưa phân công");
-        // responseDto.setConsultantId(null); // Đặt consultantId là null trong response
-        // }
-
         responseDto.setGuest(appointment.isGuest());
         responseDto.setStatus(appointment.getStatus());
 

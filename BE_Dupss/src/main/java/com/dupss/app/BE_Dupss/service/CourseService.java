@@ -371,7 +371,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
 
         // Check if the user is the creator of the course or a manager
-        if (course.getCreator().getId() != currentUser.getId() && currentUser.getRole() != ERole.ROLE_MANAGER) {
+        if (course.getCreator().getId() != currentUser.getId()) {
             throw new AccessDeniedException("You can only update your own courses");
         }
 
@@ -469,7 +469,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Course course = courseRepository.findByIdAndActiveTrue(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + courseId));
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
         if(course.getStatus().equals(ApprovalStatus.PENDING)) {
             course.setStatus(status);
         } else {
@@ -480,6 +480,34 @@ public class CourseService {
         ActionLog actionLog = ActionLog.builder()
                 .performedBy(currentUser)
                 .actionType(ActionType.UPDATE)
+                .targetType(TargetType.COURSE)
+                .targetId(course.getId())
+                .actionTime(course.getUpdatedAt())
+                .build();
+        actionLogRepo.save(actionLog);
+    }
+
+    public void deleteCourse(Long courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Course course = courseRepository.findByIdAndActiveTrue(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
+
+
+        if (course.getCreator().getId() != currentUser.getId()) {
+            throw new AccessDeniedException("Bạn chỉ có thể xóa các khóa học của chính mình");
+        }
+
+        // Set course as inactive instead of deleting
+        course.setActive(false);
+        courseRepository.save(course);
+
+        ActionLog actionLog = ActionLog.builder()
+                .performedBy(currentUser)
+                .actionType(ActionType.DELETE)
                 .targetType(TargetType.COURSE)
                 .targetId(course.getId())
                 .actionTime(course.getUpdatedAt())

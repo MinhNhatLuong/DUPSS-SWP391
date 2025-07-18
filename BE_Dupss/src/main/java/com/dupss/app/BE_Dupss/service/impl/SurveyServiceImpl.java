@@ -36,6 +36,7 @@ public class SurveyServiceImpl implements SurveyService {
     private final SurveyOptionRepo surveyOptionRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final ActionLogRepo actionLogRepo;
 
 
     @Override
@@ -267,38 +268,27 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     @Override
-    public List<SurveyResponse> getAllSurveys() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null && authentication.isAuthenticated() && 
-                                 !authentication.getName().equals("anonymousUser");
-        
-        List<Survey> surveys;
-        if (isAuthenticated) {
-            // Lấy thông tin người dùng hiện tại
-            String username = authentication.getName();
-            User currentUser = userRepository.findByUsername(username).orElse(null);
-            
-            // Nếu là STAFF, MANAGER hoặc ADMIN, hiển thị tất cả khảo sát
-            if (currentUser != null && (currentUser.getRole() == ERole.ROLE_STAFF || 
-                                       currentUser.getRole() == ERole.ROLE_MANAGER )){
-                surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
-            } else {
-                // Nếu là người dùng thông thường, chỉ hiển thị khảo sát đã được phê duyệt
-                surveys = surveyRepository.findAll().stream()
-                        .filter(survey -> survey.isActive() && !survey.isForCourse() && 
-                                         survey.getStatus() == ApprovalStatus.APPROVED)
-                        .collect(Collectors.toList());
-            }
-        } else {
-            // Nếu chưa đăng nhập, chỉ hiển thị khảo sát đã được phê duyệt
-            surveys = surveyRepository.findAll().stream()
-                    .filter(survey -> survey.isActive() && !survey.isForCourse() && 
-                                     survey.getStatus() == ApprovalStatus.APPROVED)
-                    .collect(Collectors.toList());
-        }
-        
+    public List<SurveyManagerResponse> getAllSurveys() {
+        List<Survey> surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
         return surveys.stream()
-                .map(this::convertToSurveyResponse)
+                .map(survey -> {
+                    Optional<ActionLog> optionalLog = actionLogRepo.findFirstByTargetTypeAndTargetIdAndActionType(
+                            TargetType.SURVEY, survey.getId(), ActionType.UPDATE);
+                    return SurveyManagerResponse.builder()
+                            .surveyId(survey.getId())
+                            .surveyTitle(survey.getTitle())
+                            .description(survey.getDescription())
+                            .surveyImage(survey.getSurveyImage())
+                            .active(survey.isActive())
+                            .forCourse(survey.isForCourse())
+                            .createdAt(survey.getCreatedAt())
+                            .createdBy(survey.getCreatedBy().getFullname())
+                            .checkedBy(optionalLog.map(ActionLog::getPerformedBy)
+                                    .map(User::getFullname)
+                                    .orElse("N/A"))
+                            .status(survey.getStatus())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -373,6 +363,7 @@ public class SurveyServiceImpl implements SurveyService {
                 .active(survey.isActive())
                 .forCourse(survey.isForCourse())
                 .createdAt(survey.getCreatedAt())
+                .approvalStatus(survey.getStatus())
                 .sections(survey.getSections().stream()
                         .map(section -> SurveyResponse.SurveySectionDTO.builder()
                                 .id(section.getId())

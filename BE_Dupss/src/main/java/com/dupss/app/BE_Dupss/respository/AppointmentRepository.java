@@ -32,6 +32,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
      */
     List<Appointment> findByStatus(String status);
 
+    List<Appointment> findByStatusInOrderByCheckOutTimeDesc(List<String> statuses);
+
     //    boolean existsByAppointmentDateAndAppointmentTime(LocalDate date, LocalTime time);
     @Query("""
                 SELECT COUNT(a) > 0

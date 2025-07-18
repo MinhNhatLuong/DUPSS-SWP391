@@ -22,7 +22,7 @@ public interface SurveyService {
     SurveyResultResponse submitSurveyResult(SurveyResultRequest request);
     List<SurveyResultResponse> getSubmittedSurveys();
     Survey createAndSaveSurveyEntity(SurveyCreateRequest request, MultipartFile coverImage, User author) throws IOException;
-    List<SurveyResponse> getAllSurveys();
+    List<SurveyManagerResponse> getAllSurveys();
     List<SurveyManagerResponse> getSurveysByAuthor();
     SurveyResponse getSurveyById(Long id);
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);

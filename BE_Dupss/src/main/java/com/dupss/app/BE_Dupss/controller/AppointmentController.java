@@ -89,7 +89,7 @@ public class AppointmentController {
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/consultant/{consultantId}/history")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getCompletedOrCanceledAppointmentsByConsultantId(
             @PathVariable Long consultantId) {
         return ResponseEntity.ok(appointmentService.getCompletedOrCanceledAppointmentsByConsultantId(consultantId));

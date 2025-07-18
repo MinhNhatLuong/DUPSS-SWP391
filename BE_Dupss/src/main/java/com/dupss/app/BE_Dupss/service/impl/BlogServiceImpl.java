@@ -258,6 +258,45 @@ public class BlogServiceImpl implements BlogService {
         actionLogRepo.save(actionLog);
     }
 
+    @Override
+    public void updateBlog(Long id, BlogRequest blogRequest) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Blog blog = blogRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
+
+        if (blog.getAuthor().getId() != currentUser.getId() && currentUser.getRole() != ERole.ROLE_STAFF) {
+            throw new AccessDeniedException("Bạn chỉ có thể cập nhật các khóa học của chính mình");
+        }
+
+        if (blogRequest.getTitle() != null) {
+            blog.setTitle(blogRequest.getTitle());
+        }
+        if (blogRequest.getDescription() != null) {
+            blog.setDescription(blogRequest.getDescription());
+        }
+        if (blogRequest.getContent() != null) {
+            blog.setContent(blogRequest.getContent());
+        }
+        if (blogRequest.getTopicId() != null) {
+            Topic topic = topicRepository.findByIdAndActive(blogRequest.getTopicId(), true);
+            if (topic == null) {
+                throw new EntityNotFoundException("Topic không được tìm thấy với id: " + blogRequest.getTopicId());
+            }
+            blog.setTopic(topic);
+        }
+        if (blogRequest.getCoverImage() != null && !blogRequest.getCoverImage().isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(blogRequest.getCoverImage());
+            blog.setCoverImage(imageUrl);
+        }
+        blogRepository.save(blog);
+
+    }
+
+
     private BlogResponse mapToResponse(Blog blog, String authorName) {
         return BlogResponse.builder()
                 .id(blog.getId())

@@ -80,6 +80,12 @@ public class ManagerController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/appointments/history")
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointmentsHistory() {
+        List<AppointmentResponseDto> appointments = appointmentService.getAllAppointmentByManager();
+        return ResponseEntity.ok(appointments);
+    }
+
     /**
      * API lấy tất cả khảo sát trong hệ thống
      * Chỉ dành cho Manager và Admin
@@ -137,7 +143,6 @@ public class ManagerController {
      * Chỉ dành cho Manager và Admin
      */
     @GetMapping("/surveys/pending")
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER')")
     public ResponseEntity<List<SurveyResponse>> getPendingSurveys() {
         List<SurveyResponse> responses = surveyService.getPendingSurveys();
         return ResponseEntity.ok(responses);

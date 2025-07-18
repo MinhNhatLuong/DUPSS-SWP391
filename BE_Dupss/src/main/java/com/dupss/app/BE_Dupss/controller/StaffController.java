@@ -104,43 +104,15 @@ public class StaffController {
      * API cập nhật bài viết
      * Staff chỉ có thể cập nhật bài viết của mình và chưa được phê duyệt
      */
-    @PutMapping(value = "/blog/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+    @PatchMapping(value = "/blog/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateBlog(@PathVariable Long id, @Valid @ModelAttribute BlogRequest request) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
-        
-        // Kiểm tra xem người dùng có phải là tác giả của bài viết không
-        if (!Objects.equals(blog.getAuthor().getId(), currentUser.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Bạn không có quyền cập nhật bài viết này"));
-        }
-        
-        // Kiểm tra trạng thái của bài viết
-        if (blog.getStatus() != ApprovalStatus.PENDING && blog.getStatus() != ApprovalStatus.REJECTED) {
+        try {
+            blogService.updateBlog(id, request);
+            return ResponseEntity.ok(Map.of("message", "Bài viết đã được cập nhật thành công"));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Chỉ có thể cập nhật bài viết có trạng thái PENDING hoặc REJECTED"));
+                    .body(Map.of("message", e.getMessage()));
         }
-        
-        // Cập nhật bài viết
-        blog.setTitle(request.getTitle());
-        blog.setDescription(request.getDescription());
-        blog.setContent(request.getContent());
-        blog.setStatus(ApprovalStatus.PENDING); // Reset status to PENDING after update
-        
-        if (request.getTopicId() != null) {
-            blog.getTopic().setId(request.getTopicId());
-        }
-        
-        Blog updatedBlog = blogRepository.save(blog);
-        
-        return ResponseEntity.ok(Map.of("message", "Cập nhật bài viết thành công", "id", updatedBlog.getId().toString()));
     }
 
 
@@ -164,6 +136,16 @@ public class StaffController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/course/delete/{courseId}")
+    public ResponseEntity<?> deleteCourse(@PathVariable Long courseId) {
+        try {
+            courseService.deleteCourse(courseId);
+            return ResponseEntity.ok(Map.of("message", "Khóa học đã được xóa thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
         }
     }
     
