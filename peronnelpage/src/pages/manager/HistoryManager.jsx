@@ -16,9 +16,17 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Chip
+  Chip,
+  Rating,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Tooltip
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Videocam as VideocamIcon } from '@mui/icons-material';
 import axios from 'axios';
 import apiClient from '../../services/apiService';
 
@@ -30,6 +38,12 @@ const History = () => {
   const [blogs, setBlogs] = useState([]);
   const [courses, setCourses] = useState([]);
   const [surveys, setSurveys] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDescriptionDialog, setOpenDescriptionDialog] = useState(false);
+  const [selectedDescription, setSelectedDescription] = useState('');
+  const [dialogTitle, setDialogTitle] = useState('');
   
   // Pagination state
   const [page, setPage] = useState(0);
@@ -60,6 +74,11 @@ const History = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSurveys(response.data);
+      } else if (selectedTab === 3) {
+        const response = await apiClient.get('/manager/appointments/history', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setAppointments(response.data);
       }
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -103,30 +122,53 @@ const History = () => {
     }
   };
 
-  // Format duration from minutes to hours and minutes
-  const formatDuration = (minutes) => {
-    if (!minutes && minutes !== 0) return 'Không xác định';
-    
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours === 0) {
-      return `${remainingMinutes} phút`;
-    } else if (remainingMinutes === 0) {
-      return `${hours} giờ`;
-    } else {
-      return `${hours} giờ ${remainingMinutes} phút`;
+  const formatTime = (timeObj) => {
+    if (!timeObj) return 'Không xác định';
+    try {
+      const { hour, minute } = timeObj;
+      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    } catch (error) {
+      return 'Không xác định';
     }
+  };
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'Không xác định';
+    try {
+      const date = new Date(dateTimeString);
+      return date.toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return dateTimeString;
+    }
+  };
+
+  // Format duration (already in hours)
+  const formatDuration = (hours) => {
+    if (hours === null || hours === undefined) return 'Không xác định';
+    
+    // Format hours as whole number
+    return `${parseInt(hours)} giờ`;
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'APPROVED':
+      case 'COMPLETED':
         return 'success';
       case 'REJECTED':
+      case 'CANCELLED':
         return 'error';
       case 'PENDING':
+      case 'SCHEDULED':
         return 'warning';
+      case 'IN_PROGRESS':
+        return 'info';
       default:
         return 'default';
     }
@@ -141,7 +183,11 @@ const History = () => {
       'APPROVED': 'Đã duyệt',
       'REJECTED': 'Đã từ chối',
       'DRAFT': 'Bản nháp',
-      'PUBLISHED': 'Đã xuất bản'
+      'PUBLISHED': 'Đã xuất bản',
+      'SCHEDULED': 'Đã lên lịch',
+      'CANCELLED': 'Đã hủy',
+      'COMPLETED': 'Đã hoàn thành',
+      'IN_PROGRESS': 'Đang diễn ra'
     };
     
     return statusMap[status] || status;
@@ -180,9 +226,52 @@ const History = () => {
     );
   });
 
+  // Filter function for appointments
+  const filteredAppointments = appointments.filter(appointment => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      (appointment.id && appointment.id.toString().includes(query)) ||
+      (appointment.customerName && appointment.customerName.toLowerCase().includes(query)) ||
+      (appointment.consultantName && appointment.consultantName.toLowerCase().includes(query)) ||
+      (appointment.topicName && appointment.topicName.toLowerCase().includes(query))
+    );
+  });
+
   // Pagination logic
   const getDataForCurrentPage = (data) => {
     return data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  };
+
+  // Open dialog to view appointment details
+  const handleOpenDialog = (appointment) => {
+    setSelectedAppointment(appointment);
+    setOpenDialog(true);
+  };
+
+  // Close dialog
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+  
+  // Open dialog to view HTML description content
+  const handleOpenDescriptionDialog = (description, title = 'Nội dung chi tiết') => {
+    setSelectedDescription(description);
+    setDialogTitle(title);
+    setOpenDescriptionDialog(true);
+  };
+  
+  // Close description dialog
+  const handleCloseDescriptionDialog = () => {
+    setOpenDescriptionDialog(false);
+  };
+
+  // Open Google Meet link in a new tab
+  const openGoogleMeet = (link) => {
+    if (link) {
+      window.open(link, '_blank');
+    }
   };
 
   // Render courses table
@@ -198,7 +287,6 @@ const History = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Tiêu đề</TableCell>
                 <TableCell>Chủ đề</TableCell>
-                <TableCell>Mô tả</TableCell>
                 <TableCell>Thời lượng</TableCell>
                 <TableCell>Người tạo</TableCell>
                 <TableCell>Ngày tạo</TableCell>
@@ -214,14 +302,6 @@ const History = () => {
                     <TableCell>{course.id}</TableCell>
                     <TableCell>{course.title}</TableCell>
                     <TableCell>{course.topicName}</TableCell>
-                    <TableCell sx={{
-                      maxWidth: 200,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {course.description}
-                    </TableCell>
                     <TableCell>{formatDuration(course.duration)}</TableCell>
                     <TableCell>{course.creatorName}</TableCell>
                     <TableCell>{formatDate(course.createdAt)}</TableCell>
@@ -238,7 +318,7 @@ const History = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell colSpan={9} align="center">
                     Không tìm thấy khóa học nào
                   </TableCell>
                 </TableRow>
@@ -273,7 +353,6 @@ const History = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Tiêu đề</TableCell>
                 <TableCell>Chủ đề</TableCell>
-                <TableCell>Mô tả</TableCell>
                 <TableCell>Tác giả</TableCell>
                 <TableCell>Ngày tạo</TableCell>
                 <TableCell>Cập nhật</TableCell>
@@ -288,14 +367,6 @@ const History = () => {
                     <TableCell>{blog.id}</TableCell>
                     <TableCell>{blog.title}</TableCell>
                     <TableCell>{blog.topic}</TableCell>
-                    <TableCell sx={{
-                      maxWidth: 200,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {blog.description}
-                    </TableCell>
                     <TableCell>{blog.authorName}</TableCell>
                     <TableCell>{formatDate(blog.createdAt)}</TableCell>
                     <TableCell>{formatDate(blog.updatedAt)}</TableCell>
@@ -311,7 +382,7 @@ const History = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={8} align="center">
                     Không tìm thấy bài viết nào
                   </TableCell>
                 </TableRow>
@@ -346,8 +417,6 @@ const History = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Tiêu đề</TableCell>
                 <TableCell>Mô tả</TableCell>
-                <TableCell>Hoạt động</TableCell>
-                <TableCell>Cho khóa học</TableCell>
                 <TableCell>Người tạo</TableCell>
                 <TableCell>Ngày tạo</TableCell>
                 <TableCell>Trạng thái</TableCell>
@@ -360,16 +429,15 @@ const History = () => {
                   <TableRow key={survey.surveyId} hover>
                     <TableCell>{survey.surveyId}</TableCell>
                     <TableCell>{survey.surveyTitle}</TableCell>
-                    <TableCell sx={{
-                      maxWidth: 200,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {survey.description}
+                    <TableCell>
+                      <Button 
+                        variant="outlined" 
+                        size="small"
+                        onClick={() => handleOpenDescriptionDialog(survey.description || 'Không có nội dung', 'Nội dung khảo sát')}
+                      >
+                        Xem nội dung
+                      </Button>
                     </TableCell>
-                    <TableCell>{survey.active ? 'Có' : 'Không'}</TableCell>
-                    <TableCell>{survey.forCourse ? 'Có' : 'Không'}</TableCell>
                     <TableCell>{survey.createdBy}</TableCell>
                     <TableCell>{formatDate(survey.createdAt)}</TableCell>
                     <TableCell>
@@ -384,7 +452,7 @@ const History = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={7} align="center">
                     Không tìm thấy khảo sát nào
                   </TableCell>
                 </TableRow>
@@ -402,6 +470,178 @@ const History = () => {
           labelRowsPerPage="Số dòng mỗi trang:"
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
         />
+      </>
+    );
+  };
+
+  // Render appointments table
+  const renderAppointmentsTable = () => {
+    const paginatedAppointments = getDataForCurrentPage(filteredAppointments);
+    
+    return (
+      <>
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableCell>ID</TableCell>
+                <TableCell>Khách hàng</TableCell>
+                <TableCell>Chuyên viên tư vấn</TableCell>
+                <TableCell>Chủ đề</TableCell>
+                <TableCell>Ngày hẹn</TableCell>
+                <TableCell>Giờ hẹn</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Đánh giá</TableCell>
+                <TableCell>Chi tiết</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedAppointments.length > 0 ? (
+                paginatedAppointments.map((appointment) => (
+                  <TableRow key={appointment.id} hover>
+                    <TableCell>{appointment.id}</TableCell>
+                    <TableCell>{appointment.customerName}</TableCell>
+                    <TableCell>{appointment.consultantName}</TableCell>
+                    <TableCell>{appointment.topicName}</TableCell>
+                    <TableCell>{formatDate(appointment.appointmentDate)}</TableCell>
+                    <TableCell>{formatTime(appointment.appointmentTime)}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={getStatusLabel(appointment.status)} 
+                        size="small" 
+                        color={getStatusColor(appointment.status)} 
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {appointment.review ? (
+                        <Rating value={appointment.reviewScore} readOnly precision={0.5} size="small" />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">Chưa đánh giá</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="outlined" 
+                        size="small" 
+                        onClick={() => handleOpenDialog(appointment)}
+                      >
+                        Xem chi tiết
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
+                    Không tìm thấy lịch hẹn nào
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filteredAppointments.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
+        />
+        
+        {/* Appointment Detail Dialog */}
+        <Dialog 
+          open={openDialog} 
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          {selectedAppointment && (
+            <>
+              <DialogTitle>
+                Chi tiết lịch hẹn #{selectedAppointment.id}
+              </DialogTitle>
+              <DialogContent dividers>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Thông tin lịch hẹn
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <Typography><strong>Khách hàng:</strong> {selectedAppointment.customerName}</Typography>
+                    <Typography><strong>Số điện thoại:</strong> {selectedAppointment.phoneNumber}</Typography>
+                    <Typography><strong>Email:</strong> {selectedAppointment.email}</Typography>
+                    <Typography><strong>Loại khách:</strong> {selectedAppointment.guest ? 'Khách vãng lai' : 'Người dùng đã đăng ký'}</Typography>
+                    <Typography><strong>Ngày hẹn:</strong> {formatDate(selectedAppointment.appointmentDate)}</Typography>
+                    <Typography><strong>Giờ hẹn:</strong> {formatTime(selectedAppointment.appointmentTime)}</Typography>
+                    <Typography><strong>Chuyên viên tư vấn:</strong> {selectedAppointment.consultantName}</Typography>
+                    <Typography><strong>Chủ đề:</strong> {selectedAppointment.topicName}</Typography>
+                    <Typography><strong>Trạng thái:</strong> {getStatusLabel(selectedAppointment.status)}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography component="span" sx={{ mr: 1 }}><strong>Link Meet:</strong></Typography>
+                      {selectedAppointment.linkGoogleMeet ? (
+                        <Tooltip title="Mở Link Meet">
+                          <IconButton 
+                            color="primary" 
+                            size="small"
+                            onClick={() => openGoogleMeet(selectedAppointment.linkGoogleMeet)}
+                          >
+                            <VideocamIcon />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Typography component="span" color="text.secondary">Không có</Typography>
+                      )}
+                    </Box>
+                    <Typography><strong>Thời gian check-in:</strong> {formatDateTime(selectedAppointment.checkInTime)}</Typography>
+                    <Typography><strong>Thời gian check-out:</strong> {formatDateTime(selectedAppointment.checkOutTime)}</Typography>
+                  </Box>
+                </Box>
+                
+                {selectedAppointment.consultantNote && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Ghi chú của chuyên viên tư vấn
+                    </Typography>
+                    <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                      <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
+                        {selectedAppointment.consultantNote}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
+                
+                {selectedAppointment.review && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Đánh giá của khách hàng
+                    </Typography>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography component="span" variant="body2" mr={1}>
+                        Điểm đánh giá:
+                      </Typography>
+                      <Rating value={selectedAppointment.reviewScore} readOnly precision={0.5} />
+                      <Typography component="span" variant="body2" ml={1}>
+                        ({selectedAppointment.reviewScore}/5)
+                      </Typography>
+                    </Box>
+                    {selectedAppointment.customerReview && (
+                      <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                        <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
+                          {selectedAppointment.customerReview}
+                        </Typography>
+                      </Paper>
+                    )}
+                  </Box>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialog}>Đóng</Button>
+              </DialogActions>
+            </>
+          )}
+        </Dialog>
       </>
     );
   };
@@ -428,8 +668,10 @@ const History = () => {
       return renderCoursesTable();
     } else if (selectedTab === 1) {
       return renderBlogsTable();
-    } else {
+    } else if (selectedTab === 2) {
       return renderSurveysTable();
+    } else {
+      return renderAppointmentsTable();
     }
   };
 
@@ -450,6 +692,7 @@ const History = () => {
           <Tab label="Khóa Học" />
           <Tab label="Bài Viết" />
           <Tab label="Khảo Sát" />
+          <Tab label="Lịch Hẹn Tư Vấn" />
         </Tabs>
       </Paper>
 
@@ -457,7 +700,9 @@ const History = () => {
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Tìm kiếm theo tiêu đề hoặc ID"
+          placeholder={selectedTab === 3 
+            ? "Tìm kiếm theo tên khách hàng, chuyên viên, chủ đề hoặc ID" 
+            : "Tìm kiếm theo tiêu đề hoặc ID"}
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
@@ -484,6 +729,122 @@ const History = () => {
       ) : (
         renderContent()
       )}
+
+      {/* Description Content Dialog */}
+      <Dialog
+        open={openDescriptionDialog}
+        onClose={handleCloseDescriptionDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ p: 2 }}>
+            {typeof selectedDescription === 'string' && selectedDescription.trim().startsWith('<') ? (
+              <div dangerouslySetInnerHTML={{ __html: selectedDescription }} />
+            ) : (
+              <Typography>{selectedDescription}</Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDescriptionDialog}>Đóng</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Appointment Detail Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        {selectedAppointment && (
+          <>
+            <DialogTitle>
+              Chi tiết lịch hẹn #{selectedAppointment.id}
+            </DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Thông tin lịch hẹn
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Typography><strong>Khách hàng:</strong> {selectedAppointment.customerName}</Typography>
+                  <Typography><strong>Số điện thoại:</strong> {selectedAppointment.phoneNumber}</Typography>
+                  <Typography><strong>Email:</strong> {selectedAppointment.email}</Typography>
+                  <Typography><strong>Loại khách:</strong> {selectedAppointment.guest ? 'Khách vãng lai' : 'Người dùng đã đăng ký'}</Typography>
+                  <Typography><strong>Ngày hẹn:</strong> {formatDate(selectedAppointment.appointmentDate)}</Typography>
+                  <Typography><strong>Giờ hẹn:</strong> {formatTime(selectedAppointment.appointmentTime)}</Typography>
+                  <Typography><strong>Chuyên viên tư vấn:</strong> {selectedAppointment.consultantName}</Typography>
+                  <Typography><strong>Chủ đề:</strong> {selectedAppointment.topicName}</Typography>
+                  <Typography><strong>Trạng thái:</strong> {getStatusLabel(selectedAppointment.status)}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography component="span" sx={{ mr: 1 }}><strong>Link Meet:</strong></Typography>
+                    {selectedAppointment.linkGoogleMeet ? (
+                      <Tooltip title="Mở Link Meet">
+                        <IconButton 
+                          color="primary" 
+                          size="small"
+                          onClick={() => openGoogleMeet(selectedAppointment.linkGoogleMeet)}
+                        >
+                          <VideocamIcon />
+                        </IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Typography component="span" color="text.secondary">Không có</Typography>
+                    )}
+                  </Box>
+                  <Typography><strong>Thời gian check-in:</strong> {formatDateTime(selectedAppointment.checkInTime)}</Typography>
+                  <Typography><strong>Thời gian check-out:</strong> {formatDateTime(selectedAppointment.checkOutTime)}</Typography>
+                </Box>
+              </Box>
+              
+              {selectedAppointment.consultantNote && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Ghi chú của chuyên viên tư vấn
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                    <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
+                      {selectedAppointment.consultantNote}
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+              
+              {selectedAppointment.review && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Đánh giá của khách hàng
+                  </Typography>
+                  <Box sx={{ mb: 1 }}>
+                    <Typography component="span" variant="body2" mr={1}>
+                      Điểm đánh giá:
+                    </Typography>
+                    <Rating value={selectedAppointment.reviewScore} readOnly precision={0.5} />
+                    <Typography component="span" variant="body2" ml={1}>
+                      ({selectedAppointment.reviewScore}/5)
+                    </Typography>
+                  </Box>
+                  {selectedAppointment.customerReview && (
+                    <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                      <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
+                        {selectedAppointment.customerReview}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Đóng</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 };
