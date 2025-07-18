@@ -173,9 +173,22 @@ const ContentReview = () => {
   };
 
   const handlePreviewBlog = (content) => {
+    // Create HTML content with cover image if available
+    let previewContent = '<div style="padding: 10px;">';
+    
+    // Add cover image if available
+    if (content.coverImage) {
+      previewContent += `<div style="text-align: center; margin-bottom: 20px;">
+        <img src="${content.coverImage}" alt="Ảnh bìa" style="max-width: 100%; max-height: 400px; object-fit: contain;"/>
+      </div>`;
+    }
+    
+    // Add blog content
+    previewContent += `${content.content || 'Không có nội dung'}</div>`;
+    
     setPreviewDialog({
       open: true,
-      content: content.content,
+      content: previewContent,
       title: 'Xem trước bài viết'
     });
   };
@@ -595,6 +608,22 @@ const ContentReview = () => {
               <Typography variant="body2" color="textSecondary" paragraph>
                 <strong>Ngày tạo:</strong> {formatDate(selectedContent.createdAt)}
               </Typography>
+              
+              {/* Cover Image for blogs */}
+              {selectedTab === 1 && selectedContent.coverImage && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Ảnh bìa:</strong>
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                    <img 
+                      src={selectedContent.coverImage} 
+                      alt="Ảnh bìa" 
+                      style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                    />
+                  </Paper>
+                </Box>
+              )}
               
               {/* Nội dung bài viết */}
               {selectedTab === 1 && selectedContent.content && (
