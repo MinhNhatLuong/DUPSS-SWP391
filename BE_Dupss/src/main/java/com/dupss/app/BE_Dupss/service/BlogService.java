@@ -22,4 +22,5 @@ public interface BlogService {
     Page<BlogSummaryResponse> searchBlogs(String keyword, Long topic, Pageable pageable);
     void updateStatus(Long id, ApprovalStatus status);
     void updateBlog(Long id, BlogRequest blogRequest) throws IOException;
+    void deleteBlog(Long id);
 }

@@ -28,5 +28,7 @@ public interface SurveyService {
     SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request);
     boolean evaluate(int score, SurveyCondition condition);
     void updateStatus(ApprovalStatus status, Long surveyId);
+    void updateSurvey(SurveyCreateRequest request, Long surveyId, MultipartFile coverImage) throws IOException;
+    void deleteSurvey(Long surveyId);
     List<SurveyResponse> getPendingSurveys();
 }

@@ -115,6 +115,16 @@ public class StaffController {
         }
     }
 
+    @PatchMapping("/blog/delete/{blogId}")
+    public ResponseEntity<?> deleteBlog(@PathVariable Long blogId) {
+        try {
+            blogService.deleteBlog(blogId);
+            return ResponseEntity.ok(Map.of("message", "Bài viết đã được xóa thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
+        }
+    }
+
 
     @PostMapping(value = "/course", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
@@ -153,41 +163,24 @@ public class StaffController {
      * API cập nhật khảo sát
      * Staff chỉ có thể cập nhật khảo sát của mình và chưa được phê duyệt
      */
-    @PutMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+    @PatchMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart MultipartFile images) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
-        
-        // Kiểm tra xem người dùng có phải là tác giả của khảo sát không
-        if (!Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Bạn không có quyền cập nhật khảo sát này"));
-        }
-        
-        // Kiểm tra trạng thái của khảo sát
-        if (survey.getStatus() != ApprovalStatus.PENDING && survey.getStatus() != ApprovalStatus.REJECTED) {
+        try{
+            surveyService.updateSurvey(request, id, images);
+            return ResponseEntity.ok(Map.of("message", "Khảo sát đã được cập nhật thành công"));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Chỉ có thể cập nhật khảo sát có trạng thái PENDING hoặc REJECTED"));
+                    .body(Map.of("message", e.getMessage()));
         }
-        
-        // Cập nhật các thuộc tính cơ bản của khảo sát
-        survey.setTitle(request.getTitle());
-        survey.setDescription(request.getDescription());
-        survey.setStatus(ApprovalStatus.PENDING); // Reset status to PENDING after update
-        
-        if (images != null && !images.isEmpty()) {
-            // Xử lý upload hình ảnh nếu cần
+    }
+
+    @PatchMapping("/survey/delete/{surveyId}")
+    public ResponseEntity<?> deleteSurvey(@PathVariable Long surveyId) {
+        try {
+            surveyService.deleteSurvey(surveyId);
+            return ResponseEntity.ok(Map.of("message", "Khảo sát đã được xóa thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
         }
-        
-        Survey updatedSurvey = surveyRepository.save(survey);
-        
-        return ResponseEntity.ok(Map.of("message", "Cập nhật khảo sát thành công", "id", updatedSurvey.getId().toString()));
     }
 }

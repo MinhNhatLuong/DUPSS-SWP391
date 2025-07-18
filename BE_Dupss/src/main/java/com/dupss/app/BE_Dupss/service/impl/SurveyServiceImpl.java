@@ -12,6 +12,7 @@ import com.dupss.app.BE_Dupss.service.CloudinaryService;
 import com.dupss.app.BE_Dupss.service.SurveyService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -247,6 +248,7 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     @Override
+    @Transactional
     public void updateStatus(ApprovalStatus status, Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
@@ -256,6 +258,91 @@ public class SurveyServiceImpl implements SurveyService {
             throw new RuntimeException("Khảo sát đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
         }
 //        survey.setCheckedBy(currentUser);
+        surveyRepository.save(survey);
+    }
+
+    @Override
+    public void updateSurvey(SurveyCreateRequest request, Long surveyId, MultipartFile coverImage) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
+        // Kiểm tra xem người dùng có phải là tác giả của khảo sát không
+        if (!Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
+            throw new RuntimeException("Bạn không có quyền cập nhật khảo sát này");
+        }
+        if (request.getTitle()!= null) {
+            survey.setTitle(request.getTitle());
+        }
+        if (request.getDescription() != null) {
+            survey.setDescription(request.getDescription());
+        }
+        if (coverImage != null && !coverImage.isEmpty()) {
+            String imageUrl = cloudinaryService.uploadFile(coverImage);
+            survey.setSurveyImage(imageUrl);
+        }
+        // Cập nhật các section
+        if (request.getConditions() != null && !request.getSections().isEmpty()) {
+            survey.getSections().clear(); // orphanRemoval = true sẽ xóa tự động
+            for (SurveyCreateRequest.SurveySection sectionRequest : request.getSections()) {
+                SurveySection section = new SurveySection();
+                section.setSurvey(survey);
+                section.setSectionName(sectionRequest.getSectionName());
+
+                List<SurveyQuestion> questions = new ArrayList<>();
+                for (SurveyCreateRequest.SurveySection.QuestionRequest questionRequest : sectionRequest.getQuestions()) {
+                    SurveyQuestion question = new SurveyQuestion();
+                    question.setQuestionText(questionRequest.getQuestionText());
+                    question.setSection(section);
+
+                    List<SurveyOption> options = new ArrayList<>();
+                    for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
+                        SurveyOption option = new SurveyOption();
+                        option.setOptionText(optionRequest.getOptionText());
+                        option.setScore(optionRequest.getScore());
+                        option.setQuestion(question);
+                        options.add(option);
+                    }
+                    question.setOptions(options);
+                    questions.add(question);
+                }
+
+                section.setQuestions(questions);
+                survey.getSections().add(section);
+            }
+        }
+
+        // Cập nhật conditions
+       if (request.getConditions() != null && !request.getConditions().isEmpty()) {
+           survey.getConditions().clear();
+           for (SurveyCreateRequest.ConditionRequest conditionRequest : request.getConditions()) {
+               SurveyCondition condition = new SurveyCondition();
+               condition.setSurvey(survey);
+               condition.setOperator(conditionRequest.getOperator());
+               condition.setValue(conditionRequest.getValue());
+               condition.setMessage(conditionRequest.getMessage());
+               survey.getConditions().add(condition);
+           }
+       }
+        surveyRepository.save(survey);
+
+    }
+
+    @Override
+    public void deleteSurvey(Long surveyId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
+        // Kiểm tra xem người dùng có phải là tác giả của khảo sát không
+        if (!Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
+            throw new RuntimeException("Bạn không có quyền cập nhật khảo sát này");
+        }
+        survey.setActive(false);
         surveyRepository.save(survey);
     }
 

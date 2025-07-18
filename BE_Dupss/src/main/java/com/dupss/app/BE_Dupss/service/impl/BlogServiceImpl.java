@@ -296,6 +296,23 @@ public class BlogServiceImpl implements BlogService {
 
     }
 
+    @Override
+    public void deleteBlog(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Blog blog = blogRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
+
+        if (blog.getAuthor().getId() != currentUser.getId() && currentUser.getRole() != ERole.ROLE_STAFF) {
+            throw new AccessDeniedException("Bạn chỉ có thể xóa các khóa học của chính mình");
+        }
+        blog.setActive(false);
+        blogRepository.save(blog);
+    }
+
 
     private BlogResponse mapToResponse(Blog blog, String authorName) {
         return BlogResponse.builder()
