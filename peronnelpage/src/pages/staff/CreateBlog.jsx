@@ -10,7 +10,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Chip,
   CircularProgress,
   Alert,
   Snackbar,
@@ -36,11 +35,9 @@ const CreateBlog = () => {
     description: '',
     content: '',
     topicId: '',
-    tags: [],
     image: null,
   });
   
-  const [newTag, setNewTag] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [topics, setTopics] = useState([]);
@@ -86,26 +83,6 @@ const CreateBlog = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setBlog(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTagInput = (e) => {
-    if (e.key === 'Enter' && newTag.trim() !== '') {
-      e.preventDefault();
-      if (!blog.tags.includes(newTag.trim())) {
-        setBlog(prev => ({ 
-          ...prev, 
-          tags: [...prev.tags, newTag.trim()]
-        }));
-      }
-      setNewTag('');
-    }
-  };
-
-  const handleDeleteTag = (tagToDelete) => {
-    setBlog(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToDelete)
-    }));
   };
 
   const handleImageChange = (e) => {
@@ -173,13 +150,6 @@ const CreateBlog = () => {
       formData.append('images', blog.image);
     }
     
-    // Handle tags
-    if (blog.tags && blog.tags.length > 0) {
-      // Join tags array into a single string with commas if the API expects a string
-      // Or append each tag individually if the API expects an array
-      blog.tags.forEach(tag => formData.append('tags', tag));
-    }
-    
     try {
       const token = getAccessToken();
       
@@ -189,8 +159,7 @@ const CreateBlog = () => {
         topicId: blog.topicId,
         description: blog.description,
         contentLength: currentContent.length,
-        hasImage: !!blog.image,
-        tags: blog.tags
+        hasImage: !!blog.image
       });
       
       // Use apiClient with proper URL
@@ -219,7 +188,6 @@ const CreateBlog = () => {
         description: '',
         content: '',
         topicId: '',
-        tags: [],
         image: null,
       });
       setPreviewImage(null);
@@ -496,69 +464,24 @@ const CreateBlog = () => {
           />
         </Box>
         
-        {/* Tags and buttons */}
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
-          {/* Tags */}
-          <Box 
-            sx={{ 
-              flex: 2,
-              border: '1px solid rgba(0, 0, 0, 0.23)', 
-              borderRadius: 1,
-              p: 2,
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              height: '56px'
-            }}
+        {/* Action buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+          <Button
+            type="button"
+            variant="outlined"
+            startIcon={<DescriptionIcon />}
+            onClick={handleSaveDraft}
           >
-            <Typography sx={{ color: 'text.secondary', minWidth: 'max-content', mr: 2 }}>
-              Tags
-            </Typography>
-            
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, flexGrow: 1 }}>
-              {blog.tags.map((tag) => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  onDelete={() => handleDeleteTag(tag)}
-                  size="small"
-                  color="primary"
-                />
-              ))}
-            </Box>
-            
-            <TextField
-              placeholder="Nhập tag và nhấn Enter để thêm"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={handleTagInput}
-              variant="standard"
-              sx={{ flexGrow: 1 }}
-              InputProps={{ 
-                disableUnderline: true
-              }}
-            />
-          </Box>
-          
-          {/* Action buttons */}
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-            <Button
-              type="button"
-              variant="outlined"
-              startIcon={<DescriptionIcon />}
-              onClick={handleSaveDraft}
-            >
-              Lưu nháp
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<SaveIcon />}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Lưu blog'}
-            </Button>
-          </Box>
+            Lưu nháp
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Lưu blog'}
+          </Button>
         </Box>
       </Box>
       
