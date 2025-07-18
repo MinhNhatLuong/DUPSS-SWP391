@@ -389,10 +389,6 @@ public class CourseService {
             course.setDescription(request.getDescription());
         }
 
-//        if (request.getTargetAudience() != null) {
-//            course.setTargetAudience(request.getTargetAudience());
-//        }
-
         if (request.getContent() != null) {
             course.setContent(request.getContent());
         }

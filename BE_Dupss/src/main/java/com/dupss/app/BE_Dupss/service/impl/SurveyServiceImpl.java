@@ -113,7 +113,7 @@ public class SurveyServiceImpl implements SurveyService {
             condition.setOperator(conditionRequest.getOperator());
             condition.setValue(conditionRequest.getValue());
             condition.setMessage(conditionRequest.getMessage());
-                condition.setSurvey(survey);
+            condition.setSurvey(survey);
             conditions.add(condition);
         }
         survey.setConditions(conditions);
@@ -327,8 +327,7 @@ public class SurveyServiceImpl implements SurveyService {
            }
        }
        survey.setStatus(ApprovalStatus.PENDING);
-        surveyRepository.save(survey);
-
+       surveyRepository.save(survey);
     }
 
     @Override
