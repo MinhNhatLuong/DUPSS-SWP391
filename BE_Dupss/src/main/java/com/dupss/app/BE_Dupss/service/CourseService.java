@@ -458,6 +458,7 @@ public class CourseService {
             surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
         }
+        course.setStatus(ApprovalStatus.PENDING);
 
         return mapToCourseResponse(savedCourse, modules, currentUser);
     }

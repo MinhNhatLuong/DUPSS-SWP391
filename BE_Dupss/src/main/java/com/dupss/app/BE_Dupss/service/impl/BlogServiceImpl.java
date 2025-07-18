@@ -292,6 +292,9 @@ public class BlogServiceImpl implements BlogService {
             String imageUrl = cloudinaryService.uploadFile(blogRequest.getCoverImage());
             blog.setCoverImage(imageUrl);
         }
+
+        blog.setStatus(ApprovalStatus.PENDING);
+
         blogRepository.save(blog);
 
     }

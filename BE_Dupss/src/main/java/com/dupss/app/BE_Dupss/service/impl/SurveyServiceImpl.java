@@ -326,6 +326,7 @@ public class SurveyServiceImpl implements SurveyService {
                survey.getConditions().add(condition);
            }
        }
+       survey.setStatus(ApprovalStatus.PENDING);
         surveyRepository.save(survey);
 
     }
