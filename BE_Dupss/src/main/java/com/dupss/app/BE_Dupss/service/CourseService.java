@@ -389,10 +389,6 @@ public class CourseService {
             course.setDescription(request.getDescription());
         }
 
-//        if (request.getTargetAudience() != null) {
-//            course.setTargetAudience(request.getTargetAudience());
-//        }
-
         if (request.getContent() != null) {
             course.setContent(request.getContent());
         }
@@ -453,9 +449,8 @@ public class CourseService {
         }
 
         if (request.getQuiz() != null) {
-            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), null, currentUser);
-            quiz.setForCourse(true);
-            surveyRepository.save(quiz);
+            Survey quiz = courseRepository.findSurveyQuizById(courseId).orElseThrow(() -> new RuntimeException("Quiz not found with id: " + courseId));
+            surveyService.updateSurvey(request.getQuiz(), quiz.getId(), null);
             savedCourse.setSurveyQuiz(quiz);
         }
         course.setStatus(ApprovalStatus.PENDING);
