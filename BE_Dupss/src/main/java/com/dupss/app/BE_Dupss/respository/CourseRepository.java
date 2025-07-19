@@ -2,6 +2,7 @@ package com.dupss.app.BE_Dupss.respository;
 
 import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
 import com.dupss.app.BE_Dupss.entity.Course;
+import com.dupss.app.BE_Dupss.entity.Survey;
 import com.dupss.app.BE_Dupss.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByStatusAndActiveTrue(ApprovalStatus status);
     List<Course> findAllByActiveTrue();
     Optional<Course> findByIdAndActiveTrue(Long id);
+    Optional<Survey> findSurveyQuizById(Long id);
     
 //    @Query("SELECT c FROM Course c JOIN Topic t on c.topic.id = t.id WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
 //            "(:topic IS NULL OR c.topic.id = :topic) OR " +
