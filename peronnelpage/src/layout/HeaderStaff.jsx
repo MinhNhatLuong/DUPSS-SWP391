@@ -21,6 +21,7 @@ import {
   AccountCircle,
   Logout,
   Settings,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { logout, getUserInfo } from '../utils/auth';
 
@@ -79,10 +80,11 @@ const HeaderStaff = ({ userName }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/staff/dashboard' },
+    { text: 'Bảng thông tin', icon: <DashboardIcon />, path: '/staff/dashboard' },
     { text: 'Tạo Blog', icon: <ArticleIcon />, path: '/staff/create-blog' },
     { text: 'Tạo Khóa Học', icon: <SchoolIcon />, path: '/staff/create-course' },
     { text: 'Tạo Khảo Sát', icon: <PollIcon />, path: '/staff/create-survey' },
+    { text: 'Lịch Sử', icon: <HistoryIcon />, path: '/staff/history' },
   ];
 
   // Lấy chữ cái đầu tiên của tên người dùng để hiển thị trong Avatar nếu không có avatar

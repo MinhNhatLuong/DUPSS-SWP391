@@ -20,6 +20,7 @@ import StaffDashboard from './pages/staff/Dashboard';
 import CreateBlog from './pages/staff/CreateBlog';
 import CreateCourse from './pages/staff/CreateCourse';
 import CreateSurvey from './pages/staff/CreateSurvey';
+import StaffHistory from './pages/staff/History';
 import ProfilePage from './pages/ProfilePage';
 import ChangePassword from './pages/ChangePassword';
 import { isAuthenticated, getUserInfo, checkAndRefreshToken } from './utils/auth';
@@ -321,6 +322,12 @@ function App() {
                         <>
                           <PageTitle title="Tạo khảo sát" />
                           <CreateSurvey />
+                        </>
+                      } />
+                      <Route path="history" element={
+                        <>
+                          <PageTitle title="Lịch sử nội dung" />
+                          <StaffHistory />
                         </>
                       } />
                       <Route path="profile" element={
