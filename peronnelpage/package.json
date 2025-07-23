@@ -25,6 +25,7 @@
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "react": "^19.1.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "recharts": "^2.15.3",

@@ -20,7 +20,16 @@ import {
   Grid,
   Pagination,
   Tooltip,
-  Container
+  Container,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Snackbar,
+  AlertTitle
 } from '@mui/material';
 import {
   Article as ArticleIcon,
@@ -31,10 +40,13 @@ import {
   HourglassEmpty as PendingIcon,
   CalendarToday as CalendarIcon,
   Topic as TopicIcon,
-  Label as LabelIcon
+  Label as LabelIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import apiClient from '../../services/apiService';
+import { useNavigate } from 'react-router-dom';
 
 // Component to display status with appropriate color and icon
 const StatusChip = ({ status }) => {
@@ -81,6 +93,7 @@ const formatDate = (dateString) => {
 };
 
 const History = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [blogs, setBlogs] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -103,6 +116,21 @@ const History = () => {
     surveys: 1
   });
   const itemsPerPage = 6;
+  
+  // Dialog states
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    type: null, // 'blog', 'course', or 'survey'
+    id: null,
+    title: ''
+  });
+  
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -170,6 +198,93 @@ const History = () => {
     } finally {
       setLoading(prev => ({ ...prev, surveys: false }));
     }
+  };
+  
+  // Handle edit action
+  const handleEdit = (type, id) => {
+    // Redirect to edit page based on type
+    console.log(`Editing ${type} with ID: ${id}`);
+    
+    // Make sure id is a clean number without any colons or other characters
+    const cleanId = id.toString().split(':')[0];
+    
+    switch (type) {
+      case 'blog':
+        navigate(`/staff/edit-blog/${cleanId}`);
+        break;
+      case 'course':
+        navigate(`/staff/edit-course/${cleanId}`);
+        break;
+      case 'survey':
+        navigate(`/staff/edit-survey/${cleanId}`);
+        break;
+      default:
+        break;
+    }
+  };
+  
+  // Open delete confirmation dialog
+  const openDeleteDialog = (type, id, title) => {
+    setDeleteDialog({
+      open: true,
+      type,
+      id,
+      title
+    });
+  };
+  
+  // Close delete confirmation dialog
+  const closeDeleteDialog = () => {
+    setDeleteDialog({
+      open: false,
+      type: null,
+      id: null,
+      title: ''
+    });
+  };
+  
+  // Handle delete action
+  const handleDelete = async () => {
+    const { type, id } = deleteDialog;
+    
+    try {
+      switch (type) {
+        case 'blog':
+          await apiClient.patch(`/staff/blog/delete/${id}`);
+          setBlogs(blogs.filter(blog => blog.id !== id));
+          break;
+        case 'course':
+          await apiClient.patch(`/staff/course/delete/${id}`);
+          setCourses(courses.filter(course => course.id !== id));
+          break;
+        case 'survey':
+          await apiClient.patch(`/staff/survey/delete/${id}`);
+          setSurveys(surveys.filter(survey => survey.surveyId !== id));
+          break;
+        default:
+          break;
+      }
+      
+      setSnackbar({
+        open: true,
+        message: 'Xóa thành công!',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      setSnackbar({
+        open: true,
+        message: `Lỗi khi xóa: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      closeDeleteDialog();
+    }
+  };
+  
+  // Handle snackbar close
+  const handleSnackbarClose = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
   
   // Fetch all data on component mount
@@ -271,11 +386,33 @@ const History = () => {
                         {blog.topic || 'Không có chủ đề'}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarIcon fontSize="small" color="action" />
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(blog.createdAt)}
-                      </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalendarIcon fontSize="small" color="action" />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(blog.createdAt)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title="Sửa bài viết">
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={() => handleEdit('blog', blog.id)}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Xóa bài viết">
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => openDeleteDialog('blog', blog.id, blog.title)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Box>
@@ -382,9 +519,29 @@ const History = () => {
                           {formatDate(course.createdAt)}
                         </Typography>
                       </Box>
-                      <Typography variant="caption" color="primary" fontWeight="bold">
-                        {course.modules?.length || 0} module(s)
-                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Typography variant="caption" color="primary" fontWeight="bold" sx={{ mr: 2 }}>
+                          {course.modules?.length || 0} module(s)
+                        </Typography>
+                        <Tooltip title="Sửa khóa học">
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={() => handleEdit('course', course.id)}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Xóa khóa học">
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => openDeleteDialog('course', course.id, course.title)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Box>
@@ -491,11 +648,33 @@ const History = () => {
                           {formatDate(survey.createdAt)}
                         </Typography>
                       </Box>
-                      <Chip 
-                        label={survey.forCourse ? "Khóa học" : "Khảo sát độc lập"} 
-                        size="small" 
-                        color={survey.forCourse ? "primary" : "secondary"}
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Chip 
+                          label={survey.forCourse ? "Khóa học" : "Khảo sát độc lập"} 
+                          size="small" 
+                          color={survey.forCourse ? "primary" : "secondary"}
+                        />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Tooltip title="Sửa khảo sát">
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => handleEdit('survey', survey.surveyId)}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Xóa khảo sát">
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => openDeleteDialog('survey', survey.surveyId, survey.surveyTitle)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Box>
@@ -584,6 +763,48 @@ const History = () => {
           {activeTab === 2 && renderSurveysTable()}
         </Box>
       </Container>
+      
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={closeDeleteDialog}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Xác nhận xóa
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Bạn có chắc chắn muốn xóa "{deleteDialog.title}"? Hành động này không thể hoàn tác.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} color="primary">
+            Hủy
+          </Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity} 
+          variant="filled" 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

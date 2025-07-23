@@ -20,6 +20,9 @@ import StaffDashboard from './pages/staff/Dashboard';
 import CreateBlog from './pages/staff/CreateBlog';
 import CreateCourse from './pages/staff/CreateCourse';
 import CreateSurvey from './pages/staff/CreateSurvey';
+import EditBlog from './pages/staff/EditBlog';
+import EditCourse from './pages/staff/EditCourse';
+import EditSurvey from './pages/staff/EditSurvey';
 import StaffHistory from './pages/staff/History';
 import ProfilePage from './pages/ProfilePage';
 import ChangePassword from './pages/ChangePassword';
@@ -312,16 +315,34 @@ function App() {
                           <CreateBlog />
                         </>
                       } />
+                      <Route path="edit-blog/:id" element={
+                        <>
+                          <PageTitle title="Chỉnh sửa bài viết" />
+                          <EditBlog />
+                        </>
+                      } />
                       <Route path="create-course" element={
                         <>
                           <PageTitle title="Tạo khóa học" />
                           <CreateCourse />
                         </>
                       } />
+                      <Route path="edit-course/:id" element={
+                        <>
+                          <PageTitle title="Chỉnh sửa khóa học" />
+                          <EditCourse />
+                        </>
+                      } />
                       <Route path="create-survey" element={
                         <>
                           <PageTitle title="Tạo khảo sát" />
                           <CreateSurvey />
+                        </>
+                      } />
+                      <Route path="edit-survey/:id" element={
+                        <>
+                          <PageTitle title="Chỉnh sửa khảo sát" />
+                          <EditSurvey />
                         </>
                       } />
                       <Route path="history" element={

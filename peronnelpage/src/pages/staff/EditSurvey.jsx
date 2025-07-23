@@ -16,16 +16,22 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import { Editor } from '@tinymce/tinymce-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getAccessToken, checkAndRefreshToken } from '../../utils/auth';
 import apiClient from '../../services/apiService';
 import { API_URL } from '../../services/config';
 
-const CreateSurvey = () => {
+const EditSurvey = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const editorRef = useRef(null);
+  
+  // State for survey data
   const [survey, setSurvey] = useState({
     title: '',
     description: '',
@@ -43,6 +49,81 @@ const CreateSurvey = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Fetch survey data
+  useEffect(() => {
+    const fetchSurvey = async () => {
+      try {
+        setInitialLoading(true);
+        
+        // Ensure we have a valid token
+        await checkAndRefreshToken();
+        const token = getAccessToken();
+        
+        // Use axios directly with proper headers
+        const response = await axios.get(`${API_URL}/staff/surveys/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const surveyData = response.data;
+        
+        // Format the survey data to match our state structure
+        console.log('Survey data from API:', surveyData);
+        
+        setSurvey({
+          title: surveyData.title || surveyData.surveyTitle || '',
+          description: surveyData.description || '',
+          imageCover: null,
+          active: surveyData.active !== false,
+          forCourse: surveyData.forCourse || false,
+          sections: surveyData.sections?.map(section => ({
+            sectionName: section.sectionName || '',
+            questions: section.questions?.map(question => ({
+              questionText: question.questionText || '',
+              options: question.options?.map(option => ({
+                optionText: option.optionText || '',
+                score: option.score || 0
+              })) || []
+            })) || []
+          })) || [],
+          conditions: surveyData.conditions?.map(condition => ({
+            message: condition.message || '',
+            value: condition.value || 0,
+            operator: condition.operator || '='
+          })) || []
+        });
+        
+        // Set image preview if available
+        if (surveyData.surveyImage) {
+          setImagePreview(surveyData.surveyImage);
+        }
+        
+        // Set UI visibility based on data
+        if (surveyData.sections && surveyData.sections.length > 0) {
+          setShowSectionsUI(true);
+        }
+        
+        if (surveyData.conditions && surveyData.conditions.length > 0) {
+          setShowConditionsUI(true);
+        }
+        
+      } catch (err) {
+        console.error('Error fetching survey:', err);
+        setSnackbar({
+          open: true,
+          message: 'Không thể tải thông tin khảo sát. Vui lòng thử lại sau.',
+          severity: 'error'
+        });
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    
+    fetchSurvey();
+  }, [id]);
 
   // Handle basic field changes
   const handleChange = (e) => {
@@ -72,7 +153,7 @@ const CreateSurvey = () => {
       imagePreview: imagePreview
     };
     
-    localStorage.setItem('surveyDraft', JSON.stringify(updatedSurvey));
+    localStorage.setItem('surveyEditDraft', JSON.stringify(updatedSurvey));
     
     setSnackbar({
       open: true,
@@ -80,22 +161,6 @@ const CreateSurvey = () => {
       severity: 'success'
     });
   };
-
-  // Load draft from local storage
-  useEffect(() => {
-    const savedDraft = localStorage.getItem('surveyDraft');
-    if (savedDraft) {
-      try {
-        const parsedDraft = JSON.parse(savedDraft);
-        setSurvey(parsedDraft);
-        if (parsedDraft.imagePreview) {
-          setImagePreview(parsedDraft.imagePreview);
-        }
-      } catch (error) {
-        console.error('Error loading draft:', error);
-      }
-    }
-  }, []);
 
   // Submit form
   const handleSubmit = async (e) => {
@@ -132,16 +197,6 @@ const CreateSurvey = () => {
       // Get fresh token after potential refresh
       const accessToken = getAccessToken();
       
-      if (!accessToken) {
-        setSnackbar({
-          open: true,
-          message: 'Không tìm thấy token xác thực. Vui lòng đăng nhập lại.',
-          severity: 'error'
-        });
-        setLoading(false);
-        return;
-      }
-      
       // Create survey request object according to required format
       const surveyRequest = {
         title: survey.title,
@@ -165,16 +220,11 @@ const CreateSurvey = () => {
         }))
       };
       
-      console.log('Sending survey data:', surveyRequest);
-      
-      // Convert request to string
-      const requestString = JSON.stringify(surveyRequest);
-      
       // Prepare form data for multipart submission
       const formData = new FormData();
       
       // Add the JSON request as a string with parameter "request"
-      formData.append('request', new Blob([requestString], {
+      formData.append('request', new Blob([JSON.stringify(surveyRequest)], {
         type: 'application/json'
       }));
       
@@ -185,8 +235,8 @@ const CreateSurvey = () => {
       
       // Submit the survey using the project's authentication pattern
       const response = await axios({
-        method: 'post',
-        url: `${API_URL}/survey`,
+        method: 'patch',
+        url: `${API_URL}/staff/survey/${id}`,
         data: formData,
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -194,38 +244,24 @@ const CreateSurvey = () => {
         }
       });
       
-      console.log('Response:', response.data);
-      
       setSnackbar({
         open: true,
-        message: 'Khảo sát đã được tạo thành công!',
+        message: 'Khảo sát đã được cập nhật thành công!',
         severity: 'success'
       });
       
-      // Clear the form and draft
-      localStorage.removeItem('surveyDraft');
-      setSurvey({
-        title: '',
-        description: '',
-        imageCover: null,
-        active: true,
-        forCourse: false,
-        sections: [],
-        conditions: []
-      });
-      setImagePreview(null);
-      if (editorRef.current) {
-        editorRef.current.setContent('');
-      }
+      // Clear the draft
+      localStorage.removeItem('surveyEditDraft');
       
-      // Reset UI visibility
-      setShowSectionsUI(false);
-      setShowConditionsUI(false);
+      // Navigate back after success
+      setTimeout(() => {
+        navigate('/staff/history');
+      }, 2000);
+      
     } catch (error) {
-      console.error('Error creating survey:', error);
-      console.error('Error response:', error.response?.data || 'No response data');
+      console.error('Error updating survey:', error);
       
-      let errorMessage = 'Có lỗi khi tạo khảo sát';
+      let errorMessage = 'Có lỗi khi cập nhật khảo sát';
       
       if (error.response) {
         if (error.response.status === 401) {
@@ -417,10 +453,18 @@ const CreateSurvey = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  if (initialLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold', textAlign: 'left' }}>
-        Tạo Khảo Sát
+        Chỉnh Sửa Khảo Sát
       </Typography>
       
       <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 1200, mx: 'auto' }}>
@@ -792,22 +836,32 @@ const CreateSurvey = () => {
         </Box>
         
         {/* Action buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4 }}>
           <Button
             variant="outlined"
-            startIcon={<SaveIcon />}
-            onClick={handleSaveDraft}
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/staff/history')}
           >
-            Lưu nháp
+            Quay lại
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Lưu khảo sát'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveDraft}
+              disabled={loading}
+            >
+              Lưu nháp
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SaveIcon />}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Lưu thay đổi'}
+            </Button>
+          </Box>
         </Box>
       </Box>
       
@@ -825,4 +879,4 @@ const CreateSurvey = () => {
   );
 };
 
-export default CreateSurvey; 
+export default EditSurvey; 
