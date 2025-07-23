@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -83,36 +84,6 @@ public class CourseService {
 
         // Create modules if provided
         List<CourseModule> modules = new ArrayList<>();
-//        if (request.getModules() != null && !request.getModules().isEmpty()) {
-//            for (CourseModuleRequest moduleRequest : request.getModules()) {
-//                CourseModule module = new CourseModule();
-//                module.setTitle(moduleRequest.getTitle());
-//                module.setOrderIndex(moduleRequest.getOrderIndex());
-//                module.setCourse(savedCourse);
-//
-//                List<VideoCourse> videos = new ArrayList<>();
-//                if (moduleRequest.getVideos() != null) {
-//                    for (CourseModuleRequest.VideoCourseRequest url : moduleRequest.getVideos()) {
-//                        VideoCourse video = new VideoCourse();
-//                        video.setTitle(url.getTitle());
-//                        video.setVideoUrl(url.getVideoUrl());
-//                        video.setCourseModule(module);
-//                        videos.add(video);
-//                    }
-//                }
-//                module.setVideos(videos);
-//                modules.add(module);
-//
-//            }
-//            moduleRepository.saveAll(modules);
-//        }
-//
-//        if (request.getQuiz() != null) {
-//            Survey quiz = surveyService.createAndSaveSurveyEntity(request.getQuiz(), null, currentUser);
-//            quiz.setForCourse(true);
-//            surveyRepository.save(quiz);
-//            savedCourse.setSurveyQuiz(quiz);
-//        }
 
         if (StringUtils.hasText(request.getModules())) {
             List<CourseModuleRequest> moduleRequests = objectMapper.readValue(
@@ -244,18 +215,14 @@ public class CourseService {
         
         User currentUser = userRepository.findByUsername(username).orElse(null);
         
-        Course course = courseRepository.findById(id)
+        Course course = courseRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
         
         List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
-        
-//        boolean isEnrolled = false;
-//        if (currentUser != null) {
-//            isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
-//        }
+
 
         boolean isEnrolled = enrollmentRepository.existsByUserAndCourse(currentUser, course);
-        boolean isOwner = course.getCreator() != null && course.getCreator().equals(currentUser.getId());
+        boolean isOwner = course.getCreator() != null && Objects.equals(course.getCreator().getId(), currentUser.getId());
 
         if (!isEnrolled && !isOwner) {
             throw new AccessDeniedException("You are not authorized to view this course.");
@@ -530,6 +497,7 @@ public class CourseService {
         SurveyResponse quizResponse = null;
         if (course.getSurveyQuiz() != null) {
             quizResponse = SurveyResponse.builder()
+                    .id(course.getSurveyQuiz().getId())
                     .title(course.getSurveyQuiz().getTitle())
                     .sections(course.getSurveyQuiz().getSections().stream()
                             .map(SurveyResponse.SurveySectionDTO::fromEntity)
@@ -537,6 +505,8 @@ public class CourseService {
                     .conditions(course.getSurveyQuiz().getConditions().stream()
                             .map(SurveyResponse.SurveyConditionDTO::fromEntity)
                             .collect(Collectors.toList()))
+                    .forCourse(course.getSurveyQuiz().isForCourse())
+                    .active(course.getSurveyQuiz().isActive())
                     .build();
         }
 

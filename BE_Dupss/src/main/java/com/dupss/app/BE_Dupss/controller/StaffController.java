@@ -74,7 +74,6 @@ public class StaffController {
      * API lấy tất cả bài viết của Staff hiện tại
      */
     @GetMapping("/blogs")
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<List<BlogResponse>> getMyBlogs() {
         List<BlogResponse> blogResponses = blogService.getCreatedBlogs();
         return ResponseEntity.ok(blogResponses);

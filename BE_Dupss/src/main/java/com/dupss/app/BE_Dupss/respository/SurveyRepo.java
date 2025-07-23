@@ -8,10 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SurveyRepo extends JpaRepository<Survey, Long> {
     List<Survey> findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(boolean forCourse);
     List<Survey> findByStatus(ApprovalStatus status);
     List<Survey> findByCreatedBy(User user);
     List<Survey> findByStatusAndActiveTrueAndForCourseFalse(ApprovalStatus status);
+    Optional<Survey> findByIdAndActiveTrue(Long id);
 }

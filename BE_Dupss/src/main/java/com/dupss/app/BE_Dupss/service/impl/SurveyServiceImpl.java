@@ -409,7 +409,7 @@ public class SurveyServiceImpl implements SurveyService {
         boolean isAuthenticated = authentication != null && authentication.isAuthenticated() && 
                                  !authentication.getName().equals("anonymousUser");
         
-        Survey survey = surveyRepository.findById(id)
+        Survey survey = surveyRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Survey not found with id: " + id));
         
         // Kiểm tra quyền truy cập
