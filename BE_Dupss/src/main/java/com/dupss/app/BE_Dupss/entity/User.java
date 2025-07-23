@@ -20,7 +20,6 @@ import java.util.*;
 @Builder
 @Entity
 
-//@Inheritance(strategy = InheritanceType.JOINED)
 
 @Table (name = "users",
         uniqueConstraints = {

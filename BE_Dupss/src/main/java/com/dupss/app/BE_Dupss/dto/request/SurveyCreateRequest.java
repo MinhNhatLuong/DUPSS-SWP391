@@ -22,12 +22,6 @@ public class SurveyCreateRequest {
     private String title;
 
     private String description;
-//    private MultipartFile imageCover;
-
-//    @Valid
-//    @NotEmpty(message = "At least one question is required")
-//    private List<QuestionRequest> questions;
-
     @Valid
     @NotEmpty(message = "At least one section is required")
     private List<SurveySection> sections;

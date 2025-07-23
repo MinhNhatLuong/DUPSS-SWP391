@@ -19,9 +19,6 @@ public class SurveyQuestion {
     @Column(nullable = false, length = 1000)
     private String questionText;
 
-//    @Column(nullable = false)
-//    private boolean required;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id", nullable = false)
     private SurveySection section;

@@ -66,25 +66,6 @@ public class BlogServiceImpl implements BlogService {
         // Save blog to get ID
         Blog savedBlog = blogRepository.save(blog);
 
-        // Handle images if provided
-//        List<BlogImage> blogImages = new ArrayList<>();
-//        List<String> imageUrls = new ArrayList<>();
-//        if (blogRequest.getImages() != null && !blogRequest.getImages().isEmpty()) {
-//            for (MultipartFile imageFile : blogRequest.getImages()) {
-//                if (!imageFile.isEmpty()) {
-//                    // Upload to Cloudinary
-//                    String imageUrl = cloudinaryService.uploadFile(imageFile);
-//                    imageUrls.add(imageUrl);
-//
-//                    // Create and save BlogImage entity
-//                    BlogImage blogImage = new BlogImage();
-//                    blogImage.setImageUrl(imageUrl);
-//                    blogImage.setBlogPost(savedBlog);
-//                    blogImages.add(blogImage);
-//                }
-//            }
-//        }
-
         if (blogRequest.getCoverImage() != null && !blogRequest.getCoverImage().isEmpty()) {
             String imageUrl = cloudinaryService.uploadFile(blogRequest.getCoverImage());
             blog.setCoverImage(imageUrl);

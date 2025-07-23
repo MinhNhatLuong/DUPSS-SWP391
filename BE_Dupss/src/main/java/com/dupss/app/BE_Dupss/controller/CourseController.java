@@ -45,7 +45,6 @@ public class CourseController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
     public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
-//        CourseCreateRequest request = objectMapper.readValue(rawJson, CourseCreateRequest.class);
         CourseResponse response = courseService.createCourse(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

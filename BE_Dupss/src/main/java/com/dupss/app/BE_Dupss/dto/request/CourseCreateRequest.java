@@ -29,7 +29,6 @@ public class CourseCreateRequest {
     @Positive(message = "Thời lượng khóa học phải lớn hơn 0")
     private Integer duration;
 
-//    private List<CourseModuleRequest> modules;
     private String modules;
 
     @Valid

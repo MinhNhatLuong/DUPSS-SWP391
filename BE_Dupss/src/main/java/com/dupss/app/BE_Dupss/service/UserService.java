@@ -50,14 +50,6 @@ public class UserService implements CommandLineRunner {
     private final CloudinaryService cloudinaryService;
     private final JwtService jwtService;
 
-//    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-//                       MailService mailService, CloudinaryService cloudinaryService) {
-//        this.userRepository = userRepository;
-//        this.passwordEncoder = passwordEncoder;
-//        this.mailService = mailService;
-//        this.cloudinaryService = cloudinaryService;
-//    }
-
     @Override
     public void run(String... args) throws Exception {
         createAdminUserIfNotExists();
@@ -169,23 +161,7 @@ public class UserService implements CommandLineRunner {
 
 //         Giải mã token để lấy username
         String username = jwtService.getUsernameFromToken(token);
-//        return userRepository.findByUsernameAndEnabledTrue(username)
-//                .map(user -> UserDetailResponse.builder()
-//                        .id(user.getId())
-//                        .username(user.getUsername())
-//                        .email(user.getEmail())
-//                        .phone(user.getPhone())
-//                        .fullName(user.getFullname())
-//                        .gender(user.getGender())
-//                        .yob(user.getYob())
-//                        .avatar(user.getAvatar())
-//                        .address(user.getAddress())
-//                        .bio(user.getConsultantProfile().getBio())
-//                        .certificates(user.getConsultantProfile().getCertificates())
-//                        .academicTitle(user.getConsultantProfile().getAcademicTitle())
-//                        .role(user.getRole().name())
-//                        .build())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
+
         return userRepository.findByUsernameAndEnabledTrue(username)
                 .map(user -> {
                     Consultant consultant = user.getConsultantProfile();
