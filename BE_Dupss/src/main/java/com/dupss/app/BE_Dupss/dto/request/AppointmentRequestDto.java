@@ -23,14 +23,6 @@ public class AppointmentRequestDto {
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     private String email;
-    
-//    @NotNull(message = "Ngày hẹn không được để trống")
-//    @JsonFormat(pattern = "dd/MM/yyyy")
-//    private LocalDate appointmentDate;
-//
-//    @NotNull(message = "Giờ hẹn không được để trống")
-//    @JsonFormat(pattern = "HH:mm")
-//    private LocalTime appointmentTime;
 
     private String videoCallId;
     

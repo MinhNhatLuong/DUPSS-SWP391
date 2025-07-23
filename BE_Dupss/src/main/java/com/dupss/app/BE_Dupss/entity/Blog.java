@@ -32,8 +32,6 @@ public class Blog {
     @Column(columnDefinition = "LONGTEXT")
     private String content;
 
-//    @OneToMany(mappedBy = "blogPost", cascade = CascadeType.ALL)
-//    private List<BlogImage> images = new ArrayList<>();
 
     private String coverImage;
 

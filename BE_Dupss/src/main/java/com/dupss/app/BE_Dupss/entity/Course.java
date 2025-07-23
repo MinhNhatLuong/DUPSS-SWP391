@@ -50,10 +50,7 @@ public class Course {
     private User creator;
 
     private Boolean active;
-    
-//    @ManyToOne
-//    @JoinColumn(name = "checked_by_id")
-//    private User checkedBy;
+
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

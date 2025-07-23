@@ -26,7 +26,5 @@ public class CourseResponse {
     private List<CourseModuleResponse> modules;
     private SurveyResponse quiz;
     private ApprovalStatus status;
-//    private Integer enrollmentCount;
-//    private EnrollmentStatus enrollmentStatus;
-//    private double progress;
+
 } 

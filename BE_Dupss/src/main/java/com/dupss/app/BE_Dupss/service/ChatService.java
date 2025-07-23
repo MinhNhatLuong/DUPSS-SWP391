@@ -21,10 +21,6 @@ public class ChatService {
     private final CourseRepository courseRepository;
     private final BlogRepository blogRepository;
 
-//    @Autowired
-//    public ChatService(OpenAiChatModel chatModel) {
-//        this.chatModel = chatModel;
-//    }
 
     public String chat(ChatRequest request) {
         List<Course> highlightedCourses = courseRepository.findTop3ByStatusAndActiveTrueOrderByCreatedAtDesc(ApprovalStatus.APPROVED);

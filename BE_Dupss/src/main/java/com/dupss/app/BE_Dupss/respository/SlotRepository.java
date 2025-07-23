@@ -20,14 +20,4 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
     List<Slot> findByConsultantAndAvailableTrue(User consultant);
     Optional<Slot> findByConsultantAndDateAndStartTime(User consultant, LocalDate date, LocalTime startTime);
     boolean existsByConsultantAndDateAndStartTime(User consultant, LocalDate date, LocalTime startTime);
-//    List<Slot> findByConsultant(Consultant consultant);
-//    List<Slot> findByConsultantAndDate(Consultant consultant, LocalDate date);
-//    List<Slot> findByDateAndIsAvailable(LocalDate date, boolean isAvailable);
-//    List<Slot> findByConsultantAndIsAvailable(Consultant consultant, boolean isAvailable);
-//    List<Slot> findByConsultantAndDateAndIsAvailable(Consultant consultant, LocalDate date, boolean isAvailable);
-//
-//    @Query("SELECT s FROM Slot s WHERE s.consultant.id = :consultantId AND s.date = :date AND s.startTime <= :time AND s.endTime > :time AND s.isAvailable = true")
-//    Optional<Slot> findAvailableSlotByConsultantAndDateTime(@Param("consultantId") Long consultantId,
-//                                                            @Param("date") LocalDate date,
-//                                                            @Param("time") LocalTime time);
 } 

@@ -23,10 +23,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByIdAndActiveTrue(Long id);
     Optional<Survey> findSurveyQuizById(Long id);
     
-//    @Query("SELECT c FROM Course c JOIN Topic t on c.topic.id = t.id WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
-//            "(:topic IS NULL OR c.topic.id = :topic) OR " +
-//           "(LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-//           "LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+
 @Query("SELECT c FROM Course c " +
         "WHERE c.status = com.dupss.app.BE_Dupss.entity.ApprovalStatus.APPROVED AND " +
         "c.active = true AND (" +

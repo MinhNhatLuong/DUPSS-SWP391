@@ -48,12 +48,5 @@ public class SurveyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
     }
 
-//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-//    public ResponseEntity<SurveyResponse> createSurvey(@Valid @ModelAttribute SurveyCreateRequest request) throws IOException {
-////        SurveyCreateRequest survey = objectMapper.readValue(request, SurveyCreateRequest.class);
-//        SurveyResponse surveyResponse = surveyService.createSurvey(request);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
-//    }
 }
 

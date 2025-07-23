@@ -213,7 +213,7 @@ public class SecurityConfig {
     private final JwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsService;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-    // private final CustomOAuth2UserService customOAuth2UserService;
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -276,31 +276,6 @@ public class SecurityConfig {
         return source;
     }
 
-    //        @Bean
-//        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//
-//                http
-//                                .csrf(csrf -> csrf.disable())
-//                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-//                                .sessionManagement(session -> session
-//                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                                .authorizeHttpRequests(auth -> auth
-//                                                .requestMatchers(WHITE_LIST).permitAll()
-//                                                .requestMatchers("/api/**").permitAll()
-//                                                .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
-//                                                .requestMatchers(MANAGER_ENDPOINTS)
-//                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-//                                                .anyRequest().authenticated())
-//                                .exceptionHandling(exception -> exception
-//                                                .authenticationEntryPoint(authenticationEntryPoint))
-//                                .oauth2ResourceServer(oauth2 -> oauth2
-//                                                .jwt(jwt -> jwt
-//                                                                .decoder(jwtDecoder)
-//                                                                .jwtAuthenticationConverter(
-//                                                                                jwtAuthenticationConverter())));
-//
-//                return http.build();
-//        }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 

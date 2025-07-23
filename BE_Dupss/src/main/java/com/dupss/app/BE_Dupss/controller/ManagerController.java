@@ -168,46 +168,6 @@ public class ManagerController {
 
     }
 
-//    @PatchMapping("/surveys/{id}/approve")
-//    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-//    public ResponseEntity<?> approveSurvey(@PathVariable Long id) {
-//        Survey survey = surveyRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
-//
-//        // Lấy thông tin người dùng hiện tại
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-//
-//        survey.setStatus(ApprovalStatus.APPROVED);
-////        survey.setCheckedBy(currentUser);
-//        surveyRepository.save(survey);
-//        return ResponseEntity.ok(Map.of("message", "Khảo sát đã được phê duyệt thành công"));
-//    }
-//
-//    /**
-//     * API từ chối khảo sát
-//     * Chỉ dành cho Manager và Admin
-//     */
-//    @PatchMapping("/surveys/{id}/reject")
-//    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-//    public ResponseEntity<?> rejectSurvey(@PathVariable Long id) {
-//        Survey survey = surveyRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + id));
-//
-//        // Lấy thông tin người dùng hiện tại
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
-//
-//        survey.setStatus(ApprovalStatus.REJECTED);
-////        survey.setCheckedBy(currentUser);
-//        surveyRepository.save(survey);
-//        return ResponseEntity.ok(Map.of("message", "Khảo sát đã bị từ chối"));
-//    }
-
     @PatchMapping("/surveys/{id}/approval")
     public ResponseEntity<String> approvalSurvey(@PathVariable Long id, @RequestParam("status") ApprovalStatus status) {
         String message = "";

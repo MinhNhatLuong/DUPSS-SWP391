@@ -49,13 +49,6 @@ public class BlogController {
         return ResponseEntity.ok(blogResponses);
     }
 
-//    @GetMapping("/my-blogs")
-//    @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
-//    public ResponseEntity<List<BlogResponse>> getMyBlogs(@AuthenticationPrincipal User currentUser) {
-//        log.info("Fetching blogs for current user id: {}", currentUser.getId());
-//        List<BlogResponse> blogResponses = blogService.getBlogsByAuthor(currentUser.getUsername());
-//        return ResponseEntity.ok(blogResponses);
-//    }
 
     @GetMapping("/my-blogs")
     @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER')")
