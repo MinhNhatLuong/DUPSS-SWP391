@@ -92,11 +92,7 @@ public class CourseEnrollmentService {
         
         User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // Check if user has MEMBER role
-//        if (currentUser.getRole() != ERole.ROLE_MEMBER) {
-//            throw new AccessDeniedException("Only MEMBER can view enrolled courses");
-//        }
+
         
         List<CourseEnrollment> enrollments = enrollmentRepository.findByUser(currentUser);
         
