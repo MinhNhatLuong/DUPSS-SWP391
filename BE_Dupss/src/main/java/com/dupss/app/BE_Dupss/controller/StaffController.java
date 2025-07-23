@@ -79,18 +79,37 @@ public class StaffController {
         List<BlogResponse> blogResponses = blogService.getCreatedBlogs();
         return ResponseEntity.ok(blogResponses);
     }
-    
-    /**
-     * API tạo khóa học mới
-     * Chỉ dành cho Staff
-     */
-//    @PostMapping(value = "/course", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-//    public ResponseEntity<CourseResponse> createCourse(@Valid @ModelAttribute CourseCreateRequest request) throws IOException {
-//        CourseResponse response = courseService.createCourse(request, );
-//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//    }
-    
+
+    @GetMapping("surveys/{id}")
+    public ResponseEntity<SurveyResponse> getSurvey(@PathVariable Long id) {
+        SurveyResponse surveyResponse = surveyService.getSurveyById(id);
+        if (surveyResponse == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+        return ResponseEntity.ok(surveyResponse);
+    }
+
+    @GetMapping("blog/{id}")
+    public ResponseEntity<BlogResponse> getBlog(@PathVariable Long id) {
+        BlogResponse blogResponse = blogService.getBlogById(id);
+        if (blogResponse == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+        return ResponseEntity.ok(blogResponse);
+    }
+
+    @GetMapping("course/{id}")
+    public ResponseEntity<CourseResponse> getCourse(@PathVariable Long id) {
+        CourseResponse courseResponse = courseService.getCourseById(id);
+        if (courseResponse == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        }
+        return ResponseEntity.ok(courseResponse);
+    }
+
     /**
      * API lấy tất cả khóa học của Staff hiện tại
      */
