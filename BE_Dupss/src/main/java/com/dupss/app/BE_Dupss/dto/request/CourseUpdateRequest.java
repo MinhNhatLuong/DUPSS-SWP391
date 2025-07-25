@@ -1,6 +1,8 @@
 package com.dupss.app.BE_Dupss.dto.request;
 
 import com.dupss.app.BE_Dupss.entity.ApprovalStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,6 @@ public class CourseUpdateRequest {
     private MultipartFile coverImage;
     private String content;
     private Integer duration;
-    private ApprovalStatus status;
-    private List<CourseModuleRequest> modules;
-    private SurveyCreateRequest quiz;
+    private String modules;
+    private String quiz;
 }

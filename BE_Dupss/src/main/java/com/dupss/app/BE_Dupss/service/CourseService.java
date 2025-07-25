@@ -385,14 +385,15 @@ public class CourseService {
 
         // Update or create modules if provided
         List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
+        if (StringUtils.hasText(request.getModules())) {
+            List<CourseModuleRequest> moduleRequests = objectMapper.readValue(
+                    request.getModules(), new TypeReference<>() {});
 
-        if (request.getModules() != null && !request.getModules().isEmpty()) {
-            // Remove existing modules
-            moduleRepository.deleteAll(modules);
+            // Remove old modules
+            moduleRepository.deleteAll(moduleRepository.findByCourseOrderByOrderIndexAsc(course));
 
             // Create new modules
-            List<CourseModule> newModules = new ArrayList<>();
-            for (CourseModuleRequest moduleRequest : request.getModules()) {
+            for (CourseModuleRequest moduleRequest : moduleRequests) {
                 CourseModule module = new CourseModule();
                 module.setTitle(moduleRequest.getTitle());
                 module.setOrderIndex(moduleRequest.getOrderIndex());
@@ -400,24 +401,33 @@ public class CourseService {
 
                 List<VideoCourse> videos = new ArrayList<>();
                 if (moduleRequest.getVideos() != null) {
-                    for (CourseModuleRequest.VideoCourseRequest url : moduleRequest.getVideos()) {
+                    for (CourseModuleRequest.VideoCourseRequest videoRequest : moduleRequest.getVideos()) {
                         VideoCourse video = new VideoCourse();
-                        video.setTitle(url.getTitle());
-                        video.setVideoUrl(url.getVideoUrl());
+                        video.setTitle(videoRequest.getTitle());
+                        video.setVideoUrl(videoRequest.getVideoUrl());
                         video.setCourseModule(module);
                         videos.add(video);
                     }
                 }
                 module.setVideos(videos);
-                newModules.add(module);
+                modules.add(module);
             }
-            moduleRepository.saveAll(newModules);
-            modules = newModules;
+            moduleRepository.saveAll(modules);
         }
 
-        if (request.getQuiz() != null) {
-            Survey quiz = courseRepository.findSurveyQuizById(courseId).orElseThrow(() -> new RuntimeException("Quiz not found with id: " + courseId));
-            surveyService.updateSurvey(request.getQuiz(), quiz.getId(), null);
+        // Convert quiz from JSON string
+        if (StringUtils.hasText(request.getQuiz())) {
+            SurveyCreateRequest quizRequest = objectMapper.readValue(
+                    request.getQuiz(), SurveyCreateRequest.class);
+
+            Survey quiz = course.getSurveyQuiz();
+            if (quiz == null) {
+                throw new RuntimeException("Course does not have a quiz to update");
+            }
+
+            surveyService.updateSurvey(quizRequest, quiz.getId(), null);
+            quiz.setForCourse(true);
+            surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
         }
         course.setStatus(ApprovalStatus.PENDING);
