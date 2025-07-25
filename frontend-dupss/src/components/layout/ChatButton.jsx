@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
 // API base URL lấy từ config nhưng không bao gồm /api vì endpoint chat đã public
-const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const ChatButton = () => {
   const [isOpen, setIsOpen] = useState(false);
