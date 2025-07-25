@@ -483,7 +483,7 @@ const Login = () => {
               display: 'flex',
               justifyContent: 'center'
             }}>
-              <div ref={googleButtonRef} style={{ width: '100%' }}></div>
+              <div ref={googleButtonRef} style={{ width: '100%', maxWidth: '100%' }}></div>
             </Box>
 
             <Box sx={{ textAlign: 'center', marginTop: '20px' }}>
