@@ -11,9 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SurveyRepo extends JpaRepository<Survey, Long> {
+    List<Survey> findAllByActiveTrueAndForCourseAndStatusOrderByCreatedAtDesc(boolean forCourse, ApprovalStatus status);
     List<Survey> findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(boolean forCourse);
     List<Survey> findByStatus(ApprovalStatus status);
-    List<Survey> findByCreatedBy(User user);
+    List<Survey> findByCreatedByAndForCourse(User user, boolean forCourse);
     List<Survey> findByStatusAndActiveTrueAndForCourseFalse(ApprovalStatus status);
     Optional<Survey> findByIdAndActiveTrue(Long id);
 }

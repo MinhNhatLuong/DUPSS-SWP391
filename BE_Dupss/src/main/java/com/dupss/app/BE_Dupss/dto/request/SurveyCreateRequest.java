@@ -18,12 +18,12 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class SurveyCreateRequest {
-    @NotBlank(message = "Title is required")
+    @NotBlank(message = "Tiêu đề khảo sát không được để trống")
     private String title;
 
     private String description;
     @Valid
-    @NotEmpty(message = "At least one section is required")
+    @NotEmpty(message = "Phải có ít nhất một section")
     private List<SurveySection> sections;
     @Data
     public static class SurveySection {
@@ -37,7 +37,7 @@ public class SurveyCreateRequest {
         public static class QuestionRequest {
             private Long questionId;
 
-            @NotBlank(message = "Question text is required")
+            @NotBlank(message = "Tên câu hỏi không được để trống")
             private String questionText;
             @Valid
             private List<OptionRequest> options;
@@ -49,15 +49,15 @@ public class SurveyCreateRequest {
         @Builder
         public static class OptionRequest {
             private Long optionId;
-            @NotBlank(message = "Option text is required")
+            @NotBlank(message = "Tên tùy chọn không được để trống")
             private String optionText;
 
-            @NotNull(message = "Score is required")
+            @NotNull(message = "Điểm không được để trống")
             private Integer score;
         }
     }
     @Valid
-    @NotEmpty(message = "At least one condition is required")
+    @NotEmpty(message = "Phải có ít nhất một điều kiện")
     private List<ConditionRequest> conditions;
     @Data
     public static class ConditionRequest {

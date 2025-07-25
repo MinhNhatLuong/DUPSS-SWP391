@@ -127,7 +127,7 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public List<SurveySummaryResponse> getSurveySummary() {
-        List<Survey> surveys = surveyRepository.findAllByActiveTrueAndForCourseOrderByCreatedAtDesc(false);
+        List<Survey> surveys = surveyRepository.findAllByActiveTrueAndForCourseAndStatusOrderByCreatedAtDesc(false, ApprovalStatus.APPROVED);
         return surveys.stream()
                 .map(survey -> {
                     SurveySummaryResponse response = new SurveySummaryResponse();
@@ -418,7 +418,7 @@ public class SurveyServiceImpl implements SurveyService {
         User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Survey> surveys = surveyRepository.findByCreatedBy(currentUser);
+        List<Survey> surveys = surveyRepository.findByCreatedByAndForCourse(currentUser, false);
         return surveys.stream()
                 .map(survey -> SurveyManagerResponse.builder()
                         .surveyId(survey.getId())
