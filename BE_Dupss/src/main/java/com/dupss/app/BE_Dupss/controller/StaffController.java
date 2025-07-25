@@ -53,7 +53,6 @@ public class StaffController {
      * API lấy tất cả khảo sát của Staff hiện tại
      */
     @GetMapping("/surveys")
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<List<SurveyManagerResponse>> getMySurveys() {
         List<SurveyManagerResponse> responses = surveyService.getSurveysByAuthor();
         return ResponseEntity.ok(responses);
@@ -64,7 +63,6 @@ public class StaffController {
      * Chỉ dành cho Staff
      */
     @PostMapping(value = "/blog", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<BlogResponse> createBlog(@Valid @ModelAttribute BlogRequest request) throws IOException {
         BlogResponse blogResponse = blogService.createBlog(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(blogResponse);
@@ -113,7 +111,6 @@ public class StaffController {
      * API lấy tất cả khóa học của Staff hiện tại
      */
     @GetMapping("/courses")
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
     public ResponseEntity<List<CourseResponse>> getMyCourses() {
         return ResponseEntity.ok(courseService.getCreatedCourses());
     }
@@ -155,8 +152,7 @@ public class StaffController {
      * API cập nhật khóa học
      * Staff chỉ có thể cập nhật khóa học của mình và chưa được phê duyệt
      */
-    @PutMapping(value = "/course/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+    @PatchMapping(value = "/course/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateCourse(@PathVariable Long id, @Valid @ModelAttribute CourseUpdateRequest request) throws IOException {
         try {
             CourseResponse response = courseService.updateCourse(id, request);

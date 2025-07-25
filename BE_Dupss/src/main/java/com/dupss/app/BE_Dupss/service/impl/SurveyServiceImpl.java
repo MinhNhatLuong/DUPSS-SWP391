@@ -34,7 +34,10 @@ public class SurveyServiceImpl implements SurveyService {
 
     private final SurveyRepo surveyRepository;
     private final SurveyResultRepo surveyResultRepository;
+    private final SurveyQuestionRepo surveyQuestionRepository;
     private final SurveyOptionRepo surveyOptionRepository;
+    private final SurveySectionRepo surveySectionRepository;
+    private final SurveyConditionRepo surveyConditionRepo;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final ActionLogRepo actionLogRepo;
@@ -284,48 +287,76 @@ public class SurveyServiceImpl implements SurveyService {
             survey.setSurveyImage(imageUrl);
         }
         // Cập nhật các section
-        if (request.getConditions() != null && !request.getSections().isEmpty()) {
-            survey.getSections().clear(); // orphanRemoval = true sẽ xóa tự động
-            for (SurveyCreateRequest.SurveySection sectionRequest : request.getSections()) {
-                SurveySection section = new SurveySection();
-                section.setSurvey(survey);
-                section.setSectionName(sectionRequest.getSectionName());
-
-                List<SurveyQuestion> questions = new ArrayList<>();
-                for (SurveyCreateRequest.SurveySection.QuestionRequest questionRequest : sectionRequest.getQuestions()) {
-                    SurveyQuestion question = new SurveyQuestion();
-                    question.setQuestionText(questionRequest.getQuestionText());
-                    question.setSection(section);
-
-                    List<SurveyOption> options = new ArrayList<>();
-                    for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
-                        SurveyOption option = new SurveyOption();
-                        option.setOptionText(optionRequest.getOptionText());
-                        option.setScore(optionRequest.getScore());
-                        option.setQuestion(question);
-                        options.add(option);
-                    }
-                    question.setOptions(options);
-                    questions.add(question);
+        if (request.getSections() != null) {
+            for (SurveyCreateRequest.SurveySection sectionReq : request.getSections()) {
+                SurveySection section;
+                if (sectionReq.getSectionId() != null) {
+                    section = surveySectionRepository.findById(sectionReq.getSectionId())
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy section với ID: " + sectionReq.getSectionId()));
+                } else {
+                    section = new SurveySection();
+                    section.setSurvey(survey);
+                    survey.getSections().add(section);
                 }
 
-                section.setQuestions(questions);
-                survey.getSections().add(section);
+                if (sectionReq.getSectionName() != null) section.setSectionName(sectionReq.getSectionName());
+
+                // Questions
+                if (sectionReq.getQuestions() != null) {
+                    for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
+                        SurveyQuestion question;
+                        if (questionReq.getQuestionId() != null) {
+                            question = surveyQuestionRepository.findById(questionReq.getQuestionId())
+                                    .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi với ID: " + questionReq.getQuestionId()));
+                        } else {
+                            question = new SurveyQuestion();
+                            question.setSection(section);
+                            section.getQuestions().add(question);
+                        }
+
+                        if (questionReq.getQuestionText() != null)
+                            question.setQuestionText(questionReq.getQuestionText());
+
+                        // Options
+                        if (questionReq.getOptions() != null) {
+                            for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
+                                SurveyOption option;
+                                if (optionReq.getOptionId() != null) {
+                                    option = surveyOptionRepository.findById(optionReq.getOptionId())
+                                            .orElseThrow(() -> new RuntimeException("Không tìm thấy option với ID: " + optionReq.getOptionId()));
+                                } else {
+                                    option = new SurveyOption();
+                                    option.setQuestion(question);
+                                    question.getOptions().add(option);
+                                }
+
+                                if (optionReq.getOptionText() != null) option.setOptionText(optionReq.getOptionText());
+                                if (optionReq.getScore() != null) option.setScore(optionReq.getScore());
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        // Cập nhật conditions
-       if (request.getConditions() != null && !request.getConditions().isEmpty()) {
-           survey.getConditions().clear();
-           for (SurveyCreateRequest.ConditionRequest conditionRequest : request.getConditions()) {
-               SurveyCondition condition = new SurveyCondition();
-               condition.setSurvey(survey);
-               condition.setOperator(conditionRequest.getOperator());
-               condition.setValue(conditionRequest.getValue());
-               condition.setMessage(conditionRequest.getMessage());
-               survey.getConditions().add(condition);
-           }
-       }
+        // Update conditions
+        if (request.getConditions() != null) {
+            for (SurveyCreateRequest.ConditionRequest conditionReq : request.getConditions()) {
+                SurveyCondition condition;
+                if (conditionReq.getConditionId() != null) {
+                    condition = surveyConditionRepo.findById(conditionReq.getConditionId())
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy điều kiện với ID: " + conditionReq.getConditionId()));
+                } else {
+                    condition = new SurveyCondition();
+                    condition.setSurvey(survey);
+                    survey.getConditions().add(condition);
+                }
+
+                if (conditionReq.getOperator() != null) condition.setOperator(conditionReq.getOperator());
+                if (conditionReq.getValue() != null) condition.setValue(conditionReq.getValue());
+                if (conditionReq.getMessage() != null) condition.setMessage(conditionReq.getMessage());
+            }
+        }
        survey.setStatus(ApprovalStatus.PENDING);
        surveyRepository.save(survey);
     }

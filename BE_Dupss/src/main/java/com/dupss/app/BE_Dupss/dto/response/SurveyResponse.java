@@ -95,12 +95,14 @@ public class SurveyResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SurveyConditionDTO {
+        private Long id;
         private String operator;
         private Integer value;
         private String message;
 
         public static SurveyConditionDTO fromEntity(SurveyCondition c) {
             return SurveyConditionDTO.builder()
+                    .id(c.getId())
                     .operator(c.getOperator())
                     .value(c.getValue())
                     .message(c.getMessage())

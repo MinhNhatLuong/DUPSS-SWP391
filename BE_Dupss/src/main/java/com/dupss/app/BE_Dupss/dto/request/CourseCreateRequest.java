@@ -31,6 +31,5 @@ public class CourseCreateRequest {
 
     private String modules;
 
-    @Valid
     private String quiz;
 } 

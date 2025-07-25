@@ -42,7 +42,7 @@ public class AdminService {
     public List<UserDetailResponse> getUsersByRole(String roleName) {
         try {
             ERole eRole = ERole.valueOf(roleName);
-            return userRepository.findAll().stream()
+            return userRepository.findAllByEnabled(true).stream()
                     .filter(user -> user.getRole() == eRole)
                     .map(this::mapToUserDetailResponse)
                     .toList();

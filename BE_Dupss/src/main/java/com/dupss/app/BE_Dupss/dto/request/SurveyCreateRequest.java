@@ -27,6 +27,7 @@ public class SurveyCreateRequest {
     private List<SurveySection> sections;
     @Data
     public static class SurveySection {
+        private Long sectionId;
         private String sectionName;
         List<QuestionRequest> questions;
         @Data
@@ -34,6 +35,8 @@ public class SurveyCreateRequest {
         @NoArgsConstructor
         @Builder
         public static class QuestionRequest {
+            private Long questionId;
+
             @NotBlank(message = "Question text is required")
             private String questionText;
             @Valid
@@ -45,6 +48,7 @@ public class SurveyCreateRequest {
         @NoArgsConstructor
         @Builder
         public static class OptionRequest {
+            private Long optionId;
             @NotBlank(message = "Option text is required")
             private String optionText;
 
@@ -57,6 +61,8 @@ public class SurveyCreateRequest {
     private List<ConditionRequest> conditions;
     @Data
     public static class ConditionRequest {
+        private Long conditionId;
+
         @NotBlank
         private String operator;
 
