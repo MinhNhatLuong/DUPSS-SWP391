@@ -342,10 +342,10 @@ public class CourseService {
             throw new AccessDeniedException("You can only update your own courses");
         }
 
-        // Staff cannot update status
-        if (currentUser.getRole() == ERole.ROLE_STAFF && request.getStatus() != null) {
-            throw new AccessDeniedException("Staff cannot update course status");
-        }
+//        // Staff cannot update status
+//        if (currentUser.getRole() == ERole.ROLE_STAFF && request.getStatus() != null) {
+//            throw new AccessDeniedException("Staff cannot update course status");
+//        }
 
         // Update course fields if provided
         if (request.getTitle() != null) {
@@ -365,9 +365,9 @@ public class CourseService {
         }
 
         // Only manager can update status
-        if (currentUser.getRole() == ERole.ROLE_MANAGER && request.getStatus() != null) {
-            course.setStatus(request.getStatus());
-        }
+//        if (currentUser.getRole() == ERole.ROLE_MANAGER && request.getStatus() != null) {
+//            course.setStatus(request.getStatus());
+//        }
 
         if (request.getTopicId() != null) {
             Topic topic = topicRepository.findById(request.getTopicId())
@@ -512,8 +512,10 @@ public class CourseService {
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
+                .topicName(course.getTopic() != null ? course.getTopic().getName() : null)
                 .description(course.getDescription())
                 .content(course.getContent())
+                .duration(course.getDuration())
                 .coverImage(course.getCoverImage())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())

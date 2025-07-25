@@ -17,9 +17,11 @@ import java.util.List;
 public class CourseResponse {
     private Long id;
     private String title;
+    private String topicName;
     private String description;
     private String coverImage;
     private String content;
+    private int duration;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String creator;
