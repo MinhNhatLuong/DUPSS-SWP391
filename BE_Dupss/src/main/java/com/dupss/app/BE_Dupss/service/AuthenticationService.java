@@ -89,8 +89,14 @@ public class AuthenticationService {
             newUser.setPassword(passwordEncoder.encode("oauth2_default_password"));
             newUser.setRole(ERole.ROLE_MEMBER);
             newUser.setEnabled(true);
-            return userRepository.save(newUser);
-        });
+
+            user = userRepository.save(newUser);
+            isNewUser = true;
+        }
+
+        if (isNewUser) {
+            emailService.sendWelcomeEmail(email, name);
+        }
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
