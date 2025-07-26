@@ -15,6 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseModuleRequest {
+
+    private Long courseModuleId;
+
     @NotBlank(message = "Tiêu đề module không được để trống")
     private String title;
 
@@ -26,6 +29,8 @@ public class CourseModuleRequest {
 
     @Data
     public static class VideoCourseRequest {
+        private Long videoModuleId;
+
         @NotBlank(message = "Tiêu đề video không được để trống")
         private String title;
 

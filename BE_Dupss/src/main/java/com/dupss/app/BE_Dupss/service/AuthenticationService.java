@@ -18,6 +18,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.jwt.SignedJWT;
 import io.micrometer.common.util.StringUtils;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -63,7 +64,7 @@ public class AuthenticationService {
         }
     }
 
-    public Map<String, String> loginWithGoogle(String idTokenString) throws GeneralSecurityException, IOException {
+    public Map<String, String> loginWithGoogle(String idTokenString) throws GeneralSecurityException, IOException, MessagingException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
                 .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
                 .setAudience(Collections.singletonList("1089571551895-4acjf2karqm5kj3dg25pscae47745r6s.apps.googleusercontent.com"))

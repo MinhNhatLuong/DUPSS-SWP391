@@ -7,6 +7,7 @@ import com.dupss.app.BE_Dupss.dto.request.SurveyCreateRequest;
 import com.dupss.app.BE_Dupss.dto.response.*;
 import com.dupss.app.BE_Dupss.entity.*;
 import com.dupss.app.BE_Dupss.respository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,10 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +35,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseModuleRepository moduleRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final VideoCourseRepo videoCourseRepo;
     private final UserRepository userRepository;
     private final TopicRepo topicRepository;
     private final CloudinaryService cloudinaryService;
@@ -50,10 +49,10 @@ public class CourseService {
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        
+
         User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
             throw new AccessDeniedException("Only STAFF and MANAGER can create courses");
@@ -120,7 +119,7 @@ public class CourseService {
             surveyRepository.save(quiz);
             savedCourse.setSurveyQuiz(quiz);
         }
-        
+
         return mapToCourseResponse(savedCourse, modules, currentUser);
     }
 
@@ -208,16 +207,16 @@ public class CourseService {
     }
 
 
-    
+
     public CourseResponse getCourseById(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        
+
         User currentUser = userRepository.findByUsername(username).orElse(null);
-        
+
         Course course = courseRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-        
+
         List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
 
 
@@ -227,7 +226,7 @@ public class CourseService {
         if (!isEnrolled && !isOwner) {
             throw new AccessDeniedException("You are not authorized to view this course.");
         }
-        
+
         return mapToCourseResponse(course, modules, currentUser);
     }
 
@@ -298,21 +297,21 @@ public class CourseService {
                         .collect(Collectors.toList()))
                 .build();
     }
-    
+
     public List<CourseResponse> getCreatedCourses() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        
+
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
             throw new AccessDeniedException("Only STAFF and MANAGER can view created courses");
         }
-        
+
         List<Course> courses = courseRepository.findByCreatorAndActiveTrue(currentUser);
-        
+
         return courses.stream()
                 .map(course -> {
                     List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
@@ -342,10 +341,6 @@ public class CourseService {
             throw new AccessDeniedException("You can only update your own courses");
         }
 
-//        // Staff cannot update status
-//        if (currentUser.getRole() == ERole.ROLE_STAFF && request.getStatus() != null) {
-//            throw new AccessDeniedException("Staff cannot update course status");
-//        }
 
         // Update course fields if provided
         if (request.getTitle() != null) {
@@ -364,10 +359,6 @@ public class CourseService {
             course.setDuration(request.getDuration());
         }
 
-        // Only manager can update status
-//        if (currentUser.getRole() == ERole.ROLE_MANAGER && request.getStatus() != null) {
-//            course.setStatus(request.getStatus());
-//        }
 
         if (request.getTopicId() != null) {
             Topic topic = topicRepository.findById(request.getTopicId())
@@ -383,37 +374,8 @@ public class CourseService {
         Course savedCourse = courseRepository.save(course);
         log.info("Course updated: {}", savedCourse.getTitle());
 
-        // Update or create modules if provided
-        List<CourseModule> modules = moduleRepository.findByCourseOrderByOrderIndexAsc(course);
-        if (StringUtils.hasText(request.getModules())) {
-            List<CourseModuleRequest> moduleRequests = objectMapper.readValue(
-                    request.getModules(), new TypeReference<>() {});
-
-            // Remove old modules
-            moduleRepository.deleteAll(moduleRepository.findByCourseOrderByOrderIndexAsc(course));
-
-            // Create new modules
-            for (CourseModuleRequest moduleRequest : moduleRequests) {
-                CourseModule module = new CourseModule();
-                module.setTitle(moduleRequest.getTitle());
-                module.setOrderIndex(moduleRequest.getOrderIndex());
-                module.setCourse(savedCourse);
-
-                List<VideoCourse> videos = new ArrayList<>();
-                if (moduleRequest.getVideos() != null) {
-                    for (CourseModuleRequest.VideoCourseRequest videoRequest : moduleRequest.getVideos()) {
-                        VideoCourse video = new VideoCourse();
-                        video.setTitle(videoRequest.getTitle());
-                        video.setVideoUrl(videoRequest.getVideoUrl());
-                        video.setCourseModule(module);
-                        videos.add(video);
-                    }
-                }
-                module.setVideos(videos);
-                modules.add(module);
-            }
-            moduleRepository.saveAll(modules);
-        }
+        // Update modules if provided
+        updateModules(savedCourse, request.getModules());
 
         // Convert quiz from JSON string
         if (StringUtils.hasText(request.getQuiz())) {
@@ -422,7 +384,7 @@ public class CourseService {
 
             Survey quiz = course.getSurveyQuiz();
             if (quiz == null) {
-                throw new RuntimeException("Course does not have a quiz to update");
+                throw new RuntimeException("Khóa học không có bài quiz để cập nhật");
             }
 
             surveyService.updateSurvey(quizRequest, quiz.getId(), null);
@@ -432,7 +394,74 @@ public class CourseService {
         }
         course.setStatus(ApprovalStatus.PENDING);
 
-        return mapToCourseResponse(savedCourse, modules, currentUser);
+        return mapToCourseResponse(savedCourse, savedCourse.getModules(), currentUser);
+    }
+
+    private void updateModules(Course savedCourse, String modulesJson) throws JsonProcessingException {
+        if (!StringUtils.hasText(modulesJson)) return;
+
+        List<CourseModuleRequest> moduleRequests = objectMapper.readValue(modulesJson, new TypeReference<>() {});
+
+        List<CourseModule> existingModules = moduleRepository.findByCourseOrderByOrderIndexAsc(savedCourse);
+        Map<Long, CourseModule> existingModuleMap = existingModules.stream()
+                .filter(m -> m.getId() != null)
+                .collect(Collectors.toMap(CourseModule::getId, m -> m));
+
+        Set<Long> incomingModuleIds = moduleRequests.stream()
+                .map(CourseModuleRequest::getCourseModuleId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        List<CourseModule> toDeleteModules = existingModules.stream()
+                .filter(m -> m.getId() != null && !incomingModuleIds.contains(m.getId()))
+                .collect(Collectors.toList());
+        moduleRepository.deleteAll(toDeleteModules);
+
+        List<CourseModule> updatedModules = new ArrayList<>();
+        for (CourseModuleRequest moduleRequest : moduleRequests) {
+            CourseModule module = moduleRequest.getCourseModuleId() != null
+                    ? existingModuleMap.getOrDefault(moduleRequest.getCourseModuleId(), new CourseModule())
+                    : new CourseModule();
+
+            module.setCourse(savedCourse);
+            module.setTitle(moduleRequest.getTitle());
+            module.setOrderIndex(moduleRequest.getOrderIndex());
+
+            List<VideoCourse> currentVideos = module.getVideos() != null ? module.getVideos() : new ArrayList<>();
+            Map<Long, VideoCourse> videoMap = currentVideos.stream()
+                    .filter(v -> v.getId() != null)
+                    .collect(Collectors.toMap(VideoCourse::getId, v -> v));
+
+            List<CourseModuleRequest.VideoCourseRequest> videoRequests = moduleRequest.getVideos() != null
+                    ? moduleRequest.getVideos() : new ArrayList<>();
+
+            Set<Long> incomingVideoIds = videoRequests.stream()
+                    .map(CourseModuleRequest.VideoCourseRequest::getVideoModuleId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            List<VideoCourse> toRemove = currentVideos.stream()
+                    .filter(v -> v.getId() != null && !incomingVideoIds.contains(v.getId()))
+                    .collect(Collectors.toList());
+            currentVideos.removeAll(toRemove);
+
+            List<VideoCourse> updatedVideos = new ArrayList<>();
+            for (CourseModuleRequest.VideoCourseRequest videoRequest : videoRequests) {
+                VideoCourse video = videoRequest.getVideoModuleId() != null
+                        ? videoMap.getOrDefault(videoRequest.getVideoModuleId(), new VideoCourse())
+                        : new VideoCourse();
+
+                video.setTitle(videoRequest.getTitle());
+                video.setVideoUrl(videoRequest.getVideoUrl());
+                video.setCourseModule(module);
+                updatedVideos.add(video);
+            }
+
+            module.setVideos(updatedVideos);
+            updatedModules.add(module);
+        }
+
+        moduleRepository.saveAll(updatedModules);
     }
 
     public void updateStatus(Long courseId, ApprovalStatus status) {
@@ -487,7 +516,7 @@ public class CourseService {
                 .build();
         actionLogRepo.save(actionLog);
     }
-    
+
     private CourseResponse mapToCourseResponse(Course course, List<CourseModule> modules, User currentUser) {
         List<CourseModuleResponse> moduleResponses = modules.stream()
                 .map(m -> mapToModuleResponse(m, currentUser))
@@ -523,9 +552,6 @@ public class CourseService {
                 .modules(moduleResponses)
                 .quiz(quizResponse)
                 .status(course.getStatus())
-//                .enrollmentCount((int) enrollmentCount)
-//                .enrollmentStatus(enrollmentStatus)
-//                .progress(progress)
                 .build();
     }
 
