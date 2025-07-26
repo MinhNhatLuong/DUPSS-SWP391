@@ -178,7 +178,7 @@ public class StaffController {
      * Staff chỉ có thể cập nhật khảo sát của mình và chưa được phê duyệt
      */
     @PatchMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart MultipartFile images) throws IOException {
+    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart(required = false) MultipartFile images) throws IOException {
         try{
             surveyService.updateSurvey(request, id, images);
             return ResponseEntity.ok(Map.of("message", "Khảo sát đã được cập nhật thành công"));
