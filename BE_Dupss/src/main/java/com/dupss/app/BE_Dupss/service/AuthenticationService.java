@@ -80,7 +80,12 @@ public class AuthenticationService {
         String picture = (String) payload.get("picture");
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
-        User user = optionalUser.orElseGet(() -> {
+        User user;
+        boolean isNewUser = false;
+
+        if (optionalUser.isPresent()) {
+            user = optionalUser.get();
+        } else {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setFullname(name);
