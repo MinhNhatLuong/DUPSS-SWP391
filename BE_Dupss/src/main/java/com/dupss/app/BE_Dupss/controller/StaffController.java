@@ -185,9 +185,10 @@ public class StaffController {
 
 
     @PatchMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart(required = false) MultipartFile images) throws IOException {
+    public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @RequestPart(value = "request") String request, @RequestPart(required = false) MultipartFile images) throws IOException {
         try{
-            surveyService.updateSurvey(request, id, images);
+            SurveyCreateRequest survey = objectMapper.readValue(request, SurveyCreateRequest.class);
+            surveyService.updateSurvey(survey, id, images);
             return ResponseEntity.ok(Map.of("message", "Khảo sát đã được cập nhật thành công"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
