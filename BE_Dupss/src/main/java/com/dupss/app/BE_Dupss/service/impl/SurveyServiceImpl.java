@@ -286,10 +286,22 @@ public class SurveyServiceImpl implements SurveyService {
             String imageUrl = cloudinaryService.uploadFile(coverImage);
             survey.setSurveyImage(imageUrl);
         }
+
+        List<Long> sectionIdsFromRequest = request.getSections().stream()
+                .filter(sec -> sec.getSectionId() != null)
+                .map(SurveyCreateRequest.SurveySection::getSectionId)
+                .collect(Collectors.toList());
+
+        survey.getSections().removeIf(existingSection ->
+                !sectionIdsFromRequest.contains(existingSection.getId())
+        );
+
+
         // Cập nhật các section
         if (request.getSections() != null) {
             for (SurveyCreateRequest.SurveySection sectionReq : request.getSections()) {
                 SurveySection section;
+
                 if (sectionReq.getSectionId() != null) {
                     section = surveySectionRepository.findById(sectionReq.getSectionId())
                             .orElseThrow(() -> new RuntimeException("Không tìm thấy section với ID: " + sectionReq.getSectionId()));
@@ -299,41 +311,58 @@ public class SurveyServiceImpl implements SurveyService {
                     survey.getSections().add(section);
                 }
 
-                if (sectionReq.getSectionName() != null) section.setSectionName(sectionReq.getSectionName());
+                section.setSectionName(sectionReq.getSectionName());
 
-                // Questions
-                if (sectionReq.getQuestions() != null) {
-                    for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
-                        SurveyQuestion question;
-                        if (questionReq.getQuestionId() != null) {
-                            question = surveyQuestionRepository.findById(questionReq.getQuestionId())
-                                    .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi với ID: " + questionReq.getQuestionId()));
+                // QUESTION: xử lý xóa câu hỏi cũ
+                List<Long> questionIdsFromRequest = sectionReq.getQuestions().stream()
+                        .filter(q -> q.getQuestionId() != null)
+                        .map(SurveyCreateRequest.SurveySection.QuestionRequest::getQuestionId)
+                        .collect(Collectors.toList());
+
+                section.getQuestions().removeIf(existingQ ->
+                        !questionIdsFromRequest.contains(existingQ.getId())
+                );
+
+                // update/add câu hỏi
+                for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
+                    SurveyQuestion question;
+
+                    if (questionReq.getQuestionId() != null) {
+                        question = surveyQuestionRepository.findById(questionReq.getQuestionId())
+                                .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi với ID: " + questionReq.getQuestionId()));
+                    } else {
+                        question = new SurveyQuestion();
+                        question.setSection(section);
+                        section.getQuestions().add(question);
+                    }
+
+                    question.setQuestionText(questionReq.getQuestionText());
+
+                    // OPTION: xử lý xóa option cũ
+                    List<Long> optionIdsFromRequest = questionReq.getOptions().stream()
+                            .filter(o -> o.getOptionId() != null)
+                            .map(SurveyCreateRequest.SurveySection.OptionRequest::getOptionId)
+                            .collect(Collectors.toList());
+
+                    question.getOptions().removeIf(existingO ->
+                            !optionIdsFromRequest.contains(existingO.getId())
+                    );
+
+                    // update/add option
+                    for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
+                        SurveyOption option;
+
+                        if (optionReq.getOptionId() != null) {
+                            option = surveyOptionRepository.findById(optionReq.getOptionId())
+                                    .orElseThrow(() -> new RuntimeException("Không tìm thấy option với ID: " + optionReq.getOptionId()));
                         } else {
-                            question = new SurveyQuestion();
-                            question.setSection(section);
-                            section.getQuestions().add(question);
+                            option = new SurveyOption();
+                            option.setQuestion(question);
+                            question.getOptions().add(option);
                         }
 
-                        if (questionReq.getQuestionText() != null)
-                            question.setQuestionText(questionReq.getQuestionText());
-
-                        // Options
-                        if (questionReq.getOptions() != null) {
-                            for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
-                                SurveyOption option;
-                                if (optionReq.getOptionId() != null) {
-                                    option = surveyOptionRepository.findById(optionReq.getOptionId())
-                                            .orElseThrow(() -> new RuntimeException("Không tìm thấy option với ID: " + optionReq.getOptionId()));
-                                } else {
-                                    option = new SurveyOption();
-                                    option.setQuestion(question);
-                                    question.getOptions().add(option);
-                                }
-
-                                if (optionReq.getOptionText() != null) option.setOptionText(optionReq.getOptionText());
-                                if (optionReq.getScore() != null) option.setScore(optionReq.getScore());
-                            }
-                        }
+                        option.setOptionText(optionReq.getOptionText());
+                        option.setScore(optionReq.getScore());
                     }
                 }
             }
@@ -341,8 +370,19 @@ public class SurveyServiceImpl implements SurveyService {
 
         // Update conditions
         if (request.getConditions() != null) {
+            // Xóa các điều kiện không còn trong request
+            List<Long> conditionIdsFromRequest = request.getConditions().stream()
+                    .filter(c -> c.getConditionId() != null)
+                    .map(SurveyCreateRequest.ConditionRequest::getConditionId)
+                    .collect(Collectors.toList());
+
+            survey.getConditions().removeIf(existingC ->
+                    !conditionIdsFromRequest.contains(existingC.getId())
+            );
+
             for (SurveyCreateRequest.ConditionRequest conditionReq : request.getConditions()) {
                 SurveyCondition condition;
+
                 if (conditionReq.getConditionId() != null) {
                     condition = surveyConditionRepo.findById(conditionReq.getConditionId())
                             .orElseThrow(() -> new RuntimeException("Không tìm thấy điều kiện với ID: " + conditionReq.getConditionId()));
@@ -352,9 +392,9 @@ public class SurveyServiceImpl implements SurveyService {
                     survey.getConditions().add(condition);
                 }
 
-                if (conditionReq.getOperator() != null) condition.setOperator(conditionReq.getOperator());
-                if (conditionReq.getValue() != null) condition.setValue(conditionReq.getValue());
-                if (conditionReq.getMessage() != null) condition.setMessage(conditionReq.getMessage());
+                condition.setOperator(conditionReq.getOperator());
+                condition.setValue(conditionReq.getValue());
+                condition.setMessage(conditionReq.getMessage());
             }
         }
        survey.setStatus(ApprovalStatus.PENDING);
