@@ -75,7 +75,7 @@ public interface AppointmentService {
     /**
      * Tư vấn viên nhận cuộc hẹn chưa được phân công
      */
-    AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
+//    AppointmentResponseDto claimAppointment(Long appointmentId, Long consultantId);
 
     
     /**

@@ -37,7 +37,7 @@ public class AppointmentController {
      * Chỉ dành cho admin
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
@@ -78,7 +78,7 @@ public class AppointmentController {
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/consultant/{consultantId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getAppointmentsByConsultantId(
             @PathVariable Long consultantId) {
         return ResponseEntity.ok(appointmentService.getAppointmentsByConsultantId(consultantId));
@@ -101,7 +101,7 @@ public class AppointmentController {
      * Có thể sử dụng với JWT token hoặc cung cấp consultantId trực tiếp
      */
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> updateAppointmentStatus(
             @PathVariable Long id, 
             @RequestBody AppointmentStatusUpdateRequest request,
@@ -133,21 +133,21 @@ public class AppointmentController {
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getUnassignedAppointments() {
         return ResponseEntity.ok(appointmentService.getUnassignedAppointments());
     }
 
-    @PutMapping("/{id}/claim")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
-    public ResponseEntity<AppointmentResponseDto> claimAppointment(
-            @PathVariable Long id,
-            @RequestParam Long consultantId) {
-        return ResponseEntity.ok(appointmentService.claimAppointment(id, consultantId));
-    }
+//    @PutMapping("/{id}/claim")
+//    @PreAuthorize("hasRole('ROLE_CONSULTANT') ")
+//    public ResponseEntity<AppointmentResponseDto> claimAppointment(
+//            @PathVariable Long id,
+//            @RequestParam Long consultantId) {
+//        return ResponseEntity.ok(appointmentService.claimAppointment(id, consultantId));
+//    }
 
     @PutMapping("/{id}/start")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT')")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT')")
     public ResponseEntity<AppointmentResponseDto> startAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId) {
@@ -155,7 +155,7 @@ public class AppointmentController {
     }
     
     @PutMapping("/{id}/end")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ROLE_CONSULTANT') ")
+    @PreAuthorize("hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> endAppointment(
             @PathVariable Long id,
             @RequestParam Long consultantId,

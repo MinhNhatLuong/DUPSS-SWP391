@@ -18,6 +18,7 @@ import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.BlogService;
 import com.dupss.app.BE_Dupss.service.CourseService;
 import com.dupss.app.BE_Dupss.service.SurveyService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,7 @@ public class StaffController {
     private final UserRepository userRepository;
     private final BlogRepository blogRepository;
     private final SurveyRepo surveyRepository;
+    private final ObjectMapper objectMapper;
 
 
     
@@ -172,11 +174,16 @@ public class StaffController {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi: " + e.getMessage()));
         }
     }
-    
-    /**
-     * API cập nhật khảo sát
-     * Staff chỉ có thể cập nhật khảo sát của mình và chưa được phê duyệt
-     */
+
+
+    @PostMapping(value = "/survey", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SurveyResponse> createSurvey(@Valid @RequestPart(value = "request") String request,                                                                                                  @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) throws IOException {
+        SurveyCreateRequest survey = objectMapper.readValue(request, SurveyCreateRequest.class);
+        SurveyResponse surveyResponse = surveyService.createSurvey(survey, coverImage);
+        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
+    }
+
+
     @PatchMapping(value = "/survey/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateSurvey(@PathVariable Long id, @Valid @ModelAttribute SurveyCreateRequest request, @RequestPart(required = false) MultipartFile images) throws IOException {
         try{

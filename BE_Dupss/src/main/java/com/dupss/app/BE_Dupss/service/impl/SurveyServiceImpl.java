@@ -98,10 +98,10 @@ public class SurveyServiceImpl implements SurveyService {
                 question.setOptions(new ArrayList<>());
 
                 for (SurveyCreateRequest.SurveySection.OptionRequest optionRequest : questionRequest.getOptions()) {
-                        SurveyOption option = new SurveyOption();
+                    SurveyOption option = new SurveyOption();
                     option.setOptionText(optionRequest.getOptionText());
                     option.setScore(optionRequest.getScore());
-                        option.setQuestion(question);
+                    option.setQuestion(question);
                     question.getOptions().add(option);
                 }
                 section.getQuestions().add(question);

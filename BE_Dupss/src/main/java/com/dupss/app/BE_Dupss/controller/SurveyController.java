@@ -40,13 +40,13 @@ public class SurveyController {
         return ResponseEntity.ok(results);
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ROLE_STAFF')")
-    public ResponseEntity<SurveyResponse> createSurvey(@Valid @RequestPart(value = "request") String request,                                                                                                  @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) throws IOException {
-        SurveyCreateRequest survey = objectMapper.readValue(request, SurveyCreateRequest.class);
-        SurveyResponse surveyResponse = surveyService.createSurvey(survey, coverImage);
-        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
-    }
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @PreAuthorize("hasAuthority('ROLE_STAFF')")
+//    public ResponseEntity<SurveyResponse> createSurvey(@Valid @RequestPart(value = "request") String request,                                                                                                  @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) throws IOException {
+//        SurveyCreateRequest survey = objectMapper.readValue(request, SurveyCreateRequest.class);
+//        SurveyResponse surveyResponse = surveyService.createSurvey(survey, coverImage);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(surveyResponse);
+//    }
 
 }
 

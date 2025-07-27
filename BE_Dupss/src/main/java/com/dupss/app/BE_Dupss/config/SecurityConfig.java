@@ -212,7 +212,6 @@ public class SecurityConfig {
 
     private final JwtDecoder jwtDecoder;
     private final UserDetailServiceCustomizer userDetailsService;
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
 
     @Bean
@@ -263,14 +262,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173", "http://localhost:3000",
-                "https://dupss.vercel.app", "http://34.87.106.55:5173",
+                "http://localhost:5173", "http://localhost:3000", "http://34.87.106.55:5173",
                 "https://admin.dupssapp.id.vn", "https://dupssapp.id.vn","http://34.87.106.55:8080","http://34.87.106.55:3000"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
@@ -285,15 +282,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 👉 Cần cho CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                        .requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority("ROLE_MANAGER")
                         .requestMatchers("/api/staff/**").hasAnyAuthority("ROLE_STAFF")
                         .anyRequest().authenticated())
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder)

@@ -54,43 +54,25 @@ public class ConsultantController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/consultations")
-    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_ADMIN')")
-    public ResponseEntity<Map<String, String>> createConsultation() {
-        // Implement consultation creation logic here
-        return ResponseEntity.ok(Map.of("message", "Consultation created successfully"));
-    }
     
     /**
      * API lấy danh sách cuộc hẹn chưa được phân công
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/appointments/unassigned")
-    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_ADMIN', 'ROLE_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_MANAGER')")
     public ResponseEntity<List<AppointmentResponseDto>> getUnassignedAppointments() {
         List<AppointmentResponseDto> appointments = appointmentService.getUnassignedAppointments();
         return ResponseEntity.ok(appointments);
     }
-    
-    /**
-     * API nhận cuộc hẹn chưa được phân công
-     * Chỉ dành cho tư vấn viên
-     */
-    @PostMapping("/{consultantId}/appointments/{appointmentId}/claim")
-    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_ADMIN', 'ROLE_MANAGER')")
-    public ResponseEntity<AppointmentResponseDto> claimAppointment(
-            @PathVariable Long consultantId,
-            @PathVariable Long appointmentId) {
-        AppointmentResponseDto appointment = appointmentService.claimAppointment(appointmentId, consultantId);
-        return ResponseEntity.ok(appointment);
-    }
+
 
     /**
      * API lấy danh sách cuộc hẹn của tư vấn viên
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/{consultantId}/appointments")
-    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_ADMIN', 'ROLE_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_MANAGER')")
     public ResponseEntity<List<AppointmentResponseDto>> getConsultantAppointments(
             @PathVariable Long consultantId) {
         List<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByConsultantId(consultantId);
