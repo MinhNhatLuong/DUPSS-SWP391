@@ -621,7 +621,7 @@ const History = () => {
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
                   <CardContent sx={{ flex: '1 0 auto', p: 2.5 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
                       <Tooltip title={survey.surveyTitle}>
                         <Typography component="div" variant="h6" noWrap sx={{ maxWidth: 600, fontWeight: 'bold' }}>
                           {survey.surveyTitle}
@@ -629,18 +629,24 @@ const History = () => {
                       </Tooltip>
                       <StatusChip status={survey.status} />
                     </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ 
+                    
+                    {/* Placeholder div to maintain consistent spacing */}
+                    <Box sx={{ 
+                      height: '40px', 
                       mb: 1.5,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      height: '40px',
-                      maxWidth: '850px'
+                      display: 'flex',
+                      alignItems: 'center'
                     }}>
-                      {survey.description || 'Không có mô tả'}
-                    </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {survey.sections && (
+                          <>
+                            <strong>{survey.sections.length}</strong> phần | 
+                            <strong> {survey.sections.reduce((total, section) => total + (section.questions?.length || 0), 0)}</strong> câu hỏi
+                          </>
+                        )}
+                      </Typography>
+                    </Box>
+                    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CalendarIcon fontSize="small" color="action" />

@@ -13,7 +13,11 @@ import {
   Paper,
   ToggleButtonGroup,
   ToggleButton,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -21,7 +25,8 @@ import {
   Save as SaveIcon,
   Close as CloseIcon,
   Edit as EditIcon,
-  Code as CodeIcon
+  Code as CodeIcon,
+  ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 // Import TinyMCE Editor
@@ -42,7 +47,7 @@ const EditCourse = () => {
   // Main course state
   const [course, setCourse] = useState({
     title: '',
-    topicId: '',
+    topicId: '', // Empty string for initial state
     description: '',
     content: '',
     duration: 0,
@@ -62,71 +67,80 @@ const EditCourse = () => {
   const [apiError, setApiError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalCourse, setOriginalCourse] = useState(null);
 
   // UI visibility states
   const [showQuizSection, setShowQuizSection] = useState(false);
   const [showConditionsSection, setShowConditionsSection] = useState(false);
   
-  // Load initial data: topics and course
+  // Load initial data: first fetch topics, then course
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setApiError(null);
+        setLoading(true);
         
-        // Fetch topics with apiClient
+        // First fetch topics
+        let topicsData = [];
         try {
-          console.log('Fetching topics...');
-          
-          // Use apiClient to fetch topics
           const topicsResponse = await apiClient.get('/topics');
-          const topicsData = topicsResponse.data;
-          
-          console.log('Topics API response:', topicsData);
-          
-          // Handle topics data
-          if (Array.isArray(topicsData)) {
+          if (Array.isArray(topicsResponse.data)) {
+            topicsData = topicsResponse.data;
             setTopics(topicsData);
-            console.log('Topics loaded:', topicsData.length);
           } else {
-            console.error('Topics data format error - not an array:', topicsData);
             setTopics([]);
-            showSnackbar('Error loading topics data', 'error');
+            setApiError('Topics data format error');
           }
         } catch (topicError) {
-          console.error('Error fetching topics:', topicError);
           setTopics([]);
           setApiError(`Error loading topics: ${topicError.message}`);
-          showSnackbar(`Failed to load topics: ${topicError.message}`, 'error');
         }
         
-        // Fetch course data with updated API endpoint
+        // Then fetch course data
         try {
-          console.log('Fetching course data...');
           const courseResponse = await apiClient.get(`/staff/course/${id}`);
           const courseData = courseResponse.data;
           
-          console.log('Course data:', courseData);
+          // Find topic ID by name
+          let topicId = '';
+          if (courseData.topicName && topicsData.length > 0) {
+            // Try exact match first
+            const matchingTopic = topicsData.find(t => t.topicName === courseData.topicName);
+            if (matchingTopic) {
+              topicId = Number(matchingTopic.id);
+            } else {
+              // Try case-insensitive match
+              const caseInsensitiveMatch = topicsData.find(
+                t => t.topicName.toLowerCase() === courseData.topicName.toLowerCase()
+              );
+              if (caseInsensitiveMatch) {
+                topicId = Number(caseInsensitiveMatch.id);
+              }
+            }
+          }
           
-          // Convert topicId to number if it's a string to match with dropdown values
-          const topicId = courseData.topicId ? 
-            (typeof courseData.topicId === 'string' ? parseInt(courseData.topicId, 10) : courseData.topicId) : 
-            '';
-            
-          console.log('Setting course data with topicId:', topicId);
-          
-          // Update course state with fetched data
-          setCourse({
+          // Create course data object
+          const courseDataObj = {
             title: courseData.title || '',
             topicId: topicId,
             description: courseData.description || '',
             content: courseData.content || '',
             duration: courseData.duration || 0,
-            coverImage: null, // We'll just store the URL in imagePreview
+            coverImage: null,
             modules: courseData.modules || [],
             quiz: courseData.quiz || {
               sections: [],
               conditions: []
             }
+          };
+          
+          // Store the course data with the found topicId
+          setCourse(courseDataObj);
+          
+          // Store original data for comparison
+          setOriginalCourse({
+            ...courseDataObj,
+            content: courseData.content || ''
           });
           
           // Set image preview if available
@@ -149,21 +163,49 @@ const EditCourse = () => {
           setApiError(`Error loading course: ${courseError.message}`);
           showSnackbar('Không thể tải thông tin khóa học. Vui lòng thử lại sau.', 'error');
         }
-        
       } catch (error) {
-        console.error("Unexpected error:", error);
+        console.error('Unexpected error:', error);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchData();
-
-    // Cleanup
-    return () => {
-      isMounted.current = false;
-    };
   }, [id]);
+  
+  // Check for changes
+  useEffect(() => {
+    if (!originalCourse) return;
+    
+    // Get current content from editor
+    const currentContent = editorRef.current ? editorRef.current.getContent() : course.content;
+    
+    // Deep comparison function for objects
+    const isEqual = (obj1, obj2) => {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+    
+    // Check if any field has changed
+    const hasContentChanged = currentContent !== originalCourse.content;
+    const hasTitleChanged = course.title !== originalCourse.title;
+    const hasDescriptionChanged = course.description !== originalCourse.description;
+    const hasTopicChanged = course.topicId !== originalCourse.topicId;
+    const hasDurationChanged = course.duration !== originalCourse.duration;
+    const hasModulesChanged = !isEqual(course.modules, originalCourse.modules);
+    const hasQuizChanged = !isEqual(course.quiz, originalCourse.quiz);
+    const hasImageChanged = course.coverImage !== null;
+    
+    const changes = hasContentChanged || 
+                   hasTitleChanged || 
+                   hasDescriptionChanged || 
+                   hasTopicChanged || 
+                   hasDurationChanged || 
+                   hasModulesChanged || 
+                   hasQuizChanged ||
+                   hasImageChanged;
+    
+    setHasChanges(changes);
+  }, [course, originalCourse]);
   
   // Save draft to local storage
   const saveDraft = () => {
@@ -189,7 +231,14 @@ const EditCourse = () => {
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCourse(prev => ({ ...prev, [name]: value }));
+    
+    // Special handling for topicId to ensure it's a number
+    if (name === 'topicId') {
+      const numericValue = value === '' ? '' : Number(value);
+      setCourse(prev => ({ ...prev, [name]: numericValue }));
+    } else {
+      setCourse(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   // Handle image upload
@@ -356,15 +405,29 @@ const EditCourse = () => {
           description: courseData.description,
           imageCover: courseData.coverImage ? 
             (typeof courseData.coverImage === 'string' ? courseData.coverImage : courseData.coverImage.name) : "",
-          sections: courseData.quiz.sections,
-          conditions: courseData.quiz.conditions
+          sections: courseData.quiz.sections.map(section => ({
+            sectionId: section.sectionId || null,
+            sectionName: section.sectionName,
+            questions: section.questions.map(question => ({
+              questionId: question.questionId || null,
+              questionText: question.questionText,
+              options: question.options.map(option => ({
+                optionId: option.optionId || null,
+                optionText: option.optionText,
+                score: option.score
+              }))
+            }))
+          })),
+          conditions: courseData.quiz.conditions.map(condition => ({
+            conditionId: condition.conditionId || null,
+            operator: condition.operator,
+            value: condition.value,
+            message: condition.message
+          }))
         };
         formData.append('quiz', JSON.stringify(quizData));
       }
       
-      // Log for debugging
-      console.log('Submitting course form data with modules:', courseData.modules.length);
-
       // Set header for multipart form data
       const config = {
         headers: {
@@ -375,12 +438,10 @@ const EditCourse = () => {
       
       // Use the API_URL with axios (since apiClient doesn't handle FormData well)
       const submitUrl = `${API_URL}/courses/${id}`;
-      console.log('Submitting to URL:', submitUrl);
       
       // Using axios directly here because we need to handle FormData with specific config
       const response = await axios.patch(submitUrl, formData, config);
       
-      console.log('Course update response:', response);
       showSnackbar('Khóa học đã được cập nhật thành công!', 'success');
       
       // Clear the draft
@@ -392,7 +453,6 @@ const EditCourse = () => {
       }, 2000);
       
     } catch (error) {
-      console.error('Error updating course:', error);
       // More detailed error message
       let errorMsg = 'Lỗi khi cập nhật khóa học';
       if (error.response) {
@@ -429,6 +489,11 @@ const EditCourse = () => {
     );
   }
   
+  // Debug log right before rendering
+  console.log('Rendering EditCourse with course state:', course);
+  console.log('Current topicId type:', typeof course.topicId, 'value:', course.topicId);
+  console.log('Available topics:', topics);
+  
   return (
     <Box sx={{ p: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold', textAlign: 'left' }}>
@@ -456,14 +521,8 @@ const EditCourse = () => {
         {/* Topic and Image side by side */}
         <Box sx={{ display: 'flex', mb: 2, gap: 2 }}>
           {/* Topic selection */}
-          <TextField
-            select
+          <FormControl 
             fullWidth
-            label="Chủ đề"
-            name="topicId"
-            value={course.topicId}
-            onChange={handleChange}
-            variant="outlined"
             sx={{ 
               flex: 3,
               '& .MuiOutlinedInput-root': {
@@ -472,20 +531,32 @@ const EditCourse = () => {
               }
             }}
             error={!!apiError}
-            helperText={apiError ? 'Using mock topics data' : ''}
           >
-            {topics.length === 0 && (
-              <MenuItem disabled value="">
-                No topics available - Check console for errors
+            <InputLabel>Chủ đề</InputLabel>
+            <Select
+              label="Chủ đề"
+              name="topicId"
+              value={course.topicId !== undefined && course.topicId !== '' ? Number(course.topicId) : ''}
+              onChange={(e) => {
+                handleChange(e);
+              }}
+              disabled={topics.length === 0}
+            >
+              <MenuItem value="">
+                <em>Chọn chủ đề</em>
               </MenuItem>
-            )}
-            
-            {topics.map(topic => (
-              <MenuItem key={topic.id} value={typeof topic.id === 'string' ? parseInt(topic.id, 10) : topic.id}>
-                {topic.topicName || "Unnamed Topic"}
-              </MenuItem>
-            ))}
-          </TextField>
+              
+              {topics.map(topic => {
+                const topicId = Number(topic.id);
+                return (
+                  <MenuItem key={topic.id} value={topicId}>
+                    {topic.topicName || "Unnamed Topic"}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+            {apiError && <FormHelperText>Using mock topics data</FormHelperText>}
+          </FormControl>
           
           {/* Image upload */}
           <Box
@@ -577,7 +648,7 @@ const EditCourse = () => {
           >
             <Box sx={{ p: 1, borderBottom: '1px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
               <Typography variant="body2" color="text.secondary">
-                WYSIWYG Editor
+                Nội dung
               </Typography>
             </Box>
             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -802,6 +873,7 @@ const EditCourse = () => {
                       quiz: {
                         ...prev.quiz,
                         sections: [...(prev.quiz?.sections || []), {
+                          sectionId: null,
                           sectionName: '',
                           questions: []
                         }]
@@ -815,6 +887,7 @@ const EditCourse = () => {
                     quiz: {
                       ...prev.quiz,
                       sections: [...(prev.quiz?.sections || []), {
+                        sectionId: null,
                         sectionName: '',
                         questions: []
                       }]
@@ -870,7 +943,7 @@ const EditCourse = () => {
                     onChange={(e) => {
                       const updatedSections = [...(course.quiz?.sections || [])];
                       if (!updatedSections[sectionIndex]) {
-                        updatedSections[sectionIndex] = { sectionName: '', questions: [] };
+                        updatedSections[sectionIndex] = { sectionId: section.sectionId || null, sectionName: '', questions: [] };
                       }
                       updatedSections[sectionIndex].sectionName = e.target.value;
                       setCourse(prev => ({
@@ -892,12 +965,13 @@ const EditCourse = () => {
                       onClick={() => {
                         const updatedSections = [...(course.quiz?.sections || [])];
                         if (!updatedSections[sectionIndex]) {
-                          updatedSections[sectionIndex] = { questions: [] };
+                          updatedSections[sectionIndex] = { sectionId: section.sectionId || null, questions: [] };
                         }
                         if (!updatedSections[sectionIndex].questions) {
                           updatedSections[sectionIndex].questions = [];
                         }
                         updatedSections[sectionIndex].questions.push({
+                          questionId: null,
                           questionText: '',
                           options: []
                         });
@@ -982,6 +1056,7 @@ const EditCourse = () => {
                               updatedSections[sectionIndex].questions[questionIndex].options = [];
                             }
                             updatedSections[sectionIndex].questions[questionIndex].options.push({
+                              optionId: null,
                               optionText: '',
                               score: 0
                             });
@@ -1109,6 +1184,7 @@ const EditCourse = () => {
                       quiz: {
                         ...prev.quiz,
                         conditions: [...(prev.quiz?.conditions || []), {
+                          conditionId: null,
                           message: '',
                           value: 0,
                           operator: '='
@@ -1123,6 +1199,7 @@ const EditCourse = () => {
                     quiz: {
                       ...prev.quiz,
                       conditions: [...(prev.quiz?.conditions || []), {
+                        conditionId: null,
                         message: '',
                         value: 0,
                         operator: '='
@@ -1245,23 +1322,32 @@ const EditCourse = () => {
         </Box>
         
         {/* Action buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4 }}>
           <Button
             variant="outlined"
-            startIcon={<SaveIcon />}
-            onClick={handleSaveDraft}
-            disabled={isSubmitting}
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/staff/history')}
           >
-            Lưu nháp
+            Quay lại
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={isSubmitting ? <CircularProgress size={24} color="inherit" /> : <SaveIcon />}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Đang xử lý...' : 'Lưu khóa học'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+            >
+              Lưu nháp
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={isSubmitting ? <CircularProgress size={24} color="inherit" /> : <SaveIcon />}
+              disabled={isSubmitting || !hasChanges}
+            >
+              {isSubmitting ? 'Đang xử lý...' : 'Lưu thay đổi'}
+            </Button>
+          </Box>
         </Box>
       </Box>
       

@@ -47,9 +47,11 @@ const EditSurvey = () => {
   const [showConditionsUI, setShowConditionsUI] = useState(false);
   
   const [imagePreview, setImagePreview] = useState(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success', action: null });
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalSurvey, setOriginalSurvey] = useState(null);
 
   // Fetch survey data
   useEffect(() => {
@@ -71,29 +73,40 @@ const EditSurvey = () => {
         const surveyData = response.data;
         
         // Format the survey data to match our state structure
-        console.log('Survey data from API:', surveyData);
         
-        setSurvey({
+        const surveyObj = {
           title: surveyData.title || surveyData.surveyTitle || '',
           description: surveyData.description || '',
           imageCover: null,
           active: surveyData.active !== false,
           forCourse: surveyData.forCourse || false,
           sections: surveyData.sections?.map(section => ({
+            sectionId: section.sectionId || null,
             sectionName: section.sectionName || '',
             questions: section.questions?.map(question => ({
+              questionId: question.questionId || null,
               questionText: question.questionText || '',
               options: question.options?.map(option => ({
+                optionId: option.optionId || null,
                 optionText: option.optionText || '',
                 score: option.score || 0
               })) || []
             })) || []
           })) || [],
           conditions: surveyData.conditions?.map(condition => ({
+            conditionId: condition.conditionId || null,
             message: condition.message || '',
             value: condition.value || 0,
             operator: condition.operator || '='
           })) || []
+        };
+        
+        setSurvey(surveyObj);
+        
+        // Store original data for comparison
+        setOriginalSurvey({
+          ...surveyObj,
+          description: surveyData.description || ''
         });
         
         // Set image preview if available
@@ -111,7 +124,6 @@ const EditSurvey = () => {
         }
         
       } catch (err) {
-        console.error('Error fetching survey:', err);
         setSnackbar({
           open: true,
           message: 'Không thể tải thông tin khảo sát. Vui lòng thử lại sau.',
@@ -124,6 +136,80 @@ const EditSurvey = () => {
     
     fetchSurvey();
   }, [id]);
+
+  // Load draft from local storage
+  useEffect(() => {
+    if (!id) return;
+    
+    const savedDraft = localStorage.getItem(`surveyEditDraft_${id}`);
+    if (savedDraft && !initialLoading) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        
+        setSnackbar({
+          open: true,
+          message: 'Đã tìm thấy bản nháp. Bạn có muốn tải lên?',
+          severity: 'info',
+          action: (
+            <Button color="inherit" size="small" onClick={() => {
+              setSurvey(parsedDraft);
+              if (parsedDraft.imagePreview) {
+                setImagePreview(parsedDraft.imagePreview);
+              }
+              if (parsedDraft.sections && parsedDraft.sections.length > 0) {
+                setShowSectionsUI(true);
+              }
+              if (parsedDraft.conditions && parsedDraft.conditions.length > 0) {
+                setShowConditionsUI(true);
+              }
+              setSnackbar({
+                open: true,
+                message: 'Đã tải bản nháp thành công!',
+                severity: 'success'
+              });
+            }}>
+              Tải lên
+            </Button>
+          )
+        });
+      } catch (error) {
+        // Error parsing draft, ignore silently
+        console.error("Error parsing draft:", error);
+      }
+    }
+  }, [id, initialLoading]);
+
+  // Check for changes
+  useEffect(() => {
+    if (!originalSurvey) return;
+    
+    // Get current content from editor
+    const currentContent = editorRef.current ? editorRef.current.getContent() : survey.description;
+    
+    // Deep comparison function for objects
+    const isEqual = (obj1, obj2) => {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+    
+    // Check if any field has changed
+    const hasContentChanged = currentContent !== originalSurvey.description;
+    const hasTitleChanged = survey.title !== originalSurvey.title;
+    const hasActiveChanged = survey.active !== originalSurvey.active;
+    const hasForCourseChanged = survey.forCourse !== originalSurvey.forCourse;
+    const hasSectionsChanged = !isEqual(survey.sections, originalSurvey.sections);
+    const hasConditionsChanged = !isEqual(survey.conditions, originalSurvey.conditions);
+    const hasImageChanged = survey.imageCover !== null;
+    
+    const changes = hasContentChanged || 
+                   hasTitleChanged || 
+                   hasActiveChanged || 
+                   hasForCourseChanged || 
+                   hasSectionsChanged || 
+                   hasConditionsChanged ||
+                   hasImageChanged;
+    
+    setHasChanges(changes);
+  }, [survey, originalSurvey]);
 
   // Handle basic field changes
   const handleChange = (e) => {
@@ -153,7 +239,7 @@ const EditSurvey = () => {
       imagePreview: imagePreview
     };
     
-    localStorage.setItem('surveyEditDraft', JSON.stringify(updatedSurvey));
+    localStorage.setItem(`surveyEditDraft_${id}`, JSON.stringify(updatedSurvey));
     
     setSnackbar({
       open: true,
@@ -169,10 +255,104 @@ const EditSurvey = () => {
     // Get current content from editor ref
     const currentContent = editorRef.current ? editorRef.current.getContent() : survey.description;
     
-    if (!survey.title || !currentContent) {
+    // Validate all required fields
+    const validationErrors = [];
+    
+    if (!survey.title || survey.title.trim() === '') {
+      validationErrors.push('Tiêu đề khảo sát không được để trống');
+    }
+    
+    if (!currentContent || currentContent.trim() === '') {
+      validationErrors.push('Mô tả khảo sát không được để trống');
+    }
+    
+    if (!survey.sections || survey.sections.length === 0) {
+      validationErrors.push('Phải có ít nhất một section');
+    } else {
+      // Check if each section has at least one question
+      const sectionsWithoutQuestions = survey.sections.filter(section => 
+        !section.questions || section.questions.length === 0
+      );
+      
+      if (sectionsWithoutQuestions.length > 0) {
+        validationErrors.push('Mỗi section phải có ít nhất một câu hỏi');
+      } else {
+        // Check if section names are filled
+        const sectionsWithEmptyNames = survey.sections.filter(section => 
+          !section.sectionName || section.sectionName.trim() === ''
+        );
+        
+        if (sectionsWithEmptyNames.length > 0) {
+          validationErrors.push('Tên section không được để trống');
+        }
+        
+        // Check if question texts are filled
+        let hasEmptyQuestionText = false;
+        for (const section of survey.sections) {
+          for (const question of section.questions) {
+            if (!question.questionText || question.questionText.trim() === '') {
+              hasEmptyQuestionText = true;
+              break;
+            }
+          }
+          if (hasEmptyQuestionText) break;
+        }
+        
+        if (hasEmptyQuestionText) {
+          validationErrors.push('Nội dung câu hỏi không được để trống');
+        }
+        
+        // Check if each question has at least one option
+        let hasQuestionWithoutOptions = false;
+        let hasEmptyOptionText = false;
+        
+        for (const section of survey.sections) {
+          for (const question of section.questions) {
+            if (!question.options || question.options.length === 0) {
+              hasQuestionWithoutOptions = true;
+              break;
+            }
+            
+            // Check if option texts are filled
+            for (const option of question.options) {
+              if (!option.optionText || option.optionText.trim() === '') {
+                hasEmptyOptionText = true;
+                break;
+              }
+            }
+            if (hasEmptyOptionText) break;
+          }
+          if (hasQuestionWithoutOptions || hasEmptyOptionText) break;
+        }
+        
+        if (hasQuestionWithoutOptions) {
+          validationErrors.push('Mỗi câu hỏi phải có ít nhất một lựa chọn');
+        }
+        
+        if (hasEmptyOptionText) {
+          validationErrors.push('Nội dung lựa chọn không được để trống');
+        }
+      }
+    }
+    
+    if (!survey.conditions || survey.conditions.length === 0) {
+      validationErrors.push('Phải có ít nhất một điều kiện');
+    } else {
+      // Check if condition messages are filled
+      const conditionsWithEmptyMessages = survey.conditions.filter(condition => 
+        !condition.message || condition.message.trim() === ''
+      );
+      
+      if (conditionsWithEmptyMessages.length > 0) {
+        validationErrors.push('Nội dung điều kiện không được để trống');
+      }
+    }
+    
+    // If there are validation errors, show them and stop submission
+    if (validationErrors.length > 0) {
       setSnackbar({
         open: true,
-        message: 'Vui lòng điền đầy đủ tiêu đề và mô tả.',
+        message: `Có lỗi khi cập nhật khảo sát: ${validationErrors.join(', ')}`,
         severity: 'error'
       });
       return;
@@ -204,36 +384,42 @@ const EditSurvey = () => {
         active: survey.active,
         forCourse: survey.forCourse,
         sections: survey.sections.map(section => ({
+          sectionId: section.sectionId || null,
           sectionName: section.sectionName,
           questions: section.questions.map(question => ({
+            questionId: question.questionId || null,
             questionText: question.questionText,
             options: question.options.map(option => ({
+              optionId: option.optionId || null,
               optionText: option.optionText,
               score: option.score
             }))
           }))
         })),
         conditions: survey.conditions.map(condition => ({
+          conditionId: condition.conditionId || null,
           operator: condition.operator,
           value: condition.value,
           message: condition.message
         }))
       };
       
+      console.log('Sending survey update request:', surveyRequest);
+      
       // Prepare form data for multipart submission
       const formData = new FormData();
       
-      // Add the JSON request as a string with parameter "request"
+      // Add the JSON request as a blob with parameter "request"
       formData.append('request', new Blob([JSON.stringify(surveyRequest)], {
         type: 'application/json'
       }));
       
-      // Add the cover image if it exists
+      // Add the cover image if it exists - use the correct parameter name 'images'
       if (survey.imageCover) {
-        formData.append('coverImage', survey.imageCover);
+        formData.append('images', survey.imageCover);
       }
       
-      // Submit the survey using the project's authentication pattern
+      // Submit the survey using axios with proper headers
       const response = await axios({
         method: 'patch',
         url: `${API_URL}/staff/survey/${id}`,
@@ -251,7 +437,7 @@ const EditSurvey = () => {
       });
       
       // Clear the draft
-      localStorage.removeItem('surveyEditDraft');
+      localStorage.removeItem(`surveyEditDraft_${id}`);
       
       // Navigate back after success
       setTimeout(() => {
@@ -259,9 +445,10 @@ const EditSurvey = () => {
       }, 2000);
       
     } catch (error) {
-      console.error('Error updating survey:', error);
-      
       let errorMessage = 'Có lỗi khi cập nhật khảo sát';
+      
+      console.error('Error updating survey:', error);
+      console.error('Error response:', error.response?.data || 'No response data');
       
       if (error.response) {
         if (error.response.status === 401) {
@@ -294,6 +481,7 @@ const EditSurvey = () => {
     setSurvey(prev => ({
       ...prev,
       sections: [...prev.sections, {
+        sectionId: null,
         sectionName: '',
         questions: []
       }]
@@ -308,6 +496,7 @@ const EditSurvey = () => {
     }
     
     updatedSections[sectionIndex].questions.push({
+      questionId: null,
       questionText: '',
       options: []
     });
@@ -326,6 +515,7 @@ const EditSurvey = () => {
     }
     
     updatedSections[sectionIndex].questions[questionIndex].options.push({
+      optionId: null,
       optionText: '',
       score: 0
     });
@@ -345,6 +535,7 @@ const EditSurvey = () => {
     setSurvey(prev => ({
       ...prev,
       conditions: [...prev.conditions, {
+        conditionId: null,
         message: '',
         value: 0,
         operator: '='
@@ -857,7 +1048,7 @@ const EditSurvey = () => {
               type="submit"
               variant="contained"
               startIcon={<SaveIcon />}
-              disabled={loading}
+              disabled={loading || !hasChanges}
             >
               {loading ? <CircularProgress size={24} /> : 'Lưu thay đổi'}
             </Button>
@@ -871,7 +1062,12 @@ const EditSurvey = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+          action={snackbar.action}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

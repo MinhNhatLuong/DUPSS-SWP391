@@ -397,8 +397,25 @@ const CreateCourse = () => {
           title: courseData.title,
           description: courseData.description,
           imageCover: courseData.coverImage ? courseData.coverImage.name : "",
-          sections: courseData.quiz.sections,
-          conditions: courseData.quiz.conditions
+          sections: courseData.quiz.sections.map(section => ({
+            sectionId: section.sectionId || null,
+            sectionName: section.sectionName,
+            questions: section.questions.map(question => ({
+              questionId: question.questionId || null,
+              questionText: question.questionText,
+              options: question.options.map(option => ({
+                optionId: option.optionId || null,
+                optionText: option.optionText,
+                score: option.score
+              }))
+            }))
+          })),
+          conditions: courseData.quiz.conditions.map(condition => ({
+            conditionId: condition.conditionId || null,
+            operator: condition.operator,
+            value: condition.value,
+            message: condition.message
+          }))
         };
         formData.append('quiz', JSON.stringify(quizData));
       }
@@ -622,7 +639,7 @@ const CreateCourse = () => {
           >
             <Box sx={{ p: 1, borderBottom: '1px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
               <Typography variant="body2" color="text.secondary">
-                WYSIWYG Editor
+                Nội dung
               </Typography>
             </Box>
             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -850,6 +867,7 @@ const CreateCourse = () => {
                       quiz: {
                         ...prev.quiz,
                         sections: [...(prev.quiz?.sections || []), {
+                          sectionId: null,
                           sectionName: '',
                           questions: []
                         }]
@@ -863,6 +881,7 @@ const CreateCourse = () => {
                     quiz: {
                       ...prev.quiz,
                       sections: [...(prev.quiz?.sections || []), {
+                        sectionId: null,
                         sectionName: '',
                         questions: []
                       }]
@@ -918,7 +937,7 @@ const CreateCourse = () => {
                     onChange={(e) => {
                       const updatedSections = [...(course.quiz?.sections || [])];
                       if (!updatedSections[sectionIndex]) {
-                        updatedSections[sectionIndex] = { sectionName: '', questions: [] };
+                        updatedSections[sectionIndex] = { sectionId: null, sectionName: '', questions: [] };
                       }
                       updatedSections[sectionIndex].sectionName = e.target.value;
                       setCourse(prev => ({
@@ -940,12 +959,13 @@ const CreateCourse = () => {
                       onClick={() => {
                         const updatedSections = [...(course.quiz?.sections || [])];
                         if (!updatedSections[sectionIndex]) {
-                          updatedSections[sectionIndex] = { questions: [] };
+                          updatedSections[sectionIndex] = { sectionId: null, questions: [] };
                         }
                         if (!updatedSections[sectionIndex].questions) {
                           updatedSections[sectionIndex].questions = [];
                         }
                         updatedSections[sectionIndex].questions.push({
+                          questionId: null,
                           questionText: '',
                           options: []
                         });
@@ -1030,6 +1050,7 @@ const CreateCourse = () => {
                               updatedSections[sectionIndex].questions[questionIndex].options = [];
                             }
                             updatedSections[sectionIndex].questions[questionIndex].options.push({
+                              optionId: null,
                               optionText: '',
                               score: 0
                             });
@@ -1157,6 +1178,7 @@ const CreateCourse = () => {
                       quiz: {
                         ...prev.quiz,
                         conditions: [...(prev.quiz?.conditions || []), {
+                          conditionId: null,
                           message: '',
                           value: 0,
                           operator: '='
@@ -1171,6 +1193,7 @@ const CreateCourse = () => {
                     quiz: {
                       ...prev.quiz,
                       conditions: [...(prev.quiz?.conditions || []), {
+                        conditionId: null,
                         message: '',
                         value: 0,
                         operator: '='
