@@ -1336,7 +1336,7 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
           </IconButton>
         </Tooltip>
         
-        <Tooltip title={localScreenShareOn ? "Dừng chia sẻ màn hình" : "Chia sẻ màn hình"}>
+        {/* <Tooltip title={localScreenShareOn ? "Dừng chia sẻ màn hình" : "Chia sẻ màn hình"}>
           <IconButton
             onClick={handleToggleScreenShare}
             sx={{ 
@@ -1350,7 +1350,7 @@ const MeetingContainer = ({ onMeetingLeave, setIsMeetingStarted, isConsultant })
           >
             {localScreenShareOn ? <StopScreenShareIcon /> : <ScreenShareIcon />}
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
         
         <Tooltip title="Chat">
           <IconButton
