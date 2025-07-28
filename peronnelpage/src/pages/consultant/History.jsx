@@ -58,16 +58,27 @@ const columns = [
 
 // Helper to parse date in both formats
 const parseDateString = (dateStr) => {
-  if (!dateStr) return new Date();
+  if (!dateStr) return new Date(0); // Return epoch date for null/undefined dates
   
-  // Check if format is DD/MM/YYYY
-  if (dateStr.includes('/')) {
-    const [day, month, year] = dateStr.split('/');
-    return new Date(`${year}-${month}-${day}`);
+  try {
+    // Check if format is DD/MM/YYYY
+    if (dateStr.includes('/')) {
+      const [day, month, year] = dateStr.split('/');
+      // Create date using year, month-1 (JS months are 0-indexed), day
+      return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    }
+    
+    // Check if format is YYYY-MM-DD
+    if (dateStr.includes('-') && !dateStr.includes('T')) {
+      return new Date(dateStr);
+    }
+    
+    // Otherwise assume ISO format or other valid date string
+    return new Date(dateStr);
+  } catch (e) {
+    console.error('Error parsing date:', e, dateStr);
+    return new Date(0);
   }
-  
-  // Otherwise assume ISO format
-  return new Date(dateStr);
 };
 
 function sortRows(rows, orderBy, order) {
@@ -160,30 +171,75 @@ export default function History() {
   const formatTime = (timeObj) => {
     if (!timeObj) return '';
     
-    if (typeof timeObj === 'string') {
-      // Handle string time format
-      const parts = timeObj.split(':');
-      if (parts.length >= 2) {
-        return `${parts[0]}:${parts[1]}`;
+    try {
+      // If it's already a string in the correct format (HH:MM)
+      if (typeof timeObj === 'string') {
+        // If it already has a colon, assume it's in HH:MM format
+        if (timeObj.includes(':')) {
+          const parts = timeObj.split(':');
+          if (parts.length >= 2) {
+            return `${parts[0]}:${parts[1]}`;
+          }
+        }
+        return timeObj;
       }
-      return timeObj;
+      
+      // Handle object with hour, minute
+      if (typeof timeObj === 'object' && timeObj !== null) {
+        const hour = timeObj.hour !== undefined ? timeObj.hour : 0;
+        const minute = timeObj.minute !== undefined ? timeObj.minute : 0;
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+      
+      return '';
+    } catch (error) {
+      console.error('Error formatting time:', error, timeObj);
+      return '';
     }
-    
-    // Handle object with hour, minute
-    const { hour, minute } = timeObj;
-    if (hour === undefined || minute === undefined) return '';
-    
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    // If already in DD/MM/YYYY format, return as is
-    if (dateStr.includes('/')) return dateStr;
-    // Otherwise format it
+    
     try {
+      // If already in DD/MM/YYYY format, return as is
+      if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          return dateStr;
+        }
+      }
+      
+      // For yyyy-MM-dd format from database
+      if (dateStr.includes('-') && !dateStr.includes('T')) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const [year, month, day] = parts;
+          return `${day}/${month}/${year}`;
+        }
+      }
+      
+      // For ISO format with time component
+      if (dateStr.includes('T')) {
+        const [datePart] = dateStr.split('T');
+        const parts = datePart.split('-');
+        if (parts.length === 3) {
+          const [year, month, day] = parts;
+          return `${day}/${month}/${year}`;
+        }
+      }
+      
+      // Last resort: use Date object
       const date = new Date(dateStr);
-      return date.toLocaleDateString('vi-VN');
+      if (isNaN(date.getTime())) {
+        return dateStr;
+      }
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
     } catch (e) {
       console.error('Error formatting date:', e);
       return dateStr;
@@ -193,9 +249,53 @@ export default function History() {
   // Format datetime for check-in, check-out
   const formatDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return '—';
+    
     try {
+      // If already in dd/MM/yyyy HH:mm format, return as is
+      if (typeof dateTimeStr === 'string' && dateTimeStr.includes('/') && dateTimeStr.includes(':')) {
+        return dateTimeStr;
+      }
+      
+      // For ISO format with time component
+      if (dateTimeStr.includes('T')) {
+        const datePart = dateTimeStr.split('T')[0];
+        const timePart = dateTimeStr.split('T')[1];
+        
+        const [year, month, day] = datePart.split('-');
+        
+        // Extract hours and minutes from the time part
+        let hours = '00';
+        let minutes = '00';
+        
+        if (timePart) {
+          // Handle different time formats
+          if (timePart.includes(':')) {
+            const timeComponents = timePart.split(':');
+            hours = timeComponents[0] || '00';
+            minutes = timeComponents[1] || '00';
+            if (minutes.includes('.')) {
+              minutes = minutes.split('.')[0];
+            }
+          }
+        }
+        
+        // Return in dd/MM/yyyy HH:mm format
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+      }
+      
+      // Last resort: use Date object
       const date = new Date(dateTimeStr);
-      return date.toLocaleString('vi-VN');
+      if (isNaN(date.getTime())) {
+        return dateTimeStr || '—';
+      }
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
     } catch (e) {
       console.error('Error formatting datetime:', e);
       return dateTimeStr || '—';

@@ -111,23 +111,93 @@ const History = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Không xác định';
     try {
+      // If the date is already in dd/mm/yyyy format, return it as is
+      if (dateString.includes('/')) {
+        // Validate that it's actually in the right format
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          return dateString; // Already in the right format
+        }
+      }
+      
+      // For yyyy-MM-dd format from database
+      if (dateString.includes('-') && !dateString.includes('T')) {
+        const parts = dateString.split('-');
+        if (parts.length !== 3) return 'Invalid Date';
+        
+        // Explicitly parse parts as yyyy-MM-dd
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+        
+        if (!year || !month || !day || isNaN(parseInt(year)) || isNaN(parseInt(month)) || isNaN(parseInt(day))) {
+          return 'Invalid Date';
+        }
+        
+        // Explicitly return in dd/MM/yyyy format
+        return `${day}/${month}/${year}`;
+      }
+      
+      // For ISO format with time component
+      if (dateString.includes('T')) {
+        const parts = dateString.split('T')[0].split('-');
+        if (parts.length !== 3) return 'Invalid Date';
+        
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+        
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Last resort: try with Date object
       const date = new Date(dateString);
-      return date.toLocaleDateString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      
+      // Manually format to dd/MM/yyyy
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
     } catch (error) {
-      return dateString;
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid Date';
     }
   };
 
   const formatTime = (timeObj) => {
     if (!timeObj) return 'Không xác định';
     try {
-      const { hour, minute } = timeObj;
-      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      // If it's already a string in HH:MM format, return as is
+      if (typeof timeObj === 'string' && timeObj.includes(':')) {
+        const parts = timeObj.split(':');
+        if (parts.length >= 2) {
+          return timeObj; // Already in the right format
+        }
+      }
+      
+      // Handle object with hour and minute properties
+      if (typeof timeObj === 'object' && timeObj !== null) {
+        const hour = timeObj.hour || 0;
+        const minute = timeObj.minute || 0;
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+      
+      // Handle string representation
+      if (typeof timeObj === 'string') {
+        // Try to extract hour and minute from string
+        const timeParts = timeObj.split(':');
+        if (timeParts.length >= 2) {
+          return `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+        }
+      }
+      
+      return 'Không xác định';
     } catch (error) {
+      console.error('Error formatting time:', error);
       return 'Không xác định';
     }
   };
@@ -135,16 +205,58 @@ const History = () => {
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return 'Không xác định';
     try {
+      // If already in dd/mm/yyyy HH:mm format, return as is
+      if (dateTimeString.includes('/') && dateTimeString.includes(':')) {
+        const parts = dateTimeString.split(' ');
+        if (parts.length === 2 && parts[0].split('/').length === 3 && parts[1].split(':').length >= 2) {
+          return dateTimeString; // Already in the right format
+        }
+      }
+      
+      // Handle ISO format (most common from API)
+      if (dateTimeString.includes('T')) {
+        const datePart = dateTimeString.split('T')[0];
+        const timePart = dateTimeString.split('T')[1];
+        
+        const [year, month, day] = datePart.split('-');
+        
+        // Extract hours and minutes from the time part
+        let hours = '00';
+        let minutes = '00';
+        
+        if (timePart) {
+          // Handle different time formats
+          if (timePart.includes(':')) {
+            const timeComponents = timePart.split(':');
+            hours = timeComponents[0] || '00';
+            minutes = timeComponents[1] || '00';
+            if (minutes.includes('.')) {
+              minutes = minutes.split('.')[0];
+            }
+          }
+        }
+        
+        // Return in dd/MM/yyyy HH:mm format
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+      }
+      
+      // Last resort: use Date object
       const date = new Date(dateTimeString);
-      return date.toLocaleString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      
+      // Manually format to ensure dd/MM/yyyy
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
     } catch (error) {
-      return dateTimeString;
+      console.error('Error formatting datetime:', error, dateTimeString);
+      return 'Invalid Date';
     }
   };
 
