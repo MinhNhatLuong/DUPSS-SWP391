@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    List<Appointment> findByConsultant(User consultant);
+    List<Appointment> findByConsultantOrderByAppointmentDateDesc(User consultant);
 
     List<Appointment> findByUser(User user);
 

@@ -178,7 +178,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             return List.of(); // Trả về mảng rỗng nếu không tìm thấy tư vấn viên
         }
 
-        List<Appointment> appointments = appointmentRepository.findByConsultant(consultantOptional.get());
+        List<Appointment> appointments = appointmentRepository.findByConsultantOrderByAppointmentDateDesc(consultantOptional.get());
         return appointments.stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());

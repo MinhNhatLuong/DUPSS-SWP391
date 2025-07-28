@@ -49,6 +49,5 @@ public interface UserService {
 
     List<ConsultantResponse> getAllConsultants();
 
-    List<ConsultantResponse> getAllAvailableConsultants();
 
 }

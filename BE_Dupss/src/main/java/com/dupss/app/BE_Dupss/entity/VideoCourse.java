@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -20,4 +22,7 @@ public class VideoCourse {
     @ManyToOne
     @JoinColumn(name = "courseModule_id", nullable = false)
     private CourseModule courseModule;
+
+    @OneToMany(mappedBy = "video", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<WatchedVideo> watchedVideos;
 }

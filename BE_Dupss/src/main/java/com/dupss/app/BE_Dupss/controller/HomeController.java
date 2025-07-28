@@ -133,7 +133,7 @@ public class HomeController {
 
     @GetMapping("/consultants/available")
     public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
-        List<ConsultantResponse> consultants = userService.getAllAvailableConsultants();
+        List<ConsultantResponse> consultants = userService.getAllConsultants();
         return ResponseEntity.ok(consultants);
     }
 

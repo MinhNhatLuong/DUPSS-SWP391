@@ -38,6 +38,7 @@ public class SurveyServiceImpl implements SurveyService {
     private final SurveyQuestionRepo surveyQuestionRepository;
     private final SurveyOptionRepo surveyOptionRepository;
     private final SurveySectionRepo surveySectionRepository;
+    private final SurveyResultOptionRepo surveyResultOptionRepository;
     private final SurveyConditionRepo surveyConditionRepo;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
@@ -114,7 +115,7 @@ public class SurveyServiceImpl implements SurveyService {
 
         List<SurveyCondition> conditions = new ArrayList<>();
         for (SurveyCreateRequest.ConditionRequest conditionRequest : request.getConditions()) {
-                SurveyCondition condition = new SurveyCondition();
+            SurveyCondition condition = new SurveyCondition();
             condition.setOperator(conditionRequest.getOperator());
             condition.setValue(conditionRequest.getValue());
             condition.setMessage(conditionRequest.getMessage());
@@ -145,8 +146,8 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public SurveyResponse getSurveyDetails(Long surveyId) {
-    Survey survey = surveyRepository.findById(surveyId)
-            .orElseThrow(() -> new RuntimeException("Survey not found"));
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
         return SurveyResponse.builder()
                 .title(survey.getTitle())
                 .surveyImage(survey.getSurveyImage())
@@ -226,9 +227,6 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
 
-
-
-
     private SurveyResultResponse mapToSurveyResultResponse(SurveyResult result) {
 
         return SurveyResultResponse.builder()
@@ -257,7 +255,7 @@ public class SurveyServiceImpl implements SurveyService {
     public void updateStatus(ApprovalStatus status, Long surveyId) {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
-        if(survey.getStatus().equals(ApprovalStatus.PENDING)) {
+        if (survey.getStatus().equals(ApprovalStatus.PENDING)) {
             survey.setStatus(status);
         } else {
             throw new RuntimeException("Khảo sát đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
@@ -267,11 +265,8 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     @Override
+    @Transactional
     public void updateSurvey(SurveyCreateRequest request, Long surveyId, MultipartFile coverImage) throws IOException {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
         User currentUser = securityUtils.getCurrentUser();
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
@@ -279,7 +274,7 @@ public class SurveyServiceImpl implements SurveyService {
         if (!Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
             throw new RuntimeException("Bạn không có quyền cập nhật khảo sát này");
         }
-        if (request.getTitle()!= null) {
+        if (request.getTitle() != null) {
             survey.setTitle(request.getTitle());
         }
         if (request.getDescription() != null) {
@@ -295,9 +290,18 @@ public class SurveyServiceImpl implements SurveyService {
                 .map(SurveyCreateRequest.SurveySection::getSectionId)
                 .collect(Collectors.toList());
 
-        survey.getSections().removeIf(existingSection ->
-                !sectionIdsFromRequest.contains(existingSection.getId())
-        );
+        survey.getSections().removeIf(existingSection -> {
+            boolean shouldRemove = !sectionIdsFromRequest.contains(existingSection.getId());
+            if (shouldRemove) {
+                // When removing a section, first delete all its questions' options related records
+                for (SurveyQuestion question : existingSection.getQuestions()) {
+                    for (SurveyOption option : question.getOptions()) {
+                        deleteSurveyOptionWithResults(option);
+                    }
+                }
+            }
+            return shouldRemove;
+        });
 
 
         // Cập nhật các section
@@ -322,9 +326,16 @@ public class SurveyServiceImpl implements SurveyService {
                         .map(SurveyCreateRequest.SurveySection.QuestionRequest::getQuestionId)
                         .collect(Collectors.toList());
 
-                section.getQuestions().removeIf(existingQ ->
-                        !questionIdsFromRequest.contains(existingQ.getId())
-                );
+                section.getQuestions().removeIf(existingQ -> {
+                    boolean shouldRemove = !questionIdsFromRequest.contains(existingQ.getId());
+                    if (shouldRemove) {
+                        // When removing a question, first delete all its options' related records
+                        for (SurveyOption option : existingQ.getOptions()) {
+                            deleteSurveyOptionWithResults(option);
+                        }
+                    }
+                    return shouldRemove;
+                });
 
                 // update/add câu hỏi
                 for (SurveyCreateRequest.SurveySection.QuestionRequest questionReq : sectionReq.getQuestions()) {
@@ -347,9 +358,19 @@ public class SurveyServiceImpl implements SurveyService {
                             .map(SurveyCreateRequest.SurveySection.OptionRequest::getOptionId)
                             .collect(Collectors.toList());
 
-                    question.getOptions().removeIf(existingO ->
-                            !optionIdsFromRequest.contains(existingO.getId())
-                    );
+                    question.getOptions().removeIf(existingO -> {
+                        boolean toRemove = !optionIdsFromRequest.contains(existingO.getId());
+                        if (toRemove) {
+                            // Xóa các surveyResultOption liên quan
+                            try {
+                                deleteSurveyOptionWithResults(existingO);
+                            } catch (Exception e) {
+                                log.error("Error deleting option ID: " + existingO.getId(), e);
+                                throw new RuntimeException("Cannot remove option that has been used in survey responses");
+                            }
+                        }
+                        return toRemove;
+                    });
 
                     // update/add option
                     for (SurveyCreateRequest.SurveySection.OptionRequest optionReq : questionReq.getOptions()) {
@@ -400,16 +421,32 @@ public class SurveyServiceImpl implements SurveyService {
                 condition.setMessage(conditionReq.getMessage());
             }
         }
-       survey.setStatus(ApprovalStatus.PENDING);
-       surveyRepository.save(survey);
+        survey.setStatus(ApprovalStatus.PENDING);
+        surveyRepository.save(survey);
+    }
+
+//    @Transactional
+    private void deleteSurveyOptionWithResults(SurveyOption option) {
+        try {
+            // Use a native query approach for more reliable deletion
+            Long optionId = option.getId();
+            if (optionId != null) {
+                // First delete all related survey result options - explicit flush to ensure they're deleted
+                surveyResultOptionRepository.deleteBySurveyOption(option);
+                surveyResultOptionRepository.flush(); // Force flush changes to DB
+                
+                // Then delete the option itself
+                surveyOptionRepository.delete(option);
+                surveyOptionRepository.flush(); // Force flush changes to DB
+            }
+        } catch (Exception e) {
+            log.error("Error while deleting survey option with ID: " + option.getId(), e);
+            throw new RuntimeException("Cannot delete survey option due to dependencies: " + e.getMessage());
+        }
     }
 
     @Override
     public void deleteSurvey(Long surveyId) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
         User currentUser = securityUtils.getCurrentUser();
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát với ID: " + surveyId));
@@ -456,11 +493,6 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public List<SurveyManagerResponse> getSurveysByAuthor() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//
-//        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
         User currentUser = securityUtils.getCurrentUser();
 
         List<Survey> surveys = surveyRepository.findByCreatedByAndForCourse(currentUser, false);
@@ -482,12 +514,12 @@ public class SurveyServiceImpl implements SurveyService {
     @Override
     public SurveyResponse getSurveyById(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null && authentication.isAuthenticated() && 
-                                 !authentication.getName().equals("anonymousUser");
-        
+        boolean isAuthenticated = authentication != null && authentication.isAuthenticated() &&
+                !authentication.getName().equals("anonymousUser");
+
         Survey survey = surveyRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Survey not found with id: " + id));
-        
+
         // Kiểm tra quyền truy cập
         if (!isAuthenticated) {
             // Nếu chưa đăng nhập, chỉ cho phép xem khảo sát đã được phê duyệt
@@ -498,12 +530,12 @@ public class SurveyServiceImpl implements SurveyService {
             // Nếu đã đăng nhập, kiểm tra vai trò
             String username = authentication.getName();
             User currentUser = userRepository.findByUsername(username).orElse(null);
-            
+
             if (currentUser != null) {
                 // Nếu không phải STAFF, MANAGER hoặc ADMIN và không phải người tạo khảo sát
                 if (currentUser.getRole() != ERole.ROLE_STAFF &&
-                    !Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
-                    
+                        !Objects.equals(survey.getCreatedBy().getId(), currentUser.getId())) {
+
                     // Chỉ cho phép xem khảo sát đã được phê duyệt
                     if (survey.getStatus() != ApprovalStatus.APPROVED) {
                         throw new RuntimeException("Bạn không có quyền xem khảo sát này");
@@ -511,10 +543,10 @@ public class SurveyServiceImpl implements SurveyService {
                 }
             }
         }
-        
+
         return convertToSurveyResponse(survey);
     }
-    
+
     // Phương thức chuyển đổi từ entity sang DTO
     private SurveyResponse convertToSurveyResponse(Survey survey) {
         return SurveyResponse.builder()
@@ -559,31 +591,31 @@ public class SurveyServiceImpl implements SurveyService {
     public SurveyResultResponse submitSurvey(Long surveyId, SurveyResultRequest request) {
         // Lấy thông tin người dùng hiện tại
         User currentUser = securityUtils.getCurrentUser();
-        
+
         // Lấy thông tin khảo sát
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Survey not found with id: " + surveyId));
-        
+
         // Kiểm tra khảo sát có được phê duyệt không
         if (survey.getStatus() != ApprovalStatus.APPROVED) {
             throw new RuntimeException("Khảo sát này chưa được phê duyệt");
         }
-        
+
         // Tạo kết quả khảo sát
         SurveyResult result = new SurveyResult();
         result.setUser(currentUser);
         result.setSurvey(survey);
         result.setSubmittedAt(LocalDateTime.now());
-        
+
         // Lưu kết quả
         SurveyResult savedResult = surveyResultRepository.save(result);
-        
+
         // Trả về response
         SurveyResultResponse response = new SurveyResultResponse();
         response.setSubmittedAt(savedResult.getSubmittedAt());
         response.setTotalScore(savedResult.getTotalScore());
         response.setAdvice(savedResult.getAdvice());
-        
+
         return response;
     }
 }

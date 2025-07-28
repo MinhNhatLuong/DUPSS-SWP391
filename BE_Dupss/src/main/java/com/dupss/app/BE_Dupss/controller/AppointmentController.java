@@ -45,6 +45,7 @@ public class AppointmentController {
     /**
      * API lấy cuộc hẹn theo ID
      */
+    //use
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.getAppointmentById(id));
@@ -138,13 +139,6 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.getUnassignedAppointments());
     }
 
-//    @PutMapping("/{id}/claim")
-//    @PreAuthorize("hasRole('ROLE_CONSULTANT') ")
-//    public ResponseEntity<AppointmentResponseDto> claimAppointment(
-//            @PathVariable Long id,
-//            @RequestParam Long consultantId) {
-//        return ResponseEntity.ok(appointmentService.claimAppointment(id, consultantId));
-//    }
 
     @PutMapping("/{id}/start")
     @PreAuthorize("hasRole('ROLE_CONSULTANT')")
@@ -153,7 +147,7 @@ public class AppointmentController {
             @RequestParam Long consultantId) {
         return ResponseEntity.ok(appointmentService.startAppointment(id, consultantId));
     }
-    
+
     @PutMapping("/{id}/end")
     @PreAuthorize("hasRole('ROLE_CONSULTANT') ")
     public ResponseEntity<AppointmentResponseDto> endAppointment(

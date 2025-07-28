@@ -297,40 +297,4 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    @Override
-    public List<ConsultantResponse> getAllAvailableConsultants() {
-        List<User> consultants = userRepository.findByRoleAndEnabled(ERole.ROLE_CONSULTANT, true);
-        List<ConsultantResponse> result = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-
-        for (User consultant : consultants) {
-            // Get available slots for this consultant
-            List<Slot> availableSlots = slotRepository.findByConsultantAndAvailableTrue(consultant);
-
-            // Filter slots to only include today or future dates
-            List<Slot> currentAndFutureSlots = availableSlots.stream()
-                    .filter(slot -> !slot.getDate().isBefore(today))
-                    .collect(Collectors.toList());
-
-            // Only include consultant if they have available slots in the present or future
-            if (!currentAndFutureSlots.isEmpty()) {
-                ConsultantResponse dto = new ConsultantResponse();
-                String consultantName = "";
-                dto.setId(consultant.getId());
-                dto.setConsultantName(consultant.getFullname());
-                dto.setAvatar(consultant.getAvatar());
-                dto.setCertificates(consultant.getConsultantProfile().getCertificates());
-                dto.setBio(consultant.getConsultantProfile().getBio());
-                if(consultant.getConsultantProfile().getAcademicTitle() != null) {
-                    consultantName = consultant.getConsultantProfile().getAcademicTitle() + " " + consultant.getFullname();
-                } else {
-                    consultantName = consultant.getFullname();
-                }
-                dto.setConsultantName(consultantName);
-                result.add(dto);
-            }
-        }
-        return result;
-    }
-
 }
