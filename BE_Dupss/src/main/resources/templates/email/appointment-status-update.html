@@ -208,6 +208,12 @@
             </span>
             </div>
         </div>
+        <div class="review-link" th:if="${appointment.status == 'COMPLETED'}">
+            <p>🎉 Cảm ơn bạn đã tham gia buổi tư vấn cùng DUPSS!</p>
+            <a th:href="@{'/appointment/' + ${appointment.id} + '/review'}" target="_blank">
+                Đánh giá cuộc hẹn
+            </a>
+        </div>
         
         <div class="note">
             <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
