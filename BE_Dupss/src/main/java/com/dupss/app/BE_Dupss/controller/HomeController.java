@@ -28,8 +28,8 @@ public class HomeController {
     private final BlogService blogService;
     private final SurveyService surveyService;
     private final CourseEnrollmentService courseEnrollmentService;
-    private final ConsultantService consultantService;
     private final SlotService slotService;
+    private final UserService userService;
 
     @GetMapping("/courses")
     public ResponseEntity<Map<String, Object>> getAllCourses(
@@ -43,7 +43,6 @@ public class HomeController {
         int pageIndex = page > 0 ? page - 1 : 0;
         int size = 6;
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(direction, sortBy));
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<CourseHomeResponse> coursePage;
 
@@ -134,7 +133,7 @@ public class HomeController {
 
     @GetMapping("/consultants/available")
     public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
-        List<ConsultantResponse> consultants = consultantService.getAllConsultants();
+        List<ConsultantResponse> consultants = userService.getAllAvailableConsultants();
         return ResponseEntity.ok(consultants);
     }
 

@@ -62,6 +62,22 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ResourceNotFoundException("Không tìm thấy tư vấn viên hợp lệ cho slot này.");
         }
 
+        LocalDate appointmentDate = selectedSlot.getDate();
+        //Giới hạn số lần đặt lịch trong ngày
+        if (requestDto.getUserId() != null) {
+            // Người dùng đã đăng nhập
+            long count = appointmentRepository.countByUserIdAndAppointmentDate(requestDto.getUserId(), appointmentDate);
+            if (count >= 2) {
+                throw new IllegalStateException("Bạn đã đạt giới hạn 2 lần đặt lịch trong ngày hôm nay.");
+            }
+        } else {
+            // Guest – kiểm tra theo email
+            long count = appointmentRepository.countByEmailAndAppointmentDate(requestDto.getEmail(), appointmentDate);
+            if (count >= 2) {
+                throw new IllegalStateException("Bạn (guest) đã đặt tối đa 2 lịch trong ngày hôm nay.");
+            }
+        }
+
         // Khởi tạo đối tượng Appointment
         Appointment appointment = new Appointment();
         appointment.setCustomerName(requestDto.getCustomerName());
@@ -91,9 +107,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         String videoCallId = requestDto.getVideoCallId();
-         String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
-//        String meetingLink = "http://localhost:5173/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
-
+        String meetingLink = "https://dupssapp.id.vn/appointment/" + savedAppointment.getId() + "/meeting/" + videoCallId;
         savedAppointment.setLinkMeet(meetingLink);
 
         savedAppointment = appointmentRepository.save(savedAppointment);

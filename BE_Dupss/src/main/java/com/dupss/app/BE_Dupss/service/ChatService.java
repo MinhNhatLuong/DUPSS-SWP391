@@ -25,8 +25,8 @@ public class ChatService {
     public String chat(ChatRequest request) {
         List<Course> highlightedCourses = courseRepository.findTop3ByStatusAndActiveTrueOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
         List<Blog> highlightedBlogs = blogRepository.findTop3ByStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
-        String courseUrl = "http://localhost:5173/courses/";
-        String blogUrl = "http://localhost:5173/blogs/";
+        String courseUrl = "https://dupssapp.id.vn/courses/";
+        String blogUrl = "https://dupssapp.id.vn/blogs/";
         StringBuilder courseText = new StringBuilder();
         for (int i = 0; i < highlightedCourses.size(); i++) {
             Course c = highlightedCourses.get(i);
@@ -66,7 +66,6 @@ public class ChatService {
                 """;
 
         Prompt prompt = new Prompt(instruction + "\nCâu hỏi: " + request.message());
-//        return chatModel.call(new Prompt(request.message())).getResult().getOutput().getText();
         return chatModel.call(prompt).getResult().getOutput().getText();
     }
 } 

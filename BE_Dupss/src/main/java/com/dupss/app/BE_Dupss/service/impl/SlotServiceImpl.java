@@ -9,6 +9,7 @@ import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
 import com.dupss.app.BE_Dupss.respository.SlotRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.SlotService;
+import com.dupss.app.BE_Dupss.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,15 +27,13 @@ public class SlotServiceImpl implements SlotService {
 
     private final SlotRepository slotRepository;
     private final UserRepository consultantRepository;
+    private final SecurityUtils securityUtils;
 
     @Override
     public SlotResponseDto createSlot(SlotRequestDto requestDto) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
 
-        User consultant = consultantRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tư vấn viên với Username: " + username));
+        User consultant = securityUtils.getCurrentUser();
 
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
