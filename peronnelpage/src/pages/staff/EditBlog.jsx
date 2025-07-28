@@ -275,7 +275,7 @@ const EditBlog = () => {
     
     // Only append image if a new one is selected
     if (blog.image) {
-      formData.append('images', blog.image);
+      formData.append('coverImage', blog.image);
     }
     
     try {

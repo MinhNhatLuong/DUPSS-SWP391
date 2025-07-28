@@ -147,7 +147,7 @@ const CreateBlog = () => {
     
     // Handle image upload
     if (blog.image) {
-      formData.append('images', blog.image);
+      formData.append('coverImage', blog.image);
     }
     
     try {
