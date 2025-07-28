@@ -37,6 +37,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final CourseModuleRepository moduleRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final WatchedVideoRepo watchedVideoRepo;
     private final UserRepository userRepository;
     private final TopicRepo topicRepository;
     private final CloudinaryService cloudinaryService;
@@ -49,7 +50,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public CourseResponse createCourse(CourseCreateRequest request) throws IOException {
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
@@ -58,7 +59,7 @@ public class CourseServiceImpl implements CourseService {
 
         //check topic
         Topic topic = topicRepository.findByIdAndActive(request.getTopicId(), true);
-        if(topic == null) {
+        if (topic == null) {
             throw new RuntimeException("Topic not found with ID: " + request.getTopicId());
         }
         Course course = new Course();
@@ -84,7 +85,8 @@ public class CourseServiceImpl implements CourseService {
 
         if (StringUtils.hasText(request.getModules())) {
             List<CourseModuleRequest> moduleRequests = objectMapper.readValue(
-                    request.getModules(), new TypeReference<>() {});
+                    request.getModules(), new TypeReference<>() {
+                    });
 
             for (CourseModuleRequest moduleRequest : moduleRequests) {
                 CourseModule module = new CourseModule();
@@ -156,7 +158,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<CourseManagerResponse> getAllCourses() {
 
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_MANAGER) {
@@ -205,7 +207,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponse getCourseById(Long id) {
 
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         Course course = courseRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
@@ -236,9 +238,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> getCoursePending(){
+    public List<CourseResponse> getCoursePending() {
 
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         List<Course> courses = courseRepository.findByStatusAndActiveTrue(ApprovalStatus.PENDING);
         List<CourseResponse> response = courses.stream()
@@ -250,7 +252,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDetailPublicResponse getCoursePublicDetail(Long id) {
 
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
@@ -289,7 +291,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<CourseResponse> getCreatedCourses() {
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
@@ -310,7 +312,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public CourseResponse updateCourse(Long courseId, CourseUpdateRequest request) throws IOException {
 
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
@@ -384,24 +386,34 @@ public class CourseServiceImpl implements CourseService {
     private void updateModules(Course savedCourse, String modulesJson) throws JsonProcessingException {
         if (!StringUtils.hasText(modulesJson)) return;
 
-        List<CourseModuleRequest> moduleRequests = objectMapper.readValue(modulesJson, new TypeReference<>() {});
-
+        List<CourseModuleRequest> moduleRequests = objectMapper.readValue(modulesJson, new TypeReference<>() {
+        });
         List<CourseModule> existingModules = moduleRepository.findByCourseOrderByOrderIndexAsc(savedCourse);
+
+        // Tạo Map để truy cập nhanh CourseModule theo ID
         Map<Long, CourseModule> existingModuleMap = existingModules.stream()
                 .filter(m -> m.getId() != null)
                 .collect(Collectors.toMap(CourseModule::getId, m -> m));
 
+        // Lấy danh sách ID các module từ request
         Set<Long> incomingModuleIds = moduleRequests.stream()
                 .map(CourseModuleRequest::getCourseModuleId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        List<CourseModule> toDeleteModules = existingModules.stream()
-                .filter(m -> m.getId() != null && !incomingModuleIds.contains(m.getId()))
-                .collect(Collectors.toList());
-        moduleRepository.deleteAll(toDeleteModules);
+        // Xóa các module không còn trong request bằng removeIf
+        existingModules.removeIf(module -> {
+            boolean shouldDelete = module.getId() != null && !incomingModuleIds.contains(module.getId());
+            if (shouldDelete) {
+                // Xóa video đã xem trước
+                module.getVideos().forEach(video -> watchedVideoRepo.deleteByVideo(video));
+                moduleRepository.delete(module); // Xóa module khỏi DB
+            }
+            return shouldDelete;
+        });
 
         List<CourseModule> updatedModules = new ArrayList<>();
+
         for (CourseModuleRequest moduleRequest : moduleRequests) {
             CourseModule module = moduleRequest.getCourseModuleId() != null
                     ? existingModuleMap.getOrDefault(moduleRequest.getCourseModuleId(), new CourseModule())
@@ -411,25 +423,36 @@ public class CourseServiceImpl implements CourseService {
             module.setTitle(moduleRequest.getTitle());
             module.setOrderIndex(moduleRequest.getOrderIndex());
 
-            List<VideoCourse> currentVideos = module.getVideos() != null ? module.getVideos() : new ArrayList<>();
+            // Xử lý danh sách video
+            List<VideoCourse> currentVideos = module.getVideos();
+            if (currentVideos == null) {
+                currentVideos = new ArrayList<>();
+                module.setVideos(currentVideos);
+            }
+
             Map<Long, VideoCourse> videoMap = currentVideos.stream()
                     .filter(v -> v.getId() != null)
                     .collect(Collectors.toMap(VideoCourse::getId, v -> v));
 
             List<CourseModuleRequest.VideoCourseRequest> videoRequests = moduleRequest.getVideos() != null
-                    ? moduleRequest.getVideos() : new ArrayList<>();
+                    ? moduleRequest.getVideos()
+                    : new ArrayList<>();
 
             Set<Long> incomingVideoIds = videoRequests.stream()
                     .map(CourseModuleRequest.VideoCourseRequest::getVideoModuleId)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 
-            List<VideoCourse> toRemove = currentVideos.stream()
-                    .filter(v -> v.getId() != null && !incomingVideoIds.contains(v.getId()))
-                    .collect(Collectors.toList());
-            currentVideos.removeAll(toRemove);
+            // Xóa video không còn trong request bằng removeIf
+            currentVideos.removeIf(video -> {
+                boolean shouldDelete = video.getId() != null && !incomingVideoIds.contains(video.getId());
+                if (shouldDelete) {
+                    watchedVideoRepo.deleteByVideo(video);
+                }
+                return shouldDelete;
+            });
 
-            List<VideoCourse> updatedVideos = new ArrayList<>();
+            // Thêm hoặc cập nhật video
             for (CourseModuleRequest.VideoCourseRequest videoRequest : videoRequests) {
                 VideoCourse video = videoRequest.getVideoModuleId() != null
                         ? videoMap.getOrDefault(videoRequest.getVideoModuleId(), new VideoCourse())
@@ -438,23 +461,26 @@ public class CourseServiceImpl implements CourseService {
                 video.setTitle(videoRequest.getTitle());
                 video.setVideoUrl(videoRequest.getVideoUrl());
                 video.setCourseModule(module);
-                updatedVideos.add(video);
+
+                if (video.getId() == null || !currentVideos.contains(video)) {
+                    currentVideos.add(video);
+                }
             }
 
-            module.setVideos(updatedVideos);
             updatedModules.add(module);
         }
 
         moduleRepository.saveAll(updatedModules);
     }
 
+
     @Override
     public void updateStatus(Long courseId, ApprovalStatus status) {
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         Course course = courseRepository.findByIdAndActiveTrue(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
-        if(course.getStatus().equals(ApprovalStatus.PENDING)) {
+        if (course.getStatus().equals(ApprovalStatus.PENDING)) {
             course.setStatus(status);
         } else {
             throw new RuntimeException("Blog đã được phê duyệt hoặc từ chối, không thể cập nhật trạng thái");
@@ -473,7 +499,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void deleteCourse(Long courseId) {
-        User currentUser = securityUtils.getCurrentUser() ;
+        User currentUser = securityUtils.getCurrentUser();
 
         Course course = courseRepository.findByIdAndActiveTrue(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));

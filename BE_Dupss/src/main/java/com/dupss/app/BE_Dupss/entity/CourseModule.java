@@ -21,7 +21,7 @@ public class CourseModule {
     private String title;
 
 
-    @OneToMany(mappedBy = "courseModule", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "courseModule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VideoCourse> videos = new ArrayList<>();
 
     

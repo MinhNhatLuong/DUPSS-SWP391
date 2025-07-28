@@ -12,4 +12,5 @@ public interface WatchedVideoRepo extends JpaRepository<WatchedVideo, Long> {
     boolean existsByUserAndVideoAndWatchedTrue(User user, VideoCourse video);
     Optional<WatchedVideo> findByUserAndVideo(User user, VideoCourse video);
     long countByUserAndVideo_CourseModule_Course_AndWatchedTrue(User user, Course course);
+    void deleteByVideo(VideoCourse video);
 }
