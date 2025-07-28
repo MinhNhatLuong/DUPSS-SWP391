@@ -86,7 +86,18 @@ const StatusChip = ({ status }) => {
 // Format date helper function
 const formatDate = (dateString) => {
   try {
-    return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
+    if (!dateString) return 'N/A';
+    
+    // Check if the date is already in dd/MM/yyyy format
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(dateString)) {
+      // Parse dd/MM/yyyy format correctly
+      const [day, month, yearPart] = dateString.split('/');
+      const year = yearPart.split(' ')[0]; // Extract just the year part
+      return `${day}/${month}/${year}`;
+    }
+    
+    // For other date formats
+    return format(new Date(dateString), 'dd/MM/yyyy');
   } catch (error) {
     return 'Invalid date';
   }

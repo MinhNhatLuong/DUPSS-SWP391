@@ -190,7 +190,7 @@ const CreateSurvey = () => {
       // Submit the survey using the project's authentication pattern
       const response = await axios({
         method: 'post',
-        url: `${API_URL}/survey`,
+        url: `${API_URL}/staff/survey`,
         data: formData,
         headers: {
           'Content-Type': 'multipart/form-data',
