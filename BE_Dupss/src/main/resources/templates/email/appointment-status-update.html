@@ -207,9 +207,18 @@
             </span>
             </div>
         </div>
-        <div class="review-link" th:if="${appointment.status.equals('COMPLETED')}">
+        <div class="review-link" th:if="${showReviewLink == true}">
             <p>🎉 Cảm ơn bạn đã tham gia buổi tư vấn cùng DUPSS!</p>
-            <a th:href="@{'/appointment/' + ${appointment.id} + '/review'}" target="_blank">
+            <p>Hãy đánh giá cuộc hẹn để giúp chúng tôi cải thiện dịch vụ:</p>
+            <a th:href="${reviewUrl}" target="_blank" style="
+                display: inline-block;
+                background-color: #4285f4;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: 500;
+                margin-top: 10px;">
                 Đánh giá cuộc hẹn
             </a>
         </div>

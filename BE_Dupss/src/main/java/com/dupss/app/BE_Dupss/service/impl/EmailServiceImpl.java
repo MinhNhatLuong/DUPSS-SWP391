@@ -74,10 +74,20 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("statusChangeMessage", getStatusChangeMessage(appointment.getStatus(), previousStatus));
 
             if ("CONFIRMED".equals(appointment.getStatus()) && appointment.getLinkMeet() != null) {
-                context.setVariable("showMeetLink", true);
-                context.setVariable("dupssMeetLink", appointment.getLinkMeet());
+                context.setVariable("showGoogleMeetLink", true);
+                context.setVariable("googleMeetLink", appointment.getLinkMeet());
             } else {
                 context.setVariable("showGoogleMeetLink", false);
+            }
+
+            // Add special handling for COMPLETED status
+            if ("COMPLETED".equals(appointment.getStatus())) {
+                String reviewUrl = "https://dupssapp.id.vn/appointments/" + appointment.getId() + "/review";
+                context.setVariable("showReviewLink", true);
+                context.setVariable("reviewUrl", reviewUrl);
+                log.info("Added review link for completed appointment ID: {}", appointment.getId());
+            } else {
+                context.setVariable("showReviewLink", false);
             }
 
             String content = templateEngine.process("email/appointment-status-update", context);
