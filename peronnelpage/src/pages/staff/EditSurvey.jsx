@@ -1048,7 +1048,7 @@ const EditSurvey = () => {
               type="submit"
               variant="contained"
               startIcon={<SaveIcon />}
-              disabled={loading || !hasChanges}
+              disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : 'Lưu thay đổi'}
             </Button>
