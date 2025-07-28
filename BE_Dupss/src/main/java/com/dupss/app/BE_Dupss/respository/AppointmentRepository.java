@@ -22,6 +22,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findByIsGuestAndEmailOrderByAppointmentDateDesc(boolean isGuest, String email);
 
+    long countByUserIdAndAppointmentDate(Long userId, LocalDate date);
+
+    long countByEmailAndAppointmentDate(String email, LocalDate date);
+
     /**
      * Tìm các cuộc hẹn của một tư vấn viên với trạng thái đã hoàn thành hoặc đã hủy
      */

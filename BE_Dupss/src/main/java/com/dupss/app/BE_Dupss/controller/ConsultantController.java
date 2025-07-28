@@ -6,21 +6,17 @@ import com.dupss.app.BE_Dupss.dto.response.ConsultantResponse;
 import com.dupss.app.BE_Dupss.dto.response.SlotResponseDto;
 import com.dupss.app.BE_Dupss.entity.User;
 import com.dupss.app.BE_Dupss.respository.AppointmentRepository;
-import com.dupss.app.BE_Dupss.respository.SlotRepository;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.AppointmentService;
-import com.dupss.app.BE_Dupss.service.ConsultantService;
 import com.dupss.app.BE_Dupss.service.SlotService;
+import com.dupss.app.BE_Dupss.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +28,7 @@ public class ConsultantController {
     private final AppointmentService appointmentService;
     private final AppointmentRepository appointmentRepository;
     private final SlotService slotService;
-    private final ConsultantService consultantService;
+    private final UserService userService;
 
     /**
      * API lấy tất cả tư vấn viên đang hoạt động
@@ -60,7 +56,7 @@ public class ConsultantController {
      * Chỉ dành cho tư vấn viên
      */
     @GetMapping("/appointments/unassigned")
-    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT')")
     public ResponseEntity<List<AppointmentResponseDto>> getUnassignedAppointments() {
         List<AppointmentResponseDto> appointments = appointmentService.getUnassignedAppointments();
         return ResponseEntity.ok(appointments);
@@ -87,7 +83,7 @@ public class ConsultantController {
 
     @GetMapping("/available")
     public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
-        List<ConsultantResponse> consultants = consultantService.getAllConsultants();
+        List<ConsultantResponse> consultants = userService.getAllConsultants();
         return ResponseEntity.ok(consultants);
     }
 }

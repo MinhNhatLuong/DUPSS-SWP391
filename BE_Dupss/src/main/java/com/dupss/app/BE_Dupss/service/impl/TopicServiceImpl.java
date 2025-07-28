@@ -8,6 +8,7 @@ import com.dupss.app.BE_Dupss.exception.ResourceNotFoundException;
 import com.dupss.app.BE_Dupss.respository.TopicRepo;
 import com.dupss.app.BE_Dupss.respository.UserRepository;
 import com.dupss.app.BE_Dupss.service.TopicService;
+import com.dupss.app.BE_Dupss.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TopicServiceImpl implements TopicService {
     private final TopicRepo topicRepository;
-    private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
 
     @Override
     public List<Topic> getAll() {
@@ -42,14 +43,11 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicResponse create(TopicRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
 
-        User creator = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User creator = securityUtils.getCurrentUser();
 
         if (topicRepository.existsByNameIgnoreCase(request.getName())) {
-            throw new IllegalArgumentException("Topic with the same name already exists");
+            throw new IllegalArgumentException("Chủ đề với tên này đã tồn tại");
         }
 
         Topic topic = new Topic();
@@ -63,9 +61,8 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public List<TopicResponse> getTopicsCreatedByCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        List<Topic> topics = topicRepository.findByCreator_UsernameAndActive(username, true);
+        User currentUser = securityUtils.getCurrentUser();
+        List<Topic> topics = topicRepository.findByCreator_UsernameAndActive(currentUser.getUsername(), true);
 
         return topics.stream()
                 .map(topic -> new TopicResponse(

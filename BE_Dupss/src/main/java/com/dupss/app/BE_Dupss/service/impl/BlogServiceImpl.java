@@ -10,6 +10,7 @@ import com.dupss.app.BE_Dupss.respository.*;
 import com.dupss.app.BE_Dupss.service.BlogService;
 
 import com.dupss.app.BE_Dupss.service.CloudinaryService;
+import com.dupss.app.BE_Dupss.util.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,15 +40,12 @@ public class BlogServiceImpl implements BlogService {
     private final CloudinaryService cloudinaryService;
     private final TopicRepo topicRepository;
     private final ActionLogRepo actionLogRepo;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
     public BlogResponse createBlog(BlogRequest blogRequest) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        User author = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User author = securityUtils.getCurrentUser();
 
         // Create new blog
         Blog blog = new Blog();
@@ -103,11 +101,8 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogResponse> getCreatedBlogs() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
 
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = securityUtils.getCurrentUser();
 
         // Check if user has STAFF or MANAGER role
         if (currentUser.getRole() != ERole.ROLE_STAFF && currentUser.getRole() != ERole.ROLE_MANAGER) {
@@ -132,12 +127,7 @@ public class BlogServiceImpl implements BlogService {
                     res.setId(blog.getId());
                     res.setTitle(blog.getTitle());
                     res.setTopic(blog.getTopic().getName());
-
-//                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-//                        res.setCoverImage(blog.getImages().getFirst().getImageUrl());
-//                    }
                     res.setCoverImage(blog.getCoverImage());
-
                     res.setSummary(blog.getDescription());
                     res.setCreatedAt(blog.getCreatedAt());
                     return res;
@@ -202,10 +192,6 @@ public class BlogServiceImpl implements BlogService {
                     dto.setCreatedAt(blog.getCreatedAt());
                     dto.setSummary(blog.getDescription());
                     dto.setCoverImage(blog.getCoverImage());
-//                    if (blog.getImages() != null && !blog.getImages().isEmpty()) {
-//                        dto.setCoverImage(blog.getImages().getFirst().getImageUrl());
-//                    }
-
                     return dto;
                 }).collect(Collectors.toList());
 
@@ -241,10 +227,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void updateBlog(Long id, BlogRequest blogRequest) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = securityUtils.getCurrentUser();
 
         Blog blog = blogRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
@@ -282,10 +265,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteBlog(Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        User currentUser = userRepository.findByUsernameAndEnabledTrue(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = securityUtils.getCurrentUser();
 
         Blog blog = blogRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + id));
