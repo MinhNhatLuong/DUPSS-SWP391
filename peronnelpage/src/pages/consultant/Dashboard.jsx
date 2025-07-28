@@ -278,28 +278,15 @@ export default function ConsultantDashboard() {
         return;
       }
       
-      const userInfo = getUserInfo();
-      if (!userInfo || !userInfo.id) {
-        throw new Error('Không tìm thấy thông tin người dùng');
-      }
-
-      // Call the start appointment API
-      const response = await apiClient.put(`/appointments/${appointment.id}/start?consultantId=${userInfo.id}`, {}, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      
-      // Get videoCallId from response or use a fallback
-      const videoCallId = response.data?.videoCallId || appointment.videoCallId || appointment.id;
-      
       // Use origin to determine base URL
       const origin = window.location.origin;
       const baseUrl = origin.includes('localhost') || origin.includes(':3000') || origin.includes(':8000') 
         ? 'http://localhost:5173' // Redirect to frontend-dupss dev server
         : origin.replace('staff.', ''); // In production, redirect to main site
         
+      // Create meeting URL using appointment ID
+      const videoCallId = appointment.videoCallId || appointment.id;
+      
       // Open meeting URL with the correct format
       const meetingUrl = `${baseUrl}/appointment/${appointment.id}/meeting/${videoCallId}`;
       console.log('Opening meeting URL:', meetingUrl);

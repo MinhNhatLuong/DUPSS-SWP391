@@ -538,24 +538,11 @@ export default function Schedule() {
         severity: 'info' 
       });
 
-      const userInfo = getUserInfo();
-      if (!userInfo || !userInfo.id) {
-        throw new Error('Không tìm thấy thông tin người dùng');
-      }
-
-      const response = await apiClient.put(`/appointments/${appointmentId}/start?consultantId=${userInfo.id}`, {}, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // Tạo link từ ID cuộc hẹn
+      const meetLink = generateMeetLink(dialog.appt);
       
-      // Mở Google Meet trong tab mới
-      if (response.data && response.data.linkGoogleMeet) {
-        window.open(response.data.linkGoogleMeet, '_blank');
-      } else {
-        // Nếu không có link trong response, mở link cũ
-        window.open(generateMeetLink(dialog.appt), '_blank');
-      }
+      // Mở Meet trong tab mới
+      window.open(meetLink, '_blank');
 
       setSnackbar({ 
         open: true, 
