@@ -149,16 +149,20 @@ const CreateSurvey = () => {
         active: survey.active,
         forCourse: survey.forCourse,
         sections: survey.sections.map(section => ({
+          sectionId: section.sectionId || null,
           sectionName: section.sectionName,
           questions: section.questions.map(question => ({
+            questionId: question.questionId || null,
             questionText: question.questionText,
             options: question.options.map(option => ({
+              optionId: option.optionId || null,
               optionText: option.optionText,
               score: option.score
             }))
           }))
         })),
         conditions: survey.conditions.map(condition => ({
+          conditionId: condition.conditionId || null,
           operator: condition.operator,
           value: condition.value,
           message: condition.message
@@ -258,6 +262,7 @@ const CreateSurvey = () => {
     setSurvey(prev => ({
       ...prev,
       sections: [...prev.sections, {
+        sectionId: null,
         sectionName: '',
         questions: []
       }]
@@ -272,6 +277,7 @@ const CreateSurvey = () => {
     }
     
     updatedSections[sectionIndex].questions.push({
+      questionId: null,
       questionText: '',
       options: []
     });
@@ -290,6 +296,7 @@ const CreateSurvey = () => {
     }
     
     updatedSections[sectionIndex].questions[questionIndex].options.push({
+      optionId: null,
       optionText: '',
       score: 0
     });
@@ -309,6 +316,7 @@ const CreateSurvey = () => {
     setSurvey(prev => ({
       ...prev,
       conditions: [...prev.conditions, {
+        conditionId: null,
         message: '',
         value: 0,
         operator: '='

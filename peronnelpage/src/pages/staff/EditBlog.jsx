@@ -48,81 +48,128 @@ const EditBlog = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadingTopics, setLoadingTopics] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalBlog, setOriginalBlog] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   
-  // Fetch blog data and topics
+  // Fetch blog data
   useEffect(() => {
-    const fetchBlog = async () => {
+    const fetchData = async () => {
       try {
-        const token = getAccessToken();
+        setLoading(true);
         
-        const response = await axios.get(`${API_URL}/staff/blog/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        // First fetch topics
+        let topicsData = [];
+        try {
+          const topicsResponse = await apiClient.get('/topics');
+          if (Array.isArray(topicsResponse.data)) {
+            topicsData = topicsResponse.data;
+            setTopics(topicsData);
+          } else {
+            setTopics([]);
           }
-        });
-        
-        console.log('Blog data fetched:', response.data);
-        
-        // Check if we have valid data
-        if (!response.data) {
-          throw new Error('No data received from API');
+        } catch (topicError) {
+          setTopics([]);
+          setSnackbar({
+            open: true,
+            message: 'Không thể tải danh sách topic. Vui lòng kiểm tra kết nối và thử lại.',
+            severity: 'error'
+          });
         }
         
-        // Convert topicId to number if it's a string to match with dropdown values
-        const topicId = response.data.topicId ? 
-          (typeof response.data.topicId === 'string' ? parseInt(response.data.topicId, 10) : response.data.topicId) : 
-          '';
+        // Then fetch blog data
+        try {
+          const token = getAccessToken();
           
-        console.log('Setting blog data with topicId:', topicId);
-        
-        setBlog({
-          title: response.data.title || '',
-          description: response.data.description || '',
-          content: response.data.content || '',
-          topicId: topicId,
-        });
-        
-        if (response.data.imageUrl) {
-          setPreviewImage(response.data.imageUrl);
+          const response = await axios.get(`${API_URL}/staff/blog/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          // Check if we have valid data
+          if (!response.data) {
+            throw new Error('No data received from API');
+          }
+          
+          // Find topic ID by name
+          let topicId = '';
+          if (response.data.topic && topicsData.length > 0) {
+            // Try exact match first
+            const matchingTopic = topicsData.find(t => t.topicName === response.data.topic);
+            if (matchingTopic) {
+              topicId = Number(matchingTopic.id);
+            } else {
+              // Try case-insensitive match
+              const caseInsensitiveMatch = topicsData.find(
+                t => t.topicName.toLowerCase() === response.data.topic.toLowerCase()
+              );
+              if (caseInsensitiveMatch) {
+                topicId = Number(caseInsensitiveMatch.id);
+              }
+            }
+          }
+          
+          // Create blog data object
+          const blogData = {
+            title: response.data.title || '',
+            description: response.data.description || '',
+            content: response.data.content || '',
+            topicId: topicId,
+            image: null
+          };
+          
+          // Store the blog data
+          setBlog(blogData);
+          
+          // Store original data for comparison
+          setOriginalBlog({
+            ...blogData,
+            content: response.data.content || ''
+          });
+          
+          if (response.data.imageUrl) {
+            setPreviewImage(response.data.imageUrl);
+          }
+        } catch (err) {
+          setSnackbar({
+            open: true,
+            message: 'Không thể tải thông tin bài viết. Vui lòng thử lại sau.',
+            severity: 'error'
+          });
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Error fetching blog:', err);
-        setSnackbar({
-          open: true,
-          message: 'Không thể tải thông tin bài viết. Vui lòng thử lại sau.',
-          severity: 'error'
-        });
-      } finally {
+      } catch (error) {
         setLoading(false);
       }
     };
     
-    const fetchTopics = async () => {
-      setLoadingTopics(true);
-      try {
-        const response = await apiClient.get('/topics');
-        console.log('Topics fetched:', response.data);
-        setTopics(response.data);
-      } catch (err) {
-        console.error('Error fetching topics:', err);
-        setSnackbar({
-          open: true,
-          message: 'Không thể tải danh sách topic. Vui lòng kiểm tra kết nối và thử lại.',
-          severity: 'error'
-        });
-      } finally {
-        setLoadingTopics(false);
-      }
-    };
-    
-    fetchBlog();
-    fetchTopics();
+    fetchData();
   }, [id]);
+  
+  // Check for changes
+  useEffect(() => {
+    if (!originalBlog) return;
+    
+    // Get current content from editor
+    const currentContent = editorRef.current ? editorRef.current.getContent() : blog.content;
+    
+    // Check if any field has changed
+    const hasContentChanged = currentContent !== originalBlog.content;
+    const hasTitleChanged = blog.title !== originalBlog.title;
+    const hasDescriptionChanged = blog.description !== originalBlog.description;
+    const hasTopicChanged = blog.topicId !== originalBlog.topicId;
+    const hasImageChanged = blog.image !== null;
+    
+    const changes = hasContentChanged || hasTitleChanged || hasDescriptionChanged || hasTopicChanged || hasImageChanged;
+    
+    setHasChanges(changes);
+  }, [blog, originalBlog]);
   
   // Handle form input changes
   const handleChange = (e) => {
@@ -143,6 +190,62 @@ const EditBlog = () => {
       reader.readAsDataURL(file);
     }
   };
+  
+  // Save draft to local storage
+  const handleSaveDraft = () => {
+    try {
+      const currentContent = editorRef.current ? editorRef.current.getContent() : blog.content;
+      
+      // Create draft object
+      const draft = {
+        ...blog,
+        content: currentContent,
+        imagePreview: previewImage
+      };
+      
+      // Save to localStorage
+      localStorage.setItem(`blogDraft_${id}`, JSON.stringify(draft));
+      
+      setSnackbar({
+        open: true,
+        message: 'Lưu bảng nháp thành công!',
+        severity: 'success'
+      });
+      
+      return true;
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Lỗi khi lưu bảng nháp',
+        severity: 'error'
+      });
+      
+      return false;
+    }
+  };
+  
+  // Load draft from local storage
+  useEffect(() => {
+    if (!id) return;
+    
+    const savedDraft = localStorage.getItem(`blogDraft_${id}`);
+    if (savedDraft && !loading) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        
+        setSnackbar({
+          open: true,
+          message: 'Đã tìm thấy bản nháp. Bạn có muốn tải lên?',
+          severity: 'info'
+        });
+        
+        // We don't automatically load the draft to avoid overwriting API data
+        // User can click the "Load Draft" button if they want to
+      } catch (error) {
+        // Error parsing draft, ignore silently
+      }
+    }
+  }, [id, loading]);
   
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -186,8 +289,6 @@ const EditBlog = () => {
         }
       });
       
-      console.log('Blog update successful:', response.data);
-      
       setSnackbar({
         open: true,
         message: 'Cập nhật bài viết thành công!',
@@ -200,16 +301,10 @@ const EditBlog = () => {
       }, 2000);
       
     } catch (err) {
-      console.error('Error updating blog:', err);
-      
-      // Get more detailed error information
       let errorMessage = 'Có lỗi xảy ra khi cập nhật bài viết';
       if (err.response) {
-        console.error('Error response data:', err.response.data);
-        console.error('Error response status:', err.response.status);
         errorMessage += `: ${err.response.status} - ${err.response.data?.message || JSON.stringify(err.response.data)}`;
       } else if (err.request) {
-        console.error('Error request:', err.request);
         errorMessage += ': Không nhận được phản hồi từ server';
       } else {
         errorMessage += `: ${err.message}`;
@@ -283,10 +378,10 @@ const EditBlog = () => {
                   }
                 }}
                 renderValue={
-                  blog.topicId === '' 
+                  blog.topicId === '' || blog.topicId === null
                     ? () => <Typography sx={{ color: 'text.secondary' }}>Chọn topic</Typography>
                     : () => {
-                        const selectedTopic = topics.find(t => t.id === blog.topicId);
+                        const selectedTopic = topics.find(t => Number(t.id) === Number(blog.topicId));
                         return selectedTopic ? selectedTopic.topicName : '';
                       }
                 }
@@ -297,7 +392,7 @@ const EditBlog = () => {
                   </MenuItem>
                 ) : (
                   topics.map(topic => (
-                    <MenuItem key={topic.id} value={typeof topic.id === 'string' ? parseInt(topic.id, 10) : topic.id}>
+                    <MenuItem key={topic.id} value={Number(topic.id)}>
                       {topic.topicName}
                     </MenuItem>
                   ))
@@ -477,14 +572,25 @@ const EditBlog = () => {
           >
             Quay lại
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={saving}
-          >
-            {saving ? <CircularProgress size={24} /> : 'Lưu thay đổi'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              type="button"
+              variant="outlined"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveDraft}
+              disabled={saving}
+            >
+              Lưu nháp
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SaveIcon />}
+              disabled={saving || !hasChanges}
+            >
+              {saving ? <CircularProgress size={24} /> : 'Lưu thay đổi'}
+            </Button>
+          </Box>
         </Box>
       </Box>
       
