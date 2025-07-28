@@ -235,7 +235,7 @@ export default function ConsultantDashboard() {
     return date.toLocaleDateString('vi-VN');
   };
 
-  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 5 phút)
+  // Kiểm tra xem có thể bắt đầu buổi tư vấn chưa (cho phép trước 10 phút)
   const canStartAppointment = (appointment) => {
     if (!appointment || appointment.status !== 'CONFIRMED') return false;
     
@@ -264,8 +264,9 @@ export default function ConsultantDashboard() {
     // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
     const minutesUntilAppointment = Math.floor((appointmentDateTime - now) / (60 * 1000));
     
-    // Cho phép bắt đầu nếu thời gian còn lại ≤ 5 phút
-    return minutesUntilAppointment <= 5;
+    // Cho phép bắt đầu nếu thời gian còn lại ≤ 10 phút
+    // Bỏ ràng buộc không cho vào sau khi đã bắt đầu (không cần kiểm tra minutesUntilAppointment > 0)
+    return minutesUntilAppointment <= 10;
   };
 
   // Handle starting an appointment via Google Meet

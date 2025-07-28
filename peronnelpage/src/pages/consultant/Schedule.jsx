@@ -515,8 +515,8 @@ export default function Schedule() {
     // Tính thời gian còn lại (tính bằng phút) đến buổi tư vấn
     const minutesUntilAppointment = appointmentDateTime.diff(now, 'minute');
     
-    // Cho phép bắt đầu nếu thời gian còn lại ≤ 5 phút
-    return minutesUntilAppointment <= 5;
+    // Cho phép bắt đầu nếu thời gian còn lại ≤ 10 phút
+    return minutesUntilAppointment <= 10;
   };
 
   // Thêm hàm bắt đầu buổi tư vấn
@@ -526,7 +526,7 @@ export default function Schedule() {
       if (!canStartAppointment(dialog.appt)) {
         setSnackbar({ 
           open: true, 
-          message: 'Chỉ có thể vào cuộc hẹn trước buổi tư vấn 5 phút!', 
+          message: 'Chỉ có thể vào cuộc hẹn trước buổi tư vấn 10 phút!', 
           severity: 'warning' 
         });
         return;
@@ -1066,10 +1066,17 @@ export default function Schedule() {
                       onClick={() => handleStartAppointment(dialog.appt.id)}
                       disabled={!canStartAppointment(dialog.appt)}
                       sx={{ 
-                        opacity: canStartAppointment(dialog.appt) ? 1 : 0.5
+                        ml: 2,
+                        px: 2,
+                        borderRadius: '20px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        opacity: canStartAppointment(dialog.appt) ? 1 : 0.6,
+                        '&:hover': {
+                          boxShadow: canStartAppointment(dialog.appt) ? '0 4px 6px rgba(0,0,0,0.2)' : 'none'
+                        }
                       }}
                     >
-                      {canStartAppointment(dialog.appt) ? 'vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
+                      {canStartAppointment(dialog.appt) ? 'Vào cuộc hẹn' : 'Chưa đến giờ tham gia'}
                     </Button>
                   </Box>
                 </>
