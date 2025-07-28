@@ -127,7 +127,17 @@ const EditCourse = () => {
             content: courseData.content || '',
             duration: courseData.duration || 0,
             coverImage: null,
-            modules: courseData.modules || [],
+            // Map modules correctly with consistent ID field names
+            modules: Array.isArray(courseData.modules) ? courseData.modules.map(module => ({
+              courseModuleId: module.id, // Use courseModuleId as the key identifier
+              title: module.title || '',
+              orderIndex: module.orderIndex || 0,
+              videos: Array.isArray(module.videos) ? module.videos.map(video => ({
+                videoModuleId: video.id, // Use videoModuleId as the key identifier
+                title: video.title || '',
+                videoUrl: video.videoUrl || ''
+              })) : []
+            })) : [],
             quiz: courseData.quiz || {
               sections: [],
               conditions: []
@@ -257,9 +267,9 @@ const EditCourse = () => {
   // Module management functions
   const addModule = () => {
     const newModule = {
+      courseModuleId: null, // Use null for new modules
       title: '',
       description: '',
-      content: '',
       orderIndex: course.modules.length + 1,
       videos: []
     };
@@ -298,6 +308,7 @@ const EditCourse = () => {
   // Video management functions
   const addVideo = (moduleIndex) => {
     const newVideo = {
+      videoModuleId: null, // Use null for new videos
       title: '',
       videoUrl: ''
     };
@@ -371,55 +382,59 @@ const EditCourse = () => {
       setIsSubmitting(true);
       const token = getAccessToken();
       
-      // Build the final data structure based on all collected course information
-      const courseData = {
-        title: course.title,
-        topicId: course.topicId,
-        description: course.description,
-        content: currentContent,
-        duration: course.duration,
-        coverImage: course.coverImage,
-        modules: course.modules,
-        quiz: course.quiz
-      };
-
+      // Format the modules data for backend
+      const modulesData = course.modules.map(module => ({
+        // Use courseModuleId if available, otherwise null for new modules
+        courseModuleId: module.courseModuleId,
+        title: module.title,
+        orderIndex: module.orderIndex,
+        videos: module.videos.map(video => ({
+          // Use videoModuleId if available, otherwise null for new videos
+          videoModuleId: video.videoModuleId,
+          title: video.title,
+          videoUrl: video.videoUrl
+        }))
+      }));
+      
+      console.log("Sending modules data:", modulesData);
+      
       // Prepare form data for submission with files
       const formData = new FormData();
-      formData.append('title', courseData.title);
-      formData.append('topicId', courseData.topicId);
-      formData.append('description', courseData.description);
-      formData.append('content', courseData.content);
-      formData.append('duration', courseData.duration);
+      formData.append('title', course.title);
+      formData.append('topicId', course.topicId);
+      formData.append('description', course.description);
+      formData.append('content', currentContent);
+      formData.append('duration', course.duration);
       
-      if (courseData.coverImage && typeof courseData.coverImage !== 'string') {
-        formData.append('coverImage', courseData.coverImage);
+      if (course.coverImage && typeof course.coverImage !== 'string') {
+        formData.append('coverImage', course.coverImage);
       }
       
       // Append modules as JSON string
-      formData.append('modules', JSON.stringify(courseData.modules));
+      formData.append('modules', JSON.stringify(modulesData));
       
       // Append quiz data
-      if (courseData.quiz && courseData.quiz.sections.length > 0) {
+      if (course.quiz && course.quiz.sections.length > 0) {
         const quizData = {
-          title: courseData.title,
-          description: courseData.description,
-          imageCover: courseData.coverImage ? 
-            (typeof courseData.coverImage === 'string' ? courseData.coverImage : courseData.coverImage.name) : "",
-          sections: courseData.quiz.sections.map(section => ({
-            sectionId: section.sectionId || null,
+          title: course.title,
+          description: course.description,
+          imageCover: course.coverImage ? 
+            (typeof course.coverImage === 'string' ? course.coverImage : course.coverImage.name) : "",
+          sections: course.quiz.sections.map(section => ({
+            sectionId: section.id || section.sectionId || null,
             sectionName: section.sectionName,
             questions: section.questions.map(question => ({
-              questionId: question.questionId || null,
+              questionId: question.id || question.questionId || null,
               questionText: question.questionText,
               options: question.options.map(option => ({
-                optionId: option.optionId || null,
+                optionId: option.id || option.optionId || null,
                 optionText: option.optionText,
                 score: option.score
               }))
             }))
           })),
-          conditions: courseData.quiz.conditions.map(condition => ({
-            conditionId: condition.conditionId || null,
+          conditions: course.quiz.conditions.map(condition => ({
+            conditionId: condition.id || condition.conditionId || null,
             operator: condition.operator,
             value: condition.value,
             message: condition.message
