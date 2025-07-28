@@ -4,7 +4,7 @@ import { Box, Typography, Button, Alert, AlertTitle, CircularProgress } from '@m
 const SurveyResult = ({ result, onSubmit, onBack, submitting = false }) => {
   // Determine result color
   const getResultSeverity = () => {
-    if (result.score <= 1) return "success"; // Low risk, green
+    if (result.score <= 0) return "success"; // Low risk, green
     return "warning"; // Medium or high risk, yellow
   };
 
