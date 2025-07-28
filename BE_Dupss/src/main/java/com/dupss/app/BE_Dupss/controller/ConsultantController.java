@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller xử lý các API liên quan đến tư vấn viên
+ * Cung cấp các endpoint để quản lý tư vấn viên, lịch làm việc và cuộc hẹn
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/consultant")
@@ -33,6 +37,8 @@ public class ConsultantController {
     /**
      * API lấy tất cả tư vấn viên đang hoạt động
      * Phục vụ cho việc hiển thị danh sách tư vấn viên khi đặt lịch
+     * 
+     * @return Danh sách các tư vấn viên có trạng thái enabled = true
      */
     @GetMapping
     public ResponseEntity<List<User>> getAllConsultants() {
@@ -41,7 +47,10 @@ public class ConsultantController {
     }
 
     /**
-     * API lấy tư vấn viên theo ID
+     * API lấy thông tin chi tiết của một tư vấn viên theo ID
+     * 
+     * @param id ID của tư vấn viên cần lấy thông tin
+     * @return Thông tin chi tiết của tư vấn viên nếu tìm thấy, 404 nếu không tìm thấy
      */
     @GetMapping("/{id}")
     public ResponseEntity<User> getConsultantById(@PathVariable Long id) {
@@ -52,8 +61,10 @@ public class ConsultantController {
 
     
     /**
-     * API lấy danh sách cuộc hẹn chưa được phân công
-     * Chỉ dành cho tư vấn viên
+     * API lấy danh sách cuộc hẹn chưa được phân công cho tư vấn viên
+     * Chỉ dành cho người dùng có vai trò tư vấn viên
+     * 
+     * @return Danh sách các cuộc hẹn chưa được phân công
      */
     @GetMapping("/appointments/unassigned")
     @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT')")
@@ -64,8 +75,11 @@ public class ConsultantController {
 
 
     /**
-     * API lấy danh sách cuộc hẹn của tư vấn viên
-     * Chỉ dành cho tư vấn viên
+     * API lấy danh sách cuộc hẹn của một tư vấn viên cụ thể
+     * Chỉ dành cho người dùng có vai trò tư vấn viên hoặc quản lý
+     * 
+     * @param consultantId ID của tư vấn viên cần lấy danh sách cuộc hẹn
+     * @return Danh sách các cuộc hẹn của tư vấn viên
      */
     @GetMapping("/{consultantId}/appointments")
     @PreAuthorize("hasAnyAuthority('ROLE_CONSULTANT', 'ROLE_MANAGER')")
@@ -75,12 +89,24 @@ public class ConsultantController {
         return ResponseEntity.ok(appointments);
     }
 
+    /**
+     * API tạo slot thời gian làm việc mới cho tư vấn viên
+     * 
+     * @param slot Thông tin slot cần tạo (ngày, giờ bắt đầu, giờ kết thúc, tư vấn viên)
+     * @return Thông tin slot đã được tạo
+     */
     @PostMapping("/slot")
     public ResponseEntity<SlotResponseDto> createSlot(@RequestBody SlotRequestDto slot) {
         SlotResponseDto res = slotService.createSlot(slot);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
+    /**
+     * API lấy danh sách tư vấn viên có sẵn để đặt lịch
+     * Trả về thông tin chi tiết hơn so với API getAllConsultants
+     * 
+     * @return Danh sách các tư vấn viên có sẵn với thông tin chi tiết
+     */
     @GetMapping("/available")
     public ResponseEntity<List<ConsultantResponse>> getAvailableConsultants() {
         List<ConsultantResponse> consultants = userService.getAllConsultants();
