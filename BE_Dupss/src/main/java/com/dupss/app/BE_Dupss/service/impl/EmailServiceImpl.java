@@ -238,7 +238,7 @@ public class EmailServiceImpl implements EmailService {
         switch (newStatus) {
             case "CONFIRMED":
                 return "Cuộc hẹn của bạn đã được xác nhận. Vui lòng đảm bảo tham gia đúng giờ.";
-            case "CANCELED":
+            case "CANCELLED":
                 return "Cuộc hẹn của bạn đã bị hủy. Nếu bạn cần đặt lại, vui lòng truy cập trang web của chúng tôi.";
             case "COMPLETED":
                 return "Cuộc hẹn của bạn đã hoàn thành. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.";
@@ -255,7 +255,7 @@ public class EmailServiceImpl implements EmailService {
                 return "Chờ xác nhận";
             case "CONFIRMED":
                 return "Đã xác nhận";
-            case "CANCELED":
+            case "CANCELLED":
                 return "Đã hủy";
             case "COMPLETED":
                 return "Đã hoàn thành";
