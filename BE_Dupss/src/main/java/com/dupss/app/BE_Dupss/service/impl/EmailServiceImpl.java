@@ -82,7 +82,7 @@ public class EmailServiceImpl implements EmailService {
 
             // Add special handling for COMPLETED status
             if ("COMPLETED".equals(appointment.getStatus())) {
-                String reviewUrl = "https://dupssapp.id.vn/appointments/" + appointment.getId() + "/review";
+                String reviewUrl = "https://dupssapp.id.vn/appointment/" + appointment.getId() + "/review";
                 context.setVariable("showReviewLink", true);
                 context.setVariable("reviewUrl", reviewUrl);
                 log.info("Added review link for completed appointment ID: {}", appointment.getId());
