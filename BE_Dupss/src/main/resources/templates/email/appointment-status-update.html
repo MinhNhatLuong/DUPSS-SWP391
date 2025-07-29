@@ -153,7 +153,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://your-logo-url.com/logo.png" alt="DUPSS Logo" class="logo" th:if="${logoUrl}">
             <h2>Cập nhật trạng thái cuộc hẹn</h2>
         </div>
         
@@ -202,13 +201,13 @@
                       th:switch="${appointment.status}">
                 <span th:case="'PENDING'">Chờ xác nhận</span>
                 <span th:case="'CONFIRMED'">Đã xác nhận</span>
-                <span th:case="'CANCELED'">Đã hủy</span>
+                <span th:case="'CANCELLED'">Đã hủy</span>
                 <span th:case="'COMPLETED'">Đã hoàn thành</span>
                 <span th:case="*">Không xác định</span>
             </span>
             </div>
         </div>
-        <div class="review-link" th:if="${appointment.status == 'COMPLETED'}">
+        <div class="review-link" th:if="${appointment.status.equals('COMPLETED')}">
             <p>🎉 Cảm ơn bạn đã tham gia buổi tư vấn cùng DUPSS!</p>
             <a th:href="@{'/appointment/' + ${appointment.id} + '/review'}" target="_blank">
                 Đánh giá cuộc hẹn

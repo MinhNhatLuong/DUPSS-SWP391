@@ -66,13 +66,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         //Giới hạn số lần đặt lịch trong ngày
         if (requestDto.getUserId() != null) {
             // Người dùng đã đăng nhập
-            long count = appointmentRepository.countByUserIdAndAppointmentDate(requestDto.getUserId(), appointmentDate);
+            long count = appointmentRepository.countByUserIdAndAppointmentDateAndStatusNot(requestDto.getUserId(), appointmentDate, "CANCELLED");
             if (count >= 2) {
                 throw new IllegalStateException("Bạn đã đạt giới hạn 2 lần đặt lịch trong ngày hôm nay.");
             }
         } else {
             // Guest – kiểm tra theo email
-            long count = appointmentRepository.countByEmailAndAppointmentDate(requestDto.getEmail(), appointmentDate);
+            long count = appointmentRepository.countByEmailAndAppointmentDateAndStatusNot(
+                    requestDto.getEmail(), appointmentDate, "CANCELLED"
+            );
             if (count >= 2) {
                 throw new IllegalStateException("Bạn (guest) đã đặt tối đa 2 lịch trong ngày hôm nay.");
             }
