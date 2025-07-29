@@ -442,7 +442,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment updatedAppointment = appointmentRepository.save(appointment);
 
         // Gửi email thông báo hoàn thành và yêu cầu đánh giá
-        emailService.sendAppointmentStatusUpdate(updatedAppointment, "CONFIRMED");
+        emailService.sendAppointmentStatusUpdate(updatedAppointment, "ON_GOING");
 
         return mapToResponseDto(updatedAppointment);
     }
