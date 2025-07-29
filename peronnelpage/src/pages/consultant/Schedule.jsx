@@ -534,21 +534,34 @@ export default function Schedule() {
       
       setSnackbar({ 
         open: true, 
-        message: 'Đang bắt đầu buổi tư vấn...', 
+        message: 'Đang lấy thông tin cuộc hẹn...', 
         severity: 'info' 
       });
 
-      // Tạo link từ ID cuộc hẹn
-      const meetLink = generateMeetLink(dialog.appt);
-      
-      // Mở Meet trong tab mới
-      window.open(meetLink, '_blank');
-
-      setSnackbar({ 
-        open: true, 
-        message: 'Buổi tư vấn đã bắt đầu!', 
-        severity: 'success' 
+      // Gọi API để lấy thông tin cuộc hẹn
+      const response = await apiClient.get(`/appointments/${appointmentId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
       });
+
+      // Kiểm tra linkGoogleMeet từ response
+      if (response.data && response.data.linkGoogleMeet) {
+        // Mở Meet trong tab mới
+        window.open(response.data.linkGoogleMeet, '_blank');
+        
+        setSnackbar({ 
+          open: true, 
+          message: 'Buổi tư vấn đã bắt đầu!', 
+          severity: 'success' 
+        });
+      } else {
+        setSnackbar({ 
+          open: true, 
+          message: 'Không tìm thấy link Meet cho cuộc hẹn này', 
+          severity: 'error' 
+        });
+      }
     } catch (err) {
       console.error('Error starting appointment:', err);
       setSnackbar({ 

@@ -274,23 +274,37 @@ export default function ConsultantDashboard() {
     try {
       // Kiểm tra có thể bắt đầu buổi tư vấn chưa
       if (!canStartAppointment(appointment)) {
-        alert('Chỉ có thể vào Google Meet trước buổi tư vấn 10 phút!');
+        alert('Chỉ có thể vào Meet trước buổi tư vấn 10 phút!');
         return;
       }
       
-      // Use origin to determine base URL
-      const origin = window.location.origin;
-      const baseUrl = origin.includes('localhost') || origin.includes(':3000') || origin.includes(':8000') 
-        ? 'http://localhost:5173' // Redirect to frontend-dupss dev server
-        : origin.replace('staff.', ''); // In production, redirect to main site
+      // Gọi API để lấy thông tin cuộc hẹn
+      const response = await apiClient.get(`/appointments/${appointment.id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      // Kiểm tra linkGoogleMeet từ response
+      if (response.data && response.data.linkGoogleMeet) {
+        // Mở Meet trong tab mới
+        console.log('Opening meeting URL:', response.data.linkGoogleMeet);
+        window.open(response.data.linkGoogleMeet, '_blank');
+      } else {
+        // Fallback nếu không có link từ API
+        const origin = window.location.origin;
+        const baseUrl = origin.includes('localhost') || origin.includes(':3000') || origin.includes(':8000') 
+          ? 'http://localhost:5173' // Redirect to frontend-dupss dev server
+          : origin.replace('staff.', ''); // In production, redirect to main site
+          
+        // Create meeting URL using appointment ID
+        const videoCallId = appointment.videoCallId || appointment.id;
         
-      // Create meeting URL using appointment ID
-      const videoCallId = appointment.videoCallId || appointment.id;
-      
-      // Open meeting URL with the correct format
-      const meetingUrl = `${baseUrl}/appointment/${appointment.id}/meeting/${videoCallId}`;
-      console.log('Opening meeting URL:', meetingUrl);
-      window.open(meetingUrl, '_blank');
+        // Open meeting URL with the correct format
+        const meetingUrl = `${baseUrl}/appointment/${appointment.id}/meeting/${videoCallId}`;
+        console.log('No link from API, using fallback URL:', meetingUrl);
+        window.open(meetingUrl, '_blank');
+      }
     } catch (err) {
       console.error('Error starting appointment:', err);
       alert('Không thể bắt đầu buổi tư vấn: ' + (err.response?.data?.message || err.message));
@@ -454,7 +468,7 @@ export default function ConsultantDashboard() {
                           }
                         }}
                       >
-                        {canStartAppointment(appointment) ? 'Vào Google Meet' : 'Chưa đến giờ tham gia'}
+                        {canStartAppointment(appointment) ? 'Vào Meet' : 'Chưa đến giờ tham gia'}
                       </Button>
                     </ListItem>
                   ))}
